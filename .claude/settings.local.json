@@ -21,7 +21,10 @@
       "Bash(for:*)",
       "Bash(do curl -s \"http://localhost:8000/api/characters/search?server=Siel&name=TestChar$i\")",
       "Bash(done)",
-      "Bash(do curl -s -X POST \"http://localhost:8000/api/search\" -H \"Content-Type: application/json\" -d \"{\"\"server\"\": \"\"Siel\"\", \"\"name\"\": \"\"TestChar$i\"\"}\")"
+      "Bash(do curl -s -X POST \"http://localhost:8000/api/search\" -H \"Content-Type: application/json\" -d \"{\"\"server\"\": \"\"Siel\"\", \"\"name\"\": \"\"TestChar$i\"\"}\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
