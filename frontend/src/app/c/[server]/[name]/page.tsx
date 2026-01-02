@@ -42,21 +42,35 @@ const mapEquipment = (rawEquipment: any): { equipment: any[], accessories: any[]
   const accessories: any[] = []
 
   // Slot mapping from AION API naming to our UI Naming
+  // Key: API returned string, Value: UI expected string
   const slotMap: Record<string, string> = {
     'Main Hand': '주무기', 'Sub Hand': '보조무기',
     'Head': '투구', 'Shoulder': '견갑', 'Torso': '흉갑', 'Glove': '장갑', 'Pants': '각반', 'Shoes': '장화', 'Waist': '허리띠', 'Wing': '망토',
     'Earring 1': '귀걸이1', 'Earring 2': '귀걸이2', 'Necklace': '목걸이',
-    'Ring 1': '반지1', 'Ring 2': '반지2', 'Belt': '허리띠' // check duplicated waist/belt
+    'Ring 1': '반지1', 'Ring 2': '반지2', 'Belt': '허리띠',
+    '주무기': '주무기', '보조무기': '보조무기', '투구': '투구', '상의': '흉갑', '장갑': '장갑', '하의': '각반', '신발': '장화', '어깨': '견갑',
+    '귀고리 쪽': '귀걸이1', '귀고리 짝': '귀걸이2', '반지 쪽': '반지1', '반지 짝': '반지2', '목걸이': '목걸이', '날개': '망토', '허리': '허리띠'
   }
-  // Note: Actual API Strings might be in Korean or different format.
-  // Assuming the API returns Korean slot names? Or we default to using the raw category name if valid.
 
   list.forEach((item: any) => {
-    // Attempt to map slot or use categoryName directly
-    const slotName = item.categoryName || item.slotName
+    // 1. Try to get the raw slot name
+    const rawSlot = item.slotName || item.categoryName
+
+    // 2. Map to UI standard name using slotMap. If not found, fall back to rawSlot.
+    // We normalize to standard UI names: 주무기, 보조무기, 투구, 견갑, 흉갑, 장갑, 각반, 장화, 허리띠, 망토, 귀걸이1/2, 반지1/2, 목걸이
+    let slotName = slotMap[rawSlot] || rawSlot
+
+    // Additional Fallback: Handle "Earring", "Ring" without numbers if necessary (assign to 1 or 2 locally)
+    // For simplicity, we assume API gives distinct slots or we map roughly.
+
+    if (slotName === '상의') slotName = '흉갑'
+    if (slotName === '하의') slotName = '각반'
+    if (slotName === '어깨') slotName = '견갑'
+    if (slotName === '신발') slotName = '장화'
+    if (slotName === '날개') slotName = '망토'
 
     // Determine target list based on slot type
-    const isAccessory = ['귀걸이', '목걸이', '반지', '팔찌', '깃털', '날개'].some(k => slotName?.includes(k))
+    const isAccessory = ['귀걸이', '목걸이', '반지', '팔찌', '깃털', '망토'].some(k => slotName?.includes(k))
 
     const mappedItem = {
       slot: slotName,
