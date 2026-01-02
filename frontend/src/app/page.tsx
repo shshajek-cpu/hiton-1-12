@@ -1,27 +1,55 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
 
+// Hardcoded server list for standalone operation
+// Define servers by race
+export const ELYOS_SERVERS = [
+    '시엘', '네자칸', '바이젤', '카이시넬', '유스티엘', '아리엘', '프레기온',
+    '메스람타에다', '히타니에', '나니아', '타하바타', '루터스', '페르노스',
+    '다미누', '카사카', '바카르마', '챈가룽', '코치룽', '이슈타르', '티아마트', '포에타'
+]
+
+export const ASMODIAN_SERVERS = [
+    '지켈', '트리니엘', '루미엘', '마르쿠탄', '아스펠', '에레슈키갈', '브리트라',
+    '네몬', '하달', '루드라', '울고른', '무닌', '오다르', '젠카카', '크로메데',
+    '콰이링', '바바룽', '파프니르', '인드나흐', '이스할겐'
+]
+
+// Combined list for fallback or searching
+export const ALL_SERVERS = Array.from(new Set([...ELYOS_SERVERS, ...ASMODIAN_SERVERS]))
+
 export default function Home() {
-    const [server, setServer] = useState('') // Default empty (All Servers)
+    // State
+    const [race, setRace] = useState('elyos') // Default to Elyos or arguably 'asmodian' based on user pref, but let's stick to one. User didn't specify default.
+    const [server, setServer] = useState('')
     const [name, setName] = useState('')
     const [loading, setLoading] = useState(false)
-    const [servers, setServers] = useState<string[]>([])
     const [error, setError] = useState('')
     const router = useRouter()
+
+    // Dynamic server list based on race
+    const currentServerList = useMemo(() => {
+        if (race === 'elyos') return ELYOS_SERVERS
+        if (race === 'asmodian') return ASMODIAN_SERVERS
+        return []
+    }, [race])
+
+    // Reset server selection when race changes if the new list doesn't include the current server
+    useEffect(() => {
+        if (server && !currentServerList.includes(server)) {
+            setServer(currentServerList[0] || '')
+        } else if (!server && currentServerList.length > 0) {
+            setServer(currentServerList[0])
+        }
+    }, [race, currentServerList, server])
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
 
+    // Removed useEffect for server loading since we have static data
     useEffect(() => {
-        // Fetch available servers on mount
-        fetch(`${API_BASE_URL}/api/servers`)
-            .then(res => res.json())
-            .then(data => {
-                setServers(data.servers || [])
-                if (data.default) setServer(data.default)
-            })
-            .catch(err => console.error('Failed to load servers:', err))
+        // Any other initialization if needed
     }, [])
 
     const handleSearch = (e: React.FormEvent) => {
@@ -39,7 +67,9 @@ export default function Home() {
         }
 
         setLoading(true)
-        router.push(`/c/${server}/${name}`)
+        // Include race in query param if selected
+        const query = race ? `?race=${race}` : ''
+        router.push(`/c/${server}/${name}${query}`)
     }
 
     return (
@@ -104,7 +134,7 @@ export default function Home() {
                         value={server}
                         onChange={(e) => setServer(e.target.value)}
                         style={{
-                            width: '140px',
+                            width: '120px',
                             background: 'transparent',
                             color: 'white',
                             border: 'none',
@@ -114,15 +144,30 @@ export default function Home() {
                         }}
                     >
                         <option value="" style={{ color: 'black' }}>서버 선택</option>
-                        {servers.length > 0 ? (
-                            servers.map(s => (
-                                <option key={s} value={s} style={{ color: 'black' }}>
-                                    {s}
-                                </option>
-                            ))
-                        ) : (
-                            <option value="" disabled style={{ color: 'black' }}>로딩 중...</option>
-                        )}
+                        {currentServerList.map(s => (
+                            <option key={s} value={s} style={{ color: 'black' }}>
+                                {s}
+                            </option>
+                        ))}
+                    </select>
+
+                    <select
+                        className="input"
+                        value={race}
+                        onChange={(e) => setRace(e.target.value)}
+                        style={{
+                            width: '100px',
+                            background: 'transparent',
+                            color: 'white',
+                            border: 'none',
+                            borderRight: '1px solid var(--border)',
+                            borderRadius: 0,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <option value="" style={{ color: 'black' }}>전체 종족</option>
+                        <option value="elyos" style={{ color: 'black' }}>천족</option>
+                        <option value="asmodian" style={{ color: 'black' }}>마족</option>
                     </select>
 
                     <input
@@ -568,7 +613,7 @@ function ServerTopCharacters() {
                     </div>
                 ))}
             </div>
-        </div>
+        </div >
     )
 }
 

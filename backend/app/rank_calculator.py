@@ -1,204 +1,156 @@
-"""
-랭크(Tier Rank) 산정 모듈
 
-투력 기반으로 D1~S5 랭크를 퍼센타일 방식으로 산정합니다.
+import math
 
-랭크 구조:
-- D1~D5: 하위 0~50% (10% 간격)
-- C1~C5: 50~75% (5% 간격)
-- B1~B5: 75~95% (4% 간격)
-- A1~A5: 95~99.7% (약 1% 간격, 최소 투력 컷 병행)
-- S1~S5: 상위 0.3% (세분화)
-"""
+# 1. Provide Constants
+SCALE = 1.0 # Will tune this later
+A_EXP = 1.0 # Simple multiplication for now, or tuned
+B_EXP = 1.0
+C_EXP = 1.0
+DEF_K = 3500 # Defense constant
 
-from typing import List, Tuple, Optional
-import logging
+# Softcap function (Saturation)
+def softcap(x, cap, k):
+    # x: input value (e.g., 0.45 for 45%)
+    # cap: max limit asymptote (e.g., 1.0 for 100%)
+    # k: steepness factor
+    if x <= 0: return 0
+    # Formula: cap * x / (x + k) -> this approaches cap as x -> infinity
+    # But user asked for: (cap * x) / (x + k)
+    return (cap * x) / (x + k)
 
-logger = logging.getLogger(__name__)
+def calculate_score(name, stats, tune_scale=None):
+    # Stats Unpacking
+    atk = stats['atk']
+    dmg_inc = stats['dmg_inc'] # % as float (0.25)
+    atk_speed = stats['atk_speed'] # % as float
+    crit_rate = stats['crit_rate'] # % as float
+    crit_dmg = stats['crit_dmg'] # % as float
+    multi_hit = stats['multi_hit'] # % as float
+    hp = stats['hp']
+    defense = stats['defense']
+    
+    # --- 2. OFFENSE ---
+    # Softcaps for efficiency
+    # Assume 1% atk speed isn't linear forever. Cap at 100% efficiency? 
+    # Let's use simpler linear for now inside the "efficacy" but user asked for softcap.
+    # We will softcap the *effectiveness* of Atk Speed and Crit Rate.
+    
+    # AS Efficiency: Softcap at 200% (2.0), k=1.0. 
+    # If AS is 45% (0.45), result = 2.0 * 0.45 / (0.45 + 1.0) = 0.9 / 1.45 = 0.62... 
+    # Wait, simple linear is 1+AS. Let's just apply softcap to the *input value* before adding 1?
+    # No, user said "as_eff". Let's assume as_eff = softcap(atk_speed).
+    
+    as_eff = softcap(atk_speed, 2.0, 0.5) # Cap effective speed boost at 200%
+    crit_rate_eff = softcap(crit_rate, 0.8, 0.3) # Cap crit rate at 80%
+    
+    # Multi-hit Formula (Fixed Rule)
+    # Final Prob = 0.19 + multi_hit_stat
+    # If stat >= 0.81, prob = 1.0
+    
+    mh_prob = 0.19 + multi_hit
+    if multi_hit >= 0.81:
+        mh_prob = 1.0
+    elif mh_prob > 1.0:
+        mh_prob = 1.0
+        
+    # Expectation: 1 + p * 0.206
+    m_multihit = 1 + (mh_prob * 0.206)
+    
+    # Offense Score
+    # OFFENSE = ATK * (1 + Dmg) * (1 + AS) * (1 + CR*CD) * Multi
+    offense = atk * (1 + dmg_inc) * (1 + as_eff) * (1 + crit_rate_eff * crit_dmg) * m_multihit
+    
+    # --- 3. DEFENSE ---
+    # DR = 1 - 1 / (1 + def/K)
+    dr = 1 - (1 / (1 + defense / DEF_K))
+    ehp = hp / (1 - dr) # = hp * (1 + def/K) basically
+    
+    defense_score = ehp # Simplified EHP based score
+    
+    # --- 4. UTILITY ---
+    # Placeholder for now, assume 1.05 baseline
+    utility_score = 1.0 
+    
+    # --- TOTAL ---
+    # SCORE = SCALE * (OFFENSE^a * DEFENSE^b * UTILITY^c)
+    # Let's try to balance a and b.
+    # Logically, Damage * Toughness = Combat Capability.
+    # So a=0.5, b=0.5 (Geometric Mean) is mathematically sound for "Duel Power".
+    # User asked for a,b,c tuning.
+    a = 0.55
+    b = 0.45
+    c = 0.1
+    pve_mod = 1.0
+    
+    # Pre-scale calculation
+    raw_score = (offense ** a) * (defense_score ** b) * (utility_score ** c) * pve_mod
+    
+    if tune_scale:
+        # We want final score to be 'tune_scale' (target score)
+        # SCALE * raw = target -> SCALE = target / raw
+        needed_scale = tune_scale / raw_score
+        return needed_scale, raw_score, offense, defense_score
+        
+    final_score = SCALE * raw_score
+    return final_score, offense, defense_score, ehp, m_multihit
 
-
-# 랭크 티어 정의 (퍼센타일 기준)
-# 퍼센타일은 "상위 X%"를 의미 (낮을수록 높은 랭크)
-RANK_TIERS = {
-    # S 티어: 상위 0~0.3%
-    "S5": (0.0, 0.06),
-    "S4": (0.06, 0.12),
-    "S3": (0.12, 0.18),
-    "S2": (0.18, 0.24),
-    "S1": (0.24, 0.3),
-
-    # A 티어: 상위 0.3~5%
-    "A5": (0.3, 1.24),
-    "A4": (1.24, 2.18),
-    "A3": (2.18, 3.12),
-    "A2": (3.12, 4.06),
-    "A1": (4.06, 5.0),
-
-    # B 티어: 상위 5~25%
-    "B5": (5.0, 9.0),
-    "B4": (9.0, 13.0),
-    "B3": (13.0, 17.0),
-    "B2": (17.0, 21.0),
-    "B1": (21.0, 25.0),
-
-    # C 티어: 상위 25~50%
-    "C5": (25.0, 30.0),
-    "C4": (30.0, 35.0),
-    "C3": (35.0, 40.0),
-    "C2": (40.0, 45.0),
-    "C1": (45.0, 50.0),
-
-    # D 티어: 하위 50~100%
-    "D5": (50.0, 60.0),
-    "D4": (60.0, 70.0),
-    "D3": (70.0, 80.0),
-    "D2": (80.0, 90.0),
-    "D1": (90.0, 100.0),
+# Define Characters
+char_a = {
+    'atk': 2200, 'dmg_inc': 0.25, 'atk_speed': 0.45, 
+    'crit_rate': 0.35, 'crit_dmg': 0.60, 'multi_hit': 0.60,
+    'hp': 18000, 'defense': 1400
 }
 
+char_b = {
+    'atk': 1700, 'dmg_inc': 0.15, 'atk_speed': 0.20,
+    'crit_rate': 0.20, 'crit_dmg': 0.40, 'multi_hit': 0.15,
+    'hp': 14000, 'defense': 900
+}
 
-def calculate_percentile(power_index: int, all_power_indices: List[int]) -> float:
-    """
-    캐릭터의 투력이 전체에서 상위 몇 %인지 계산합니다.
+# Ranker "Ah-E-I-O-U" (from scraping)
+# ATK: 3610
+# HP: 6550
+# DEF: 9260 (This is huge compared to Char A, maybe different scale? Or standard?)
+#   Note: Char A has 1400 Def, Ranker has 9260. Ranker is "Lv 45".
+#   Maybe Char A is low level? Or maybe Ranker Def is calculated differently?
+#   Let's trust the scraped numbers.
+# Crit: 302 -> Is this flat? If existing game uses ~1000 scale, 302 is ~30%?
+#   Let's guess 30% (0.302) for now.
+# Atk Spd: 36.6 -> 36.6%? (0.366)
+# Multi-hit: 20.8 -> 20.8%? (0.208)
+# Dmg Inc: 24 -> 24%? (0.24)
+ranker = {
+    'atk': 3610, 'dmg_inc': 0.24, 'atk_speed': 0.366,
+    'crit_rate': 0.302, 'crit_dmg': 0.50, # Guessing 50% base if not shown
+    'multi_hit': 0.208,
+    'hp': 6550, 'defense': 9260
+}
 
-    Args:
-        power_index: 캐릭터의 투력
-        all_power_indices: 서버 내 모든 캐릭터의 투력 리스트 (정렬 불필요)
+# 1. Tune Scale based on Ranker's real score (47322)
+target_score = 47322
+calculated_scale, raw_r, off_r, def_r = calculate_score("Ranker", ranker, tune_scale=target_score)
+SCALE = calculated_scale
 
-    Returns:
-        퍼센타일 (0.0~100.0)
-        - 0.0: 1위 (상위 0%)
-        - 50.0: 중간
-        - 100.0: 최하위
-    """
-    if not all_power_indices:
-        return 50.0  # 데이터 없을 시 중간값 반환
+# 2. Calculate A and B
+score_a, off_a, def_a, ehp_a, multi_a = calculate_score("Char A", char_a)
+score_b, off_b, def_b, ehp_b, multi_b = calculate_score("Char B", char_b)
 
-    total_count = len(all_power_indices)
+print(f"--- Tuning Results ---")
+print(f"Target Score: {target_score}")
+print(f"Derived SCALE: {SCALE:.4f}")
+print(f"Ranker Stats -> Offense: {off_r:.2f}, Defense: {def_r:.2f}")
+print(f"----------------------")
 
-    # 자신보다 높은 투력을 가진 캐릭터 수 계산
-    higher_count = sum(1 for p in all_power_indices if p > power_index)
+print(f"--- Character A (High Spec) ---")
+print(f"Score: {score_a:.2f}")
+print(f"Offense Component: {off_a:.2f}")
+print(f"Defense Component (EHP): {def_a:.2f}")
+print(f"Multi-Hit Multiplier: {multi_a:.4f}")
+print(f"EHP: {ehp_a:.2f}")
 
-    # 퍼센타일 계산 (상위 몇 %)
-    percentile = (higher_count / total_count) * 100.0
-
-    return round(percentile, 2)
-
-
-def get_tier_rank(percentile: float, power_index: int) -> str:
-    """
-    퍼센타일을 기반으로 D1~S5 랭크를 산정합니다.
-
-    Args:
-        percentile: 캐릭터의 퍼센타일 (0~100)
-        power_index: 캐릭터의 투력 (A/S 랭크 최소 컷 적용 시 사용)
-
-    Returns:
-        랭크 문자열 (예: "S3", "A1", "B4")
-    """
-    # 퍼센타일 범위에 맞는 랭크 찾기
-    for rank, (min_percentile, max_percentile) in RANK_TIERS.items():
-        if min_percentile <= percentile < max_percentile:
-            # A/S 랭크는 최소 투력 컷 추가 검증 가능 (선택 사항)
-            # 현재는 퍼센타일만 사용
-            return rank
-
-    # 범위를 벗어난 경우 (예외 처리)
-    if percentile < 0.3:
-        return "S5"
-    else:
-        return "D1"
-
-
-def calculate_next_rank_power(
-    current_rank: str,
-    current_power: int,
-    all_power_indices: List[int]
-) -> Optional[int]:
-    """
-    다음 랭크까지 필요한 투력 차이를 계산합니다.
-
-    Args:
-        current_rank: 현재 랭크 (예: "A3")
-        current_power: 현재 투력
-        all_power_indices: 서버 내 모든 투력 리스트 (내림차순 정렬)
-
-    Returns:
-        다음 랭크까지 필요한 투력 차이 (None이면 이미 최고 랭크)
-    """
-    # 랭크 순서 (S5가 최고)
-    rank_order = [
-        "S5", "S4", "S3", "S2", "S1",
-        "A5", "A4", "A3", "A2", "A1",
-        "B5", "B4", "B3", "B2", "B1",
-        "C5", "C4", "C3", "C2", "C1",
-        "D5", "D4", "D3", "D2", "D1",
-    ]
-
-    if current_rank not in rank_order:
-        return None
-
-    current_index = rank_order.index(current_rank)
-
-    # 이미 최고 랭크
-    if current_index == 0:
-        return None
-
-    # 다음 랭크
-    next_rank = rank_order[current_index - 1]
-    next_tier_range = RANK_TIERS[next_rank]
-
-    # 다음 랭크의 최소 퍼센타일
-    next_min_percentile = next_tier_range[0]
-
-    # 전체 인원 기준 해당 퍼센타일의 인덱스 계산
-    total_count = len(all_power_indices)
-    target_index = int((next_min_percentile / 100.0) * total_count)
-
-    if target_index >= total_count:
-        return None
-
-    # 정렬된 리스트에서 해당 인덱스의 투력 (다음 랭크 최소 투력)
-    sorted_powers = sorted(all_power_indices, reverse=True)
-    next_rank_min_power = sorted_powers[target_index]
-
-    # 필요한 차이 계산
-    power_diff = max(0, next_rank_min_power - current_power)
-
-    return power_diff
-
-
-def calculate_rank_from_server_data(
-    power_index: int,
-    server: str,
-    all_characters_power: List[Tuple[int, str]]  # (power_index, server)
-) -> Tuple[str, float, Optional[int]]:
-    """
-    서버 기준으로 랭크, 퍼센타일, 다음 랭크까지 필요한 투력을 계산합니다.
-
-    Args:
-        power_index: 캐릭터의 투력
-        server: 서버명
-        all_characters_power: 전체 캐릭터의 (투력, 서버) 튜플 리스트
-
-    Returns:
-        (tier_rank, percentile, next_rank_power)
-    """
-    # 같은 서버 캐릭터만 필터링
-    server_powers = [p for p, s in all_characters_power if s == server]
-
-    # 퍼센타일 계산
-    percentile = calculate_percentile(power_index, server_powers)
-
-    # 랭크 산정
-    tier_rank = get_tier_rank(percentile, power_index)
-
-    # 다음 랭크까지 필요한 투력
-    next_rank_power = calculate_next_rank_power(tier_rank, power_index, server_powers)
-
-    logger.debug(
-        f"Rank calculated: {tier_rank} (Percentile: {percentile}%, "
-        f"Next rank needs: {next_rank_power or 'N/A'} power)"
-    )
-
-    return tier_rank, percentile, next_rank_power
+print(f"--- Character B (Mid Spec) ---")
+print(f"Score: {score_b:.2f}")
+print(f"Offense Component: {off_b:.2f}")
+print(f"Defense Component (EHP): {def_b:.2f}")
+print(f"Multi-Hit Multiplier: {multi_b:.4f}")
+print(f"EHP: {ehp_b:.2f}")

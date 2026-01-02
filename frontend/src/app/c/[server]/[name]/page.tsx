@@ -1,106 +1,15 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import CharacterHeader from '../../../components/CharacterHeader'
 import PowerDisplay from '../../../components/PowerDisplay'
 import EquipmentGrid from '../../../components/EquipmentGrid'
 import StatCard from '../../../components/StatCard'
 import TitleSystem from '../../../components/TitleSystem'
 import DevanionBoard from '../../../components/DevanionBoard'
+import { supabaseApi, CharacterDetail, SERVER_NAME_TO_ID } from '../../../../lib/supabaseApi'
 
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
-
-const dummyDevanionData = {
-  boards: {
-    '네자칸': {
-      progress: '완료',
-      activeNodes: 45,
-      totalNodes: 45,
-      effects: ['물리 공격력 +5%', '치명타 +120']
-    },
-    '지켈': {
-      progress: '진행중',
-      activeNodes: 32,
-      totalNodes: 45,
-      effects: ['마법 공격력 +4%']
-    },
-    '바이젤': {
-      progress: '진행중',
-      activeNodes: 28,
-      totalNodes: 45,
-      effects: ['방어력 +3%', 'HP +2000']
-    }
-  },
-  totalInvestment: 125430,
-  globalRank: 1523
-}
-
-// Dummy data for demonstration
-const dummyEquipment = [
-  {
-    slot: '주무기',
-    name: '빛나는 암룡왕의 장검',
-    enhancement: '+15',
-    tier: 5,
-    soulEngraving: { grade: 'S', percentage: 98.5 },
-    manastones: [
-      { type: '공격력', value: 45 },
-      { type: '치명타', value: 32 }
-    ]
-  }
-]
-
-const dummyAccessories = [
-  {
-    slot: '귀걸이1',
-    name: '영원의 귀걸이',
-    enhancement: '+10',
-    tier: 4
-  }
-]
-
-const dummyStats = [
-  {
-    name: '물리 공격력',
-    value: 15234,
-    percentile: 2.3,
-    contribution: 12.5,
-    breakdown: {
-      equipment: 8500,
-      devanion: 3200,
-      transcendence: 2500,
-      titles: 1034
-    }
-  },
-  {
-    name: '치명타',
-    value: 4123,
-    percentile: 4.8,
-    contribution: 8.3,
-    breakdown: {
-      equipment: 2500,
-      devanion: 800,
-      transcendence: 600,
-      titles: 223
-    }
-  }
-]
-
-const dummyTitleData = {
-  totalTitles: 305,
-  collectedTitles: 272,
-  attackTitles: '94/104',
-  defenseTitles: '87/100',
-  miscTitles: '91/101',
-  activeEffects: [
-    'PVE 피해 증폭 +2.3%',
-    '추가 회피 +45',
-    '전투 속도 +1.2%'
-  ]
-}
-
-
+// --- Types mapping to UI components ---
 type CharacterData = {
   id: number
   name: string
@@ -123,89 +32,218 @@ type CharacterData = {
   item_level?: number
 }
 
+// --- Helper Functions for Data Mapping ---
+
+const mapEquipment = (rawEquipment: any): { equipment: any[], accessories: any[] } => {
+  if (!rawEquipment?.equipmentList) return { equipment: [], accessories: [] }
+
+  const list = rawEquipment.equipmentList
+  const equipment: any[] = []
+  const accessories: any[] = []
+
+  // Slot mapping from AION API naming to our UI Naming
+  const slotMap: Record<string, string> = {
+    'Main Hand': '주무기', 'Sub Hand': '보조무기',
+    'Head': '투구', 'Shoulder': '견갑', 'Torso': '흉갑', 'Glove': '장갑', 'Pants': '각반', 'Shoes': '장화', 'Waist': '허리띠', 'Wing': '망토',
+    'Earring 1': '귀걸이1', 'Earring 2': '귀걸이2', 'Necklace': '목걸이',
+    'Ring 1': '반지1', 'Ring 2': '반지2', 'Belt': '허리띠' // check duplicated waist/belt
+  }
+  // Note: Actual API Strings might be in Korean or different format.
+  // Assuming the API returns Korean slot names? Or we default to using the raw category name if valid.
+
+  list.forEach((item: any) => {
+    // Attempt to map slot or use categoryName directly
+    const slotName = item.categoryName || item.slotName
+
+    // Determine target list based on slot type
+    const isAccessory = ['귀걸이', '목걸이', '반지', '팔찌', '깃털', '날개'].some(k => slotName?.includes(k))
+
+    const mappedItem = {
+      slot: slotName,
+      name: item.itemName,
+      enhancement: item.enchantLevel > 0 ? `+${item.enchantLevel}` : '',
+      tier: item.gradeCode || 3, // Fallback tier
+      soulEngraving: item.soulEngraving ? { grade: item.soulEngraving.grade, percentage: item.soulEngraving.value } : undefined,
+      manastones: item.manastoneList?.map((m: any) => ({ type: m.name, value: m.point })) || []
+    }
+
+    if (isAccessory) {
+      accessories.push(mappedItem)
+    } else {
+      equipment.push(mappedItem)
+    }
+  })
+
+  return { equipment, accessories }
+}
+
+const mapStats = (rawStats: any): any[] => {
+  if (!rawStats?.statList) return []
+
+  return rawStats.statList.map((stat: any) => ({
+    name: stat.name,
+    value: typeof stat.value === 'string' ? parseInt(stat.value.replace(/,/g, '')) : stat.value,
+    percentile: undefined, // API usually doesn't give per-stat percentile in this list
+    breakdown: undefined // Detailed breakdown might need separate parsing
+  }))
+}
+
+const mapDevanion = (rawDevanion: any) => {
+  if (!rawDevanion?.boardList) return { boards: {}, totalInvestment: 0, globalRank: 0 }
+
+  // Transform logic if needed, currently passing raw structure or empty
+  // Assuming UI can handle or we create a simple structure
+  return {
+    boards: {}, // Implement complex mapping if structure known
+    totalInvestment: 0,
+    globalRank: 0
+  }
+}
+
+
 export default function CharacterDetailPage() {
   const params = useParams()
-  const server = params.server as string
-  const name = decodeURIComponent(params.name as string)
+  const searchParams = useSearchParams()
+  const raceParam = searchParams.get('race') || undefined
+
+  // URL params are usually encoded so we decode them
+  const serverName = decodeURIComponent(params.server as string)
+  const charName = decodeURIComponent(params.name as string)
 
   const [data, setData] = useState<CharacterData | null>(null)
+  const [rawData, setRawData] = useState<CharacterDetail | null>(null) // Keep full DB response if needed
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('basic')
 
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
+  // Mapped Data States
+  const [mappedEquipment, setMappedEquipment] = useState<{ equipment: any[], accessories: any[] }>({ equipment: [], accessories: [] })
+  const [mappedStats, setMappedStats] = useState<any[]>([])
+  // const [mappedDevanion, setMappedDevanion] = ...
 
-    fetch(`${API_BASE_URL}/api/characters/search?server=${server}&name=${name}`)
-      .then(res => {
-        if (!res.ok) throw new Error(`서버 응답 오류 (Status: ${res.status})`)
-        return res.json()
-      })
-      .then(d => {
-        setData(d)
-        setLoading(false)
+  const fetchData = async (refresh = false) => {
+    try {
+      setLoading(true)
+      setError(null)
+      console.log('Fetching data for:', charName, serverName)
 
-        // Optional polling: if power_index is null, retry 2-3 times with 15s interval
-        if (!d.power_index && !d.tier_rank) {
-          let pollCount = 0
-          const maxPolls = 2
+      // Map server name to ID for accurate search
+      const targetSearchServerId = SERVER_NAME_TO_ID[serverName]
 
-          const pollInterval = setInterval(() => {
-            pollCount++
+      // Step 1: Search to find ID (Global search to find exact match in any page)
+      const searchResults = await supabaseApi.searchCharacter(charName, undefined, raceParam)
 
-            fetch(`${API_BASE_URL}/api/characters/search?server=${server}&name=${name}`)
-              .then(res => res.json())
-              .then(updated => {
-                if (updated.power_index || pollCount >= maxPolls) {
-                  setData(updated)
-                  clearInterval(pollInterval)
-                }
-              })
-              .catch(() => clearInterval(pollInterval))
-
-          }, 15000) // 15 seconds
-
-          // Cleanup on unmount
-          return () => clearInterval(pollInterval)
+      // Filter by server name or ID locally.
+      const match = searchResults.find(r => {
+        // If we have a verified server ID for the requested server, match strictly by ID
+        if (targetSearchServerId && r.server_id) {
+          return r.server_id === targetSearchServerId
         }
+        // Fallback to name matching
+        return r.server === serverName
       })
-      .catch(err => {
-        setError(err.message || '캐릭터 정보를 불러올 수 없습니다.')
-        setLoading(false)
-      })
-  }, [server, name])
+
+      if (!match) {
+        throw new Error(`'${serverName}' 서버에서 '${charName}' 캐릭터를 찾을 수 없습니다. (ID: ${targetSearchServerId || 'unknown'})`)
+      }
+
+      // Step 2: Get Detail
+      let detail: CharacterDetail
+      // Use the server ID directly from the search result if available.
+      // Falls back to parsing server name (which likely fails for strings) or defaults to 1.
+      const targetServerId = (match as any).server_id || parseInt(match.server) || 1
+
+      if (refresh) {
+        detail = await supabaseApi.refreshCharacter(match.characterId, targetServerId)
+      } else {
+        detail = await supabaseApi.getCharacterDetail(match.characterId, targetServerId)
+      }
+
+      console.log('Got detail:', detail)
+      setRawData(detail)
+
+      // Step 3: Map to UI Model
+      const mapped: CharacterData = {
+        id: detail.server_id,
+        name: detail.name,
+        server: serverName,
+        class: detail.class_name,
+        level: detail.level,
+        power: detail.combat_power || 0,
+        power_index: detail.combat_power,
+        updated_at: detail.updated_at || new Date().toISOString(),
+        race: detail.race_name,
+        character_image_url: detail.profile_image,
+        tier_rank: 'Unranked', // TODO: Map from ranking info if available
+        percentile: 0,
+        rank: 0,
+        item_level: 0,
+      }
+
+      setData(mapped)
+
+      // Map Sub-Components
+      setMappedEquipment(mapEquipment(detail.equipment))
+      setMappedStats(mapStats(detail.stats))
+
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || '캐릭터 정보를 불러오는 중 오류가 발생했습니다.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (serverName && charName) {
+      fetchData()
+    }
+  }, [serverName, charName, raceParam])
+
+  const handleRefresh = () => {
+    if (loading) return
+    const confirmRefresh = window.confirm('최신 데이터를 강제로 불러오시겠습니까? 시간이 소요될 수 있습니다.')
+    if (confirmRefresh) {
+      fetchData(true)
+    }
+  }
 
   if (loading) {
     return (
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '2rem 1rem',
-        textAlign: 'center',
-        color: 'var(--text-main)'
-      }}>
-        <div style={{ fontSize: '1.5rem' }}>로딩 중...</div>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '4rem 1rem', textAlign: 'center', color: '#9CA3AF' }}>
+        <div style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>캐릭터 정보를 불러오는 중...</div>
+        <div style={{ fontSize: '0.875rem' }}>AION2 서버와 통신하고 있습니다.</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '2rem 1rem',
-        textAlign: 'center'
-      }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '4rem 1rem', textAlign: 'center' }}>
         <div style={{
           padding: '2rem',
-          background: '#991B1B20',
-          border: '1px solid #991B1B',
-          borderRadius: '8px',
-          color: '#FCA5A5'
+          background: '#fee2e2',
+          border: '1px solid #ef4444',
+          borderRadius: '12px',
+          color: '#b91c1c',
+          display: 'inline-block'
         }}>
-          ❌ {error}
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>오류 발생</h3>
+          <p>{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: '1.5rem',
+              padding: '0.5rem 1.5rem',
+              background: '#b91c1c',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            페이지 새로고침
+          </button>
         </div>
       </div>
     )
@@ -213,24 +251,11 @@ export default function CharacterDetailPage() {
 
   if (!data) return null
 
-  const handleRefresh = async () => {
-    if (loading) return
-    const confirmRefresh = window.confirm('최신 데이터를 강제로 불러오시겠습니까? 시간이 소요될 수 있습니다.')
-    if (!confirmRefresh) return
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/characters/search?server=${server}&name=${name}&refresh_force=true`)
-      if (!res.ok) throw new Error(`서버 응답 오류 (Status: ${res.status})`)
-      const d = await res.json()
-      setData(d)
-    } catch (err: any) {
-      setError(err.message || '데이터 갱신 중 오류가 발생했습니다.')
-    } finally {
-      setLoading(false)
-    }
+  // --- Dummy Components Data (REMOVED/REPLACED) ---
+  const dummyDevanionData = {
+    boards: { '네자칸': { progress: '완료', activeNodes: 45, totalNodes: 45, effects: ['물리 공격력 +5%', '치명타 +120'] } },
+    totalInvestment: 0,
+    globalRank: 0
   }
 
   return (
@@ -239,33 +264,33 @@ export default function CharacterDetailPage() {
       margin: '0 auto',
       padding: '2rem 1rem',
       minHeight: '100vh',
-      position: 'relative' // relative context for absolute/fixed items if needed, though button is fixed to viewport
+      position: 'relative'
     }}>
-      {/* Manual Refresh Button */}
+      {/* Search/Refresh FAB */}
       <button
         onClick={handleRefresh}
         disabled={loading}
+        title="데이터 강제 갱신"
         style={{
           position: 'fixed',
-          bottom: '20px',
-          left: '20px',
-          zIndex: 9999,
+          bottom: '30px',
+          right: '30px',
+          zIndex: 50,
           background: '#2563eb',
           color: 'white',
           border: 'none',
           borderRadius: '50%',
-          width: '56px',
-          height: '56px',
+          width: '60px',
+          height: '60px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)',
           cursor: loading ? 'wait' : 'pointer',
-          transition: 'all 0.2s ease'
+          transition: 'transform 0.2s',
         }}
-        title="데이터 강제 갱신"
-        onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-        onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
+        onMouseOut={e => e.currentTarget.style.transform = 'scale(1.0)'}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 2v6h-6"></path>
@@ -275,73 +300,36 @@ export default function CharacterDetailPage() {
         </svg>
       </button>
 
-      {/* Status Badges */}
-      <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.5rem' }}>
-        {(!data.power_index || !data.tier_rank) && (
-          <div style={{
-            display: 'inline-block',
-            padding: '0.5rem 1rem',
-            background: '#1E40AF20',
-            border: '1px solid #3B82F6',
-            borderRadius: '6px',
-            color: '#93C5FD',
-            fontSize: '0.875rem'
-          }}>
-            ⚡ 전투력 계산 중...
-          </div>
-        )}
-        {data.warning && (
-          <div style={{
-            display: 'inline-block',
-            padding: '0.5rem 1rem',
-            background: '#92400E20',
-            border: '1px solid #F59E0B',
-            borderRadius: '6px',
-            color: '#FCD34D',
-            fontSize: '0.875rem'
-          }}>
-            ⚠️ {data.warning}
-          </div>
-        )}
-      </div>
-
-      {/* Character Header */}
+      {/* Header */}
       <CharacterHeader data={data} />
 
       {/* Power Display */}
-      {data.power_index && (
-        <div style={{ marginTop: '2rem' }}>
-          <PowerDisplay
-            combatScore={data.power_index}
-            itemLevel={data.item_level}
-            tier={data.tier_rank}
-            percentile={data.percentile}
-          />
-        </div>
-      )}
+      <div style={{ marginTop: '2rem' }}>
+        <PowerDisplay
+          combatScore={data.power || 0}
+          itemLevel={data.item_level || 0}
+          tier={data.tier_rank || 'Unranked'}
+          percentile={data.percentile || 0}
+        />
+      </div>
 
       {/* Tabs */}
-      <div style={{ marginTop: '2rem' }}>
-        <div style={{
-          display: 'flex',
-          gap: '0.5rem',
-          borderBottom: '1px solid var(--border)',
-          marginBottom: '1.5rem'
-        }}>
+      <div style={{ marginTop: '3rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e5e7eb', marginBottom: '2rem' }}>
           {['basic', 'devanion', 'growth'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               style={{
-                padding: '0.75rem 1.5rem',
-                background: activeTab === tab ? 'var(--bg-card)' : 'transparent',
+                padding: '0.75rem 0',
+                marginRight: '1rem',
+                background: 'transparent',
                 border: 'none',
-                borderBottom: activeTab === tab ? '2px solid var(--primary)' : '2px solid transparent',
-                color: activeTab === tab ? 'var(--text-main)' : 'var(--text-sub)',
+                borderBottom: activeTab === tab ? '2px solid #2563eb' : '2px solid transparent',
+                color: activeTab === tab ? '#2563eb' : '#6b7280',
+                fontWeight: activeTab === tab ? '600' : '400',
                 cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: activeTab === tab ? 'bold' : 'normal',
-                transition: 'all 0.2s'
+                fontSize: '1rem'
               }}
             >
               {tab === 'basic' && '기본 정보'}
@@ -355,55 +343,27 @@ export default function CharacterDetailPage() {
         <div>
           {activeTab === 'basic' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              {/* Equipment Grid */}
-              <EquipmentGrid
-                equipment={dummyEquipment}
-                accessories={dummyAccessories}
-              />
+              <EquipmentGrid equipment={mappedEquipment.equipment} accessories={mappedEquipment.accessories} />
 
-              {/* Stats Grid */}
               <div>
-                <h3 style={{
-                  color: '#E5E7EB',
-                  fontSize: '1.5rem',
-                  marginBottom: '1.5rem',
-                  fontWeight: 'bold'
-                }}>
-                  상세 스탯
-                </h3>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '1rem'
-                }}>
-                  {dummyStats.map(stat => (
-                    <StatCard
-                      key={stat.name}
-                      statName={stat.name}
-                      value={stat.value}
-                      percentile={stat.percentile}
-                      contribution={stat.contribution}
-                      breakdown={stat.breakdown}
-                    />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem', color: '#111827' }}>상세 스탯</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                  {mappedStats.map((stat, i) => (
+                    <StatCard key={i} statName={stat.name} value={stat.value} percentile={stat.percentile} contribution={stat.contribution} breakdown={stat.breakdown} />
                   ))}
+                  {mappedStats.length === 0 && (
+                    <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#6b7280', padding: '1rem' }}>표시할 스탯 정보가 없습니다.</div>
+                  )}
                 </div>
               </div>
 
-              {/* Title System */}
-              <TitleSystem data={dummyTitleData} />
+              <TitleSystem data={{ totalTitles: 0, collectedTitles: 0, attackTitles: '0/0', defenseTitles: '0/0', miscTitles: '0/0', activeEffects: [] }} />
             </div>
           )}
-          {activeTab === 'devanion' && (
-            <DevanionBoard data={dummyDevanionData} />
-          )}
+          {activeTab === 'devanion' && <DevanionBoard data={dummyDevanionData} />}
           {activeTab === 'growth' && (
-            <div style={{
-              padding: '2rem',
-              background: 'var(--bg-card)',
-              borderRadius: '8px',
-              color: 'var(--text-main)'
-            }}>
-              성장 도표 준비 중...
+            <div style={{ padding: '3rem', textAlign: 'center', background: '#f9fafb', borderRadius: '12px', color: '#6b7280' }}>
+              준비 중인 기능입니다.
             </div>
           )}
         </div>
