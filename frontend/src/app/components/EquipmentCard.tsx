@@ -66,7 +66,9 @@ export default function EquipmentCard({ slot, item }: EquipmentCardProps) {
             cursor: 'pointer',
             display: 'flex',
             gap: '0.75rem',
-            alignItems: 'flex-start'
+            alignItems: 'flex-start',
+            maxWidth: '100%',
+            boxSizing: 'border-box'
         }}
             className="equipment-card-hover"
         >

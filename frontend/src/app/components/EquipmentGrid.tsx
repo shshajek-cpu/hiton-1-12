@@ -53,11 +53,12 @@ export default function EquipmentGrid({ equipment = [], accessories = [] }: Equi
                 </h3>
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                     gap: '0.75rem'
                 }}>
                     {weaponSlots.map(slot => {
                         const item = equipment?.find(e => e.slot === slot)
+                        if (!item) return null
                         return <EquipmentCard key={slot} slot={slot} item={item} />
                     })}
                 </div>
@@ -75,15 +76,16 @@ export default function EquipmentGrid({ equipment = [], accessories = [] }: Equi
                 </h3>
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                     gap: '0.75rem'
                 }}>
                     {accessorySlots.map(slot => {
                         const item = accessories?.find(a => a.slot === slot)
+                        if (!item) return null
                         return <EquipmentCard key={slot} slot={slot} item={item} />
                     })}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

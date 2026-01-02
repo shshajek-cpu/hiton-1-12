@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import ProfileSection from '../../../components/ProfileSection'
 import TitleCard from '../../../components/TitleCard'
-import StatsCard from '../../../components/StatsCard'
+import MainStatsCard from '../../../components/MainStatsCard'
 import DaevanionCard from '../../../components/DaevanionCard'
 import EquipmentGrid from '../../../components/EquipmentGrid'
 import { supabaseApi, CharacterDetail, SERVER_NAME_TO_ID } from '../../../../lib/supabaseApi'
+import RankingCard from '../../../components/RankingCard'
 
 // --- Types mapping to UI components ---
 type CharacterData = {
@@ -172,6 +173,7 @@ export default function CharacterDetailPage() {
   const [mappedStats, setMappedStats] = useState<any>({})
   const [mappedTitles, setMappedTitles] = useState<any>({})
   const [mappedDaevanion, setMappedDaevanion] = useState<any>({})
+  const [mappedRankings, setMappedRankings] = useState<any>({})
 
   const fetchData = async (refresh = false) => {
     try {
@@ -239,6 +241,7 @@ export default function CharacterDetailPage() {
       setMappedStats(detail.stats || {})
       setMappedTitles(detail.titles || {})
       setMappedDaevanion(detail.daevanion || {})
+      setMappedRankings(detail.rankings || {})
 
     } catch (err: any) {
       console.error(err)
@@ -315,7 +318,7 @@ export default function CharacterDetailPage() {
   return (
     <div style={{
       width: '100%',
-      maxWidth: '1400px',
+      maxWidth: '1600px',
       margin: '0 auto',
       padding: '2rem 1.5rem',
       minHeight: '100vh',
@@ -368,7 +371,7 @@ export default function CharacterDetailPage() {
           @media (min-width: 1024px) {
             .grid-container {
               display: grid !important;
-              grid-template-columns: 280px minmax(400px, 600px) 300px !important;
+              grid-template-columns: 280px minmax(400px, 1fr) 400px !important;
               gap: 1.5rem !important;
             }
           }
@@ -410,14 +413,15 @@ export default function CharacterDetailPage() {
             <EquipmentGrid equipment={mappedEquipment.equipment} accessories={mappedEquipment.accessories} />
           </div>
 
-          {/* RIGHT COLUMN: Title, Stats, Daevanion */}
+          {/* RIGHT COLUMN: MainStats, Title, Daevanion */}
           <div style={{
             display: 'flex',
             flexDirection: 'column',
             gap: '1.5rem'
           }}>
+            <MainStatsCard stats={mappedStats} />
+            <RankingCard rankings={mappedRankings} />
             <TitleCard titles={mappedTitles} />
-            <StatsCard stats={mappedStats} />
             <DaevanionCard daevanion={mappedDaevanion} />
           </div>
         </div>
