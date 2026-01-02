@@ -6,20 +6,22 @@ import { Search } from 'lucide-react'
 
 // Hardcoded server list for standalone operation
 // Define servers by race
-export const ELYOS_SERVERS = [
+// Define servers by race
+const ELYOS_SERVERS = [
     '시엘', '네자칸', '바이젤', '카이시넬', '유스티엘', '아리엘', '프레기온',
     '메스람타에다', '히타니에', '나니아', '타하바타', '루터스', '페르노스',
     '다미누', '카사카', '바카르마', '챈가룽', '코치룽', '이슈타르', '티아마트', '포에타'
 ]
 
-export const ASMODIAN_SERVERS = [
+const ASMODIAN_SERVERS = [
     '지켈', '트리니엘', '루미엘', '마르쿠탄', '아스펠', '에레슈키갈', '브리트라',
     '네몬', '하달', '루드라', '울고른', '무닌', '오다르', '젠카카', '크로메데',
     '콰이링', '바바룽', '파프니르', '인드나흐', '이스할겐'
 ]
 
 // Combined list for fallback or searching
-export const ALL_SERVERS = Array.from(new Set([...ELYOS_SERVERS, ...ASMODIAN_SERVERS]))
+// Combined list for fallback or searching
+const ALL_SERVERS = Array.from(new Set([...ELYOS_SERVERS, ...ASMODIAN_SERVERS]))
 
 export default function Home() {
     // State
