@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { CLASSES } from '../../../constants/game-data'
 
 // Define the structure of incoming data
 interface SyncCharacter {
@@ -32,17 +33,35 @@ export async function POST(request: NextRequest) {
         // Helper to remove HTML tags (like <strong>)
         const cleanName = (name: string) => name.replace(/<\/?[^>]+(>|$)/g, "");
 
-        // Map frontend data to DB schema
-        const rowsToUpsert = characters.map(char => ({
-            character_id: char.characterId,
-            server_id: char.server_id,
-            name: cleanName(char.name),
-            level: char.level,
-            class_name: char.job,
-            race_name: char.race, // Ensure 'Elyos' or 'Asmodian' is standard
-            profile_image: char.imageUrl,
-            updated_at: new Date().toISOString()
-        }))
+        // Map frontend data to DB schema with validation
+        const rowsToUpsert = characters
+            .filter(char => {
+                // Validation: Skip characters with invalid data
+                if (!char.level || char.level <= 0) {
+                    console.warn(`Skipping character ${char.name}: invalid level (${char.level})`);
+                    return false;
+                }
+                if (!char.characterId) {
+                    console.warn(`Skipping character: missing characterId`);
+                    return false;
+                }
+                return true;
+            })
+            .map(char => ({
+                character_id: decodeURIComponent(char.characterId), // Decode URL-encoded IDs
+                server_id: char.server_id,
+                name: cleanName(char.name),
+                level: char.level,
+                class_name: (() => {
+                    const rawClass = char.job;
+                    if (/[가-힣]/.test(rawClass)) return rawClass;
+                    const matched = CLASSES.find(c => c.id === rawClass);
+                    return matched ? matched.name : rawClass;
+                })(),
+                race_name: char.race,
+                profile_image: char.imageUrl,
+                updated_at: new Date().toISOString()
+            }))
 
         // Perform Bulk Upsert
         // We use 'character_id' as the unique key to detect conflicts

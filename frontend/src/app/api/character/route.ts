@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { CLASSES } from '../../constants/game-data'
 
 /**
  * Transform detail data from AION2 API to standardized format
@@ -268,7 +269,23 @@ export async function GET(request: NextRequest) {
                 name: infoData.profile.characterName,
                 level: infoData.profile.characterLevel,
                 item_level: infoData.profile.jobLevel || 0,
-                class_name: infoData.profile.className,
+                class_name: (() => {
+                    const rawClass = infoData.profile.className;
+                    // Check if it's already Korean (simple check)
+                    if (/[가-힣]/.test(rawClass)) return rawClass;
+
+                    // Try to find by English ID (e.g. 'Gladiator' -> '검성')
+                    const matched = CLASSES.find(c => c.id === rawClass);
+                    if (matched) return matched.name;
+
+                    // Try by pcId if available
+                    if (infoData.profile.pcId) {
+                        const byId = CLASSES.find(c => c.pcId === infoData.profile.pcId);
+                        if (byId) return byId.name;
+                    }
+
+                    return rawClass; // Fallback to raw if logic fails
+                })(),
                 race_name: infoData.profile.raceName,
                 combat_power: combatPower, // Extract from statList
                 noa_score: noaScore,

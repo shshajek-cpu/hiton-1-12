@@ -57,6 +57,16 @@ export interface CharacterDetail {
     updated_at: string
 }
 
+// pcId to className mapping (extracted from AION2 API data)
+const PC_ID_TO_CLASS_NAME: Record<number, string> = {
+    6: '검성',
+    7: '검성',
+    11: '수호성',
+    20: '살성',
+    28: '마도성',
+    36: '호법성',
+};
+
 export const supabaseApi = {
     /**
      * Search for a character by name (Live AION API).
@@ -110,17 +120,30 @@ export const supabaseApi = {
 
             const stripTags = (value: string) => value.replace(/<\/?[^>]+(>|$)/g, '')
 
-            allResults = data.list.map((item: any) => ({
-                characterId: item.characterId,
-                name: typeof item.name === 'string' ? stripTags(item.name) : item.name,
-                server: item.serverName,
-                server_id: item.serverId,
-                job: 'Unknown',
-                level: item.level,
-                race: resolveRace(item.race, item.raceName),
-                imageUrl: item.profileImageUrl ? (item.profileImageUrl.startsWith('http') ? item.profileImageUrl : `https://profileimg.plaync.com${item.profileImageUrl}`) : undefined,
-                raw: item
-            }))
+            allResults = data.list
+                .filter((item: any) => {
+                    // Validation: Skip characters with invalid data
+                    if (!item.level || item.level <= 0) {
+                        console.warn(`Skipping character: invalid level (${item.level})`);
+                        return false;
+                    }
+                    if (!item.characterId) {
+                        console.warn(`Skipping character: missing characterId`);
+                        return false;
+                    }
+                    return true;
+                })
+                .map((item: any) => ({
+                    characterId: decodeURIComponent(item.characterId), // Decode URL-encoded IDs
+                    name: typeof item.name === 'string' ? stripTags(item.name) : item.name,
+                    server: item.serverName,
+                    server_id: item.serverId,
+                    job: PC_ID_TO_CLASS_NAME[item.pcId] || 'Unknown',
+                    level: item.level,
+                    race: resolveRace(item.race, item.raceName),
+                    imageUrl: item.profileImageUrl ? (item.profileImageUrl.startsWith('http') ? item.profileImageUrl : `https://profileimg.plaync.com${item.profileImageUrl}`) : undefined,
+                    raw: item
+                }))
         }
 
         return allResults
