@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import SearchAutocomplete from './SearchAutocomplete'
-import { supabaseApi, CharacterSearchResult } from '../../lib/supabaseApi'
+import { supabaseApi, CharacterSearchResult, SERVER_NAME_TO_ID } from '../../lib/supabaseApi'
 
 // Define servers (Reused from page.tsx logic, ideally centralize this)
 const ELYOS_SERVERS = [
@@ -78,6 +78,10 @@ export default function SearchBar() {
         setShowResults(true)
         setResults([])
 
+        // Resolve Server ID if selected
+        const serverId = server ? SERVER_NAME_TO_ID[server] : undefined
+        // Race is already stored as 'elyos'/'asmodian' string in state
+
         // Helper to update results with deduplication
         const updateResults = (newResults: CharacterSearchResult[]) => {
             setResults(prev => {
@@ -95,14 +99,20 @@ export default function SearchBar() {
             })
         }
 
-        // Trigger Local Search
-        supabaseApi.searchLocalCharacter(searchTerm)
+        // Trigger Local Search with filters
+        supabaseApi.searchLocalCharacter(searchTerm, serverId, race)
             .then(res => updateResults(res))
             .catch(e => console.error("Local search err", e))
 
-        // Trigger Live Search
-        supabaseApi.searchCharacter(searchTerm, undefined, undefined, 1)
-            .then(res => updateResults(res))
+        // Trigger Live Search with filters
+        supabaseApi.searchCharacter(searchTerm, serverId, race, 1)
+            .then(res => {
+                updateResults(res)
+                // Background Sync: Save new live results to local DB
+                if (res.length > 0) {
+                    supabaseApi.syncCharacters(res)
+                }
+            })
             .catch(e => console.error("Live search err", e))
             .finally(() => setIsSearching(false)) // Stop spinner when Live finishes (longest)
     }

@@ -168,6 +168,17 @@ export async function GET(request: NextRequest) {
         const infoData = await infoRes.json()
         const equipData = await equipRes.json()
 
+        // Extract Combat Power from statList (공식 API는 stat.statList 배열 안에 전투력 정보를 담고 있음)
+        console.log('[DEBUG] statList:', JSON.stringify(infoData.stat?.statList || [], null, 2))
+        console.log('[DEBUG] statList names:', (infoData.stat?.statList || []).map((s: any) => s.name))
+
+        const cpStat = (infoData.stat?.statList || []).find((s: any) => s.name === '전투력')
+        const combatPower = cpStat?.value || 0
+        console.log(`[API] Found CP stat:`, cpStat)
+        console.log(`[API] Combat Power for ${infoData.profile.characterName}: ${combatPower}`)
+
+
+
         // 2. Fetch Detailed Info for EACH item in parallel
         let enrichedEquipmentList: any[] = []
 
@@ -259,7 +270,7 @@ export async function GET(request: NextRequest) {
                 item_level: infoData.profile.jobLevel || 0,
                 class_name: infoData.profile.className,
                 race_name: infoData.profile.raceName,
-                combat_power: infoData.stat?.combat_power || 0, // Ensure this maps correctly
+                combat_power: combatPower, // Extract from statList
                 noa_score: noaScore,
                 ranking_ap: 0, // Placeholder, need to map from infoData if available
                 ranking_gp: 0, // Placeholder

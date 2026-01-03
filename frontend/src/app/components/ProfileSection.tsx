@@ -143,7 +143,6 @@ export default function ProfileSection({ character, arcana, onArcanaClick }: { c
                         fontSize: '1.25rem',
                         fontWeight: 'bold',
                         color: '#E5E7EB',
-                        marginBottom: '0.25rem',
                         margin: 0,
                         marginBottom: '0.25rem'
                     }}>

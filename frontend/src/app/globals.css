@@ -43,6 +43,8 @@ body {
   background: var(--bg-main);
   color: var(--text-main);
   line-height: 1.5;
+  overflow-y: scroll;
+  /* Always show scrollbar to prevent layout shift */
 }
 
 /* Layout Utilities */
@@ -194,4 +196,22 @@ tr:hover td {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
+}
+
+/* Tab Content Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.content-area {
+  min-height: 400px;
+  animation: fadeIn 0.3s ease-in-out;
 }

@@ -2,6 +2,7 @@
 
 import { RecentCharacter } from '../../types/character'
 import { X, Shield } from 'lucide-react'
+import Image from 'next/image'
 
 interface RecentCharacterCardProps {
     character: RecentCharacter
@@ -21,8 +22,8 @@ export default function RecentCharacterCard({ character, compact = true, onClick
             style={{
                 height: '60px',
                 padding: '0 12px',
-                background: '#111318',
-                borderBottom: '1px solid #1f2937'
+                background: 'transparent', // Transparent background as requested
+                borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
             }}
         >
             {/* Left: Avatar & Badge */}
@@ -34,11 +35,19 @@ export default function RecentCharacterCard({ character, compact = true, onClick
                         borderRadius: '50%',
                         overflow: 'hidden',
                         border: `1px solid ${raceColor}`,
-                        background: '#1f2937'
+                        background: '#1f2937',
+                        position: 'relative'
                     }}
                 >
                     {character.profileImage ? (
-                        <img src={character.profileImage} alt={character.name} className="w-full h-full object-cover" />
+                        <Image
+                            src={character.profileImage}
+                            alt={character.name}
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-cover"
+                            style={{ objectFit: 'cover' }}
+                        />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-xs text-gray-500">
                             No Img

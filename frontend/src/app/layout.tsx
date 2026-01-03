@@ -1,5 +1,8 @@
+'use client'
+
 import './globals.css'
 import Link from 'next/link'
+import SearchBar from './components/SearchBar'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
@@ -40,6 +43,42 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </div>
                 </header>
 
+                {/* Fixed Search Bar - Appears on ALL pages, STICKY POSITION */}
+                <div style={{
+                    position: 'sticky',
+                    top: '60px',
+                    zIndex: 50,
+                    background: 'var(--bg-main)',
+                    paddingTop: '2rem',
+                    paddingBottom: '2rem',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+                }}>
+                    <div style={{
+                        maxWidth: '800px',
+                        margin: '0 auto',
+                        padding: '0 2rem'
+                    }}>
+                        {/* NOA Title */}
+                        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                            <h1 style={{
+                                fontSize: '2.5rem',
+                                fontWeight: '800',
+                                marginBottom: '0.5rem',
+                                color: 'white'
+                            }}>
+                                NO<span style={{ color: '#facc15' }}>A</span>
+                            </h1>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>
+                                실시간 캐릭터 정보를 빠르게 검색하세요.
+                            </p>
+                        </div>
+
+                        {/* Search Bar - Fixed across all pages */}
+                        <SearchBar />
+                    </div>
+                </div>
+
+                {/* Page Content */}
                 <div className="container">
                     {children}
                 </div>

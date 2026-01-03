@@ -2,6 +2,64 @@
 
 import { CharacterSearchResult } from '../../lib/supabaseApi'
 import { Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import Image from 'next/image'
+
+// Avatar Component to handle image errors independently
+const CharacterAvatar = ({ char }: { char: CharacterSearchResult }) => {
+    const [imgError, setImgError] = useState(false)
+    const [isLoaded, setIsLoaded] = useState(false)
+
+    // Fallback content (First letter of name)
+    const fallbackContent = (
+        <div style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            color: '#9CA3AF',
+            background: '#1f2937' // Gray background for fallback
+        }}>
+            {char.name.charAt(0)}
+        </div>
+    )
+
+    return (
+        <div style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            border: `2px solid ${char.race === 'Elyos' || char.race === '천족' ? '#3b82f6' : '#ef4444'}`,
+            background: '#111318',
+            position: 'relative'
+        }}>
+            {!imgError && char.imageUrl ? (
+                <>
+                    <Image
+                        src={char.imageUrl}
+                        alt={char.name}
+                        width={36}
+                        height={36}
+                        className="w-full h-full object-cover"
+                        style={{ 
+                            objectFit: 'cover',
+                            opacity: isLoaded ? 1 : 0, 
+                            transition: 'opacity 0.2s' 
+                        }}
+                        onLoad={() => setIsLoaded(true)}
+                        onError={() => setImgError(true)}
+                        unoptimized={false} // Let Next.js server optimize (and proxy) the image
+                    />
+                    {!isLoaded && fallbackContent} 
+                </>
+            ) : fallbackContent}
+        </div>
+    )
+}
 
 interface SearchAutocompleteProps {
     results: CharacterSearchResult[]
@@ -94,23 +152,7 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
                             }}
                         >
                             {/* Avatar */}
-                            <div style={{
-                                width: '36px', // Reduced size
-                                height: '36px', // Reduced size
-                                borderRadius: '50%',
-                                overflow: 'hidden',
-                                border: `2px solid ${char.race === 'Elyos' || char.race === '천족' ? '#3b82f6' : '#ef4444'}`,
-                                background: '#111318',
-                                position: 'relative'
-                            }}>
-                                {char.imageUrl ? (
-                                    <img src={char.imageUrl} alt={char.name} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-500 bg-gray-900">
-                                        No Img
-                                    </div>
-                                )}
-                            </div>
+                            <CharacterAvatar char={char} />
 
                             {/* Info */}
                             <div style={{ width: '100%' }}>

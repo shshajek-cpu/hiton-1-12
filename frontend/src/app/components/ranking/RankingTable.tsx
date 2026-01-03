@@ -3,17 +3,59 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Trophy } from 'lucide-react'
 import styles from './Ranking.module.css'
 import { SERVER_MAP } from '../../constants/servers'
+import { RankingCharacter } from '@/types/character'
 
 interface RankingTableProps {
     type: 'noa' | 'cp' | 'content'
 }
 
+const RankingSkeleton = () => (
+    <div style={{ paddingBottom: '2rem' }}>
+        <table className={styles.rankingTable}>
+            <thead>
+                <tr>
+                    <th style={{ width: '80px', textAlign: 'center' }}>순위</th>
+                    <th>캐릭터</th>
+                    <th>서버/종족</th>
+                    <th style={{ textAlign: 'right' }}>점수</th>
+                </tr>
+            </thead>
+            <tbody>
+                {[...Array(10)].map((_, i) => (
+                    <tr key={i}>
+                        <td style={{ textAlign: 'center' }}>
+                            <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '20px', margin: '0 auto' }}></div>
+                        </td>
+                        <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <div className={`${styles.skeleton} ${styles.skeletonCircle}`}></div>
+                                <div style={{ flex: 1 }}>
+                                    <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '120px' }}></div>
+                                    <div className={`${styles.skeleton} ${styles.skeletonTextShort}`}></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '80px' }}></div>
+                            <div className={`${styles.skeleton} ${styles.skeletonTextShort}`} style={{ width: '40px' }}></div>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                            <div className={`${styles.skeleton} ${styles.skeletonText}`} style={{ width: '60px', marginLeft: 'auto' }}></div>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+)
+
 export default function RankingTable({ type }: RankingTableProps) {
     const searchParams = useSearchParams()
-    const [data, setData] = useState<any[]>([])
+    const [data, setData] = useState<RankingCharacter[]>([])
     const [loading, setLoading] = useState(true)
     const [page, setPage] = useState(1)
     const [hasMore, setHasMore] = useState(false)
@@ -51,7 +93,7 @@ export default function RankingTable({ type }: RankingTableProps) {
                 // Check if there are more pages
                 const totalPages = json.meta?.totalPages || 0
                 setHasMore(pageNum < totalPages)
-                if (!isReset) setPage(pageNum) // Update current page state if not reset (reset sets it to 1 via effect/param)
+                if (!isReset) setPage(pageNum) // Update current page state if not reset
             }
         } catch (error) {
             console.error('Failed to fetch ranking', error)
@@ -63,7 +105,7 @@ export default function RankingTable({ type }: RankingTableProps) {
 
     const handleLoadMore = () => {
         const nextPage = page + 1
-        setPage(nextPage) // Update state
+        setPage(nextPage)
         fetchRanking(nextPage, false)
     }
 
@@ -84,7 +126,7 @@ export default function RankingTable({ type }: RankingTableProps) {
         }
     }
 
-    const getScoreValue = (char: any) => {
+    const getScoreValue = (char: RankingCharacter) => {
         switch (type) {
             case 'noa': return char.noa_score?.toLocaleString() || 0
             case 'cp': return char.combat_power?.toLocaleString() || 0
@@ -94,17 +136,22 @@ export default function RankingTable({ type }: RankingTableProps) {
     }
 
     if (loading && page === 1) {
-        return <div style={{ padding: '4rem', textAlign: 'center', color: '#6B7280' }}>데이터를 불러오는 중...</div>
+        return <RankingSkeleton />
     }
 
     if (!data || data.length === 0) {
-        return <div style={{ padding: '4rem', textAlign: 'center', color: '#6B7280' }}>랭킹 데이터가 없습니다.</div>
+        return (
+            <div style={{ padding: '4rem', textAlign: 'center', color: '#6B7280' }}>
+                <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>검색 결과가 없습니다.</div>
+                <div style={{ fontSize: '0.9rem' }}>필터 설정을 변경해보세요.</div>
+            </div>
+        )
     }
 
     return (
         <div style={{ paddingBottom: '2rem' }}>
             <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
-                <table>
+                <table className={styles.rankingTable}>
                     <thead>
                         <tr>
                             <th style={{ width: '80px', textAlign: 'center' }}>순위</th>
@@ -128,13 +175,17 @@ export default function RankingTable({ type }: RankingTableProps) {
                                     >
                                         <div className={styles.charImageWrapper}>
                                             {char.profile_image ? (
-                                                <img
+                                                <Image
                                                     src={char.profile_image}
                                                     alt={char.name}
+                                                    width={36}
+                                                    height={36}
                                                     className={styles.charImage}
                                                 />
                                             ) : (
-                                                <span style={{ fontSize: '10px', color: '#666' }}>IMG</span>
+                                                <div className={styles.charImagePlaceholder}>
+                                                    {char.name.substring(0, 1)}
+                                                </div>
                                             )}
                                         </div>
                                         <div className={styles.charInfo}>
@@ -171,17 +222,7 @@ export default function RankingTable({ type }: RankingTableProps) {
                     <button
                         onClick={handleLoadMore}
                         disabled={isLoadingMore}
-                        style={{
-                            background: '#1f2937',
-                            color: '#e5e7eb',
-                            border: '1px solid #374151',
-                            padding: '0.8rem 2rem',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '0.95rem',
-                            fontWeight: 600,
-                            transition: 'all 0.2s'
-                        }}
+                        className={styles.loadMoreButton}
                     >
                         {isLoadingMore ? '불러오는 중...' : '더보기 (Next 50)'}
                     </button>

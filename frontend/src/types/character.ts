@@ -10,3 +10,18 @@ export interface RecentCharacter {
     profileImage: string;// Profile Image URL
     timestamp: number;   // Timestamp for sorting
 }
+
+export interface RankingCharacter {
+    character_id: string;
+    server_id: number;
+    name: string;
+    level: number;
+    class_name: string;
+    race_name: string;
+    guild_name?: string;
+    combat_power?: number;
+    profile_image?: string;
+    noa_score?: number;
+    ranking_ap?: number;
+    ranking_gp?: number;
+}

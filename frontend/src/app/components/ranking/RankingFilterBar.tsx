@@ -5,10 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
 import styles from './Ranking.module.css'
 import { SERVERS } from '../../constants/servers'
-
-const CLASSES = [
-    'Gladiator', 'Templar', 'Ranger', 'Assassin', 'Sorcerer', 'Spiritmaster', 'Cleric', 'Chanter'
-]
+import { CLASSES, RACES } from '../../constants/game-data'
 
 export default function RankingFilterBar() {
     const router = useRouter()
@@ -76,8 +73,9 @@ export default function RankingFilterBar() {
                     style={selectStyle}
                 >
                     <option value="">전체 종족</option>
-                    <option value="ELYOS">천족</option>
-                    <option value="ASMODIANS">마족</option>
+                    {RACES.map(r => (
+                        <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
                 </select>
 
                 <select
@@ -89,14 +87,9 @@ export default function RankingFilterBar() {
                     style={selectStyle}
                 >
                     <option value="">전체 직업</option>
-                    <option value="Gladiator">검성</option>
-                    <option value="Templar">수호성</option>
-                    <option value="Ranger">궁성</option>
-                    <option value="Assassin">살성</option>
-                    <option value="Sorcerer">마도성</option>
-                    <option value="Spiritmaster">정령성</option>
-                    <option value="Cleric">치유성</option>
-                    <option value="Chanter">호법성</option>
+                    {CLASSES.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
                 </select>
             </div>
 

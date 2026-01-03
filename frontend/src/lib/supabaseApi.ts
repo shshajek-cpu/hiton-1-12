@@ -107,12 +107,30 @@ export const supabaseApi = {
     /**
      * Search for a character in Local DB via PostgREST.
      */
-    async searchLocalCharacter(name: string): Promise<CharacterSearchResult[]> {
-        const query = new URLSearchParams({
+    async searchLocalCharacter(name: string, serverId?: number, race?: string): Promise<CharacterSearchResult[]> {
+        const queryParams: any = {
             select: '*',
             name: `ilike.*${name}*`,
             limit: '20'
-        })
+        }
+
+        if (serverId) {
+            queryParams.server_id = `eq.${serverId}`
+        }
+
+        if (race) {
+            // Map 'elyos'/'asmodian' to DB values if stored differently, 
+            // but usually we check if the DB stores 'Elyos' or 'ASMODIANS' etc.
+            // Based on migrations: race_name TEXT
+            // Let's assume standard 'Elyos'/'Asmodian' capitalization or partial match if unsure,
+            // but usually specific values.
+            // If input is 'elyos', we might want to search `race_name=eq.Elyos`
+            const r = race.toLowerCase()
+            if (r === 'elyos' || r === '천족') queryParams.race_name = `eq.Elyos`
+            else if (r === 'asmodian' || r === '마족') queryParams.race_name = `eq.Asmodian`
+        }
+
+        const query = new URLSearchParams(queryParams)
 
         try {
             const res = await fetch(`${SUPABASE_PROJECT_URL}/rest/v1/characters?${query}`, {
@@ -193,5 +211,21 @@ export const supabaseApi = {
         }
 
         return await res.json()
+    },
+
+    /**
+     * Sync search results to local DB in background.
+     */
+    async syncCharacters(characters: CharacterSearchResult[]): Promise<void> {
+        try {
+            await fetch('/api/search/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(characters)
+            })
+        } catch (e) {
+            console.error('Background sync failed', e)
+            // Silently fail as this is a background task
+        }
     }
 }
