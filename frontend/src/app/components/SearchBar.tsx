@@ -6,6 +6,7 @@ import { Search, ChevronDown, Check } from 'lucide-react'
 import SearchAutocomplete from './SearchAutocomplete'
 import { supabaseApi, CharacterSearchResult, SERVER_NAME_TO_ID } from '../../lib/supabaseApi'
 import styles from './ranking/Ranking.module.css'
+import { useSyncContext } from '../../context/SyncContext'
 
 // Define servers
 const ELYOS_SERVERS = [
@@ -22,6 +23,7 @@ const ASMODIAN_SERVERS = [
 
 export default function SearchBar() {
     const router = useRouter()
+    const { enqueueSync } = useSyncContext()
 
     // Search State
     const [race, setRace] = useState<'elyos' | 'asmodian'>('elyos')
@@ -32,7 +34,7 @@ export default function SearchBar() {
 
     // UI State
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-    
+
     // Autocomplete State
     const [showResults, setShowResults] = useState(false)
     const [results, setResults] = useState<CharacterSearchResult[]>([])
@@ -42,39 +44,6 @@ export default function SearchBar() {
     const dropdownRef = useRef<HTMLDivElement>(null)
 
     const suppressResultsRef = useRef(false)
-
-    const pendingSyncRef = useRef<Map<string, CharacterSearchResult>>(new Map())
-
-    const normalizeNameForKey = (value: string) => value.replace(/<\/?[^>]+(>|$)/g, '').trim().toLowerCase()
-    const buildSyncKey = (value: CharacterSearchResult) => {
-        if (value.characterId) return `id:${value.characterId}`
-        const serverKey = value.server_id ?? value.server
-        return `sv:${serverKey}|name:${normalizeNameForKey(value.name)}`
-    }
-
-    const enqueueSync = (items: CharacterSearchResult[]) => {
-        items.forEach(item => {
-            pendingSyncRef.current.set(buildSyncKey(item), item)
-        })
-    }
-
-    const flushPendingSync = () => {
-        const pending = Array.from(pendingSyncRef.current.values())
-        if (pending.length === 0) return
-        pendingSyncRef.current.clear()
-        supabaseApi.syncCharacters(pending)
-    }
-
-    useEffect(() => {
-        const intervalId = setInterval(() => {
-            flushPendingSync()
-        }, 10000)
-
-        return () => {
-            clearInterval(intervalId)
-            flushPendingSync()
-        }
-    }, [])
 
     // Debounce Logic
     useEffect(() => {
@@ -101,7 +70,7 @@ export default function SearchBar() {
                 setShowResults(false)
                 // Don't close server dropdown here if user clicked inside it
             }
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) && 
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
                 wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
                 setIsDropdownOpen(false)
             }
@@ -125,7 +94,7 @@ export default function SearchBar() {
 
         const serverId = server ? SERVER_NAME_TO_ID[server] : undefined
         const raceFilter = effectiveRace
-        
+
         const normalizeName = (value: string) => value.replace(/<\/?[^>]+(>|$)/g, '').trim().toLowerCase()
         const buildKey = (value: CharacterSearchResult) => {
             if (value.characterId) return `id:${value.characterId}`
@@ -151,7 +120,9 @@ export default function SearchBar() {
                     return true
                 })
 
+                // Use Global Context to sync
                 enqueueSync(filtered)
+
                 filtered.forEach(r => {
                     const key = buildKey(r)
                     if (!seen.has(key)) {
@@ -192,14 +163,13 @@ export default function SearchBar() {
             setLoading(true)
             const query = race ? `?race=${race}` : ''
             setShowResults(false)
-            flushPendingSync()
             router.push(`/c/${server}/${name}${query}`)
             setLoading(false)
             return
         }
 
         // If no server is selected (All Servers search)
-        
+
         // 1. Check if we have results from the autocomplete
         if (results.length > 0) {
             const exactMatch = results.find(r => r.name === name) || results[0]
@@ -211,23 +181,23 @@ export default function SearchBar() {
         // 2. No results locally yet? Perform explicit global search
         setLoading(true)
         setError('')
-        
+
         try {
             // Search globally (server=undefined)
             const searchResults = await supabaseApi.searchCharacter(name, undefined, effectiveRace, 1)
-            
+
             if (searchResults && searchResults.length > 0) {
-                 if (searchResults.length === 1) {
-                     // Single match -> Auto Navigate
-                     handleResultSelect(searchResults[0])
-                 } else {
-                     // Multiple matches -> Show results for user selection
-                     setResults(searchResults)
-                     setShowResults(true)
-                     setLoading(false)
-                     // Sync just in case
-                     enqueueSync(searchResults)
-                 }
+                if (searchResults.length === 1) {
+                    // Single match -> Auto Navigate
+                    handleResultSelect(searchResults[0])
+                } else {
+                    // Multiple matches -> Show results for user selection
+                    setResults(searchResults)
+                    setShowResults(true)
+                    setLoading(false)
+                    // Sync just in case
+                    enqueueSync(searchResults)
+                }
             } else {
                 setError('검색 결과가 없습니다.')
                 setLoading(false)
@@ -244,15 +214,17 @@ export default function SearchBar() {
         setResults([])
         setShowResults(false)
         setIsDropdownOpen(false)
-        flushPendingSync()
-        supabaseApi.syncCharacters([char])
+
+        // Use global queue for syncing the selected character too
+        enqueueSync([char])
+
         setServer(char.server)
         let raceVal: 'elyos' | 'asmodian' = race
         if (char.race === 'Elyos' || char.race === '천족') raceVal = 'elyos'
         if (char.race === 'Asmodian' || char.race === '마족') raceVal = 'asmodian'
         setRace(raceVal)
         setName(char.name)
-        
+
         const query = raceVal ? `?race=${raceVal}` : ''
         setShowResults(false)
         router.push(`/c/${char.server}/${char.name}${query}`)
@@ -265,7 +237,7 @@ export default function SearchBar() {
         // Reset server if it doesn't exist in the new race list
         const newServerList = selectedRace === 'elyos' ? ELYOS_SERVERS : ASMODIAN_SERVERS
         if (server && !newServerList.includes(server)) {
-            setServer('') 
+            setServer('')
         }
     }
 
@@ -277,9 +249,9 @@ export default function SearchBar() {
 
     // Determine Trigger Button Class
     const triggerClass = `${styles.serverTriggerBtn} ${server ? (race === 'elyos' ? styles.elyos : styles.asmodian) : ''}`
-    
+
     // Display Text
-    const triggerText = server 
+    const triggerText = server
         ? `${race === 'elyos' ? '천족' : '마족'} | ${server}`
         : '전체 서버'
 
@@ -287,8 +259,8 @@ export default function SearchBar() {
         <div className={styles.searchContainer} ref={wrapperRef}>
             <form onSubmit={handleSearch} className={styles.searchBarGlass}>
                 {/* Integrated Selector Trigger */}
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     className={triggerClass}
                     onClick={toggleDropdown}
                 >

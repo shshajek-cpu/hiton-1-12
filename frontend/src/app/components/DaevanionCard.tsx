@@ -1,4 +1,4 @@
-export default function DaevanionCard({ daevanion }: { daevanion: any }) {
+export default function DaevanionCard({ daevanion, isEmbedded = false }: { daevanion: any, isEmbedded?: boolean }) {
     if (!daevanion) return null
 
     const boardList = daevanion.boardList || []
@@ -14,7 +14,7 @@ export default function DaevanionCard({ daevanion }: { daevanion: any }) {
     const godNames = ['Vaizel', 'Lumiel', 'Marchutan', 'Nezekan', 'Israphel', 'Siel']
 
     return (
-        <div style={{
+        <div style={isEmbedded ? { width: '100%' } : {
             background: '#111318',
             border: '1px solid #1F2433',
             borderRadius: '12px',
@@ -25,33 +25,35 @@ export default function DaevanionCard({ daevanion }: { daevanion: any }) {
             flexDirection: 'column'
         }}>
             {/* Header */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '0.4rem',
-                flexShrink: 0
-            }}>
-                <h3 style={{
-                    fontSize: '0.85rem',
-                    fontWeight: 'bold',
-                    color: '#E5E7EB',
-                    margin: 0
-                }}>
-                    주신 능력치
-                </h3>
+            {!isEmbedded && (
                 <div style={{
-                    padding: '0.15rem 0.4rem',
-                    background: '#0B0D12',
-                    border: '1px solid #1F2433',
-                    borderRadius: '12px',
-                    fontSize: '0.7rem',
-                    color: activeBoards >= 4 ? '#FACC15' : '#E5E7EB',
-                    fontWeight: 'bold'
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '0.4rem',
+                    flexShrink: 0
                 }}>
-                    {activeBoards}/{totalBoards}
+                    <h3 style={{
+                        fontSize: '0.85rem',
+                        fontWeight: 'bold',
+                        color: '#E5E7EB',
+                        margin: 0
+                    }}>
+                        주신 능력치
+                    </h3>
+                    <div style={{
+                        padding: '0.15rem 0.4rem',
+                        background: '#0B0D12',
+                        border: '1px solid #1F2433',
+                        borderRadius: '12px',
+                        fontSize: '0.7rem',
+                        color: activeBoards >= 4 ? '#FACC15' : '#E5E7EB',
+                        fontWeight: 'bold'
+                    }}>
+                        {activeBoards}/{totalBoards}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* God Grid - 1행으로 변경 */}
             <div style={{

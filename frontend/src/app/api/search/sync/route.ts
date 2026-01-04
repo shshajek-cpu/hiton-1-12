@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { CLASSES } from '../../../constants/game-data'
 
 // Define the structure of incoming data
 interface SyncCharacter {
@@ -45,31 +44,31 @@ export async function POST(request: NextRequest) {
                     console.warn(`Skipping character: missing characterId`);
                     return false;
                 }
+                if (char.job === 'Unknown' || char.job.startsWith('pcId:')) {
+                    console.warn(`Skipping character ${char.name} due to invalid class: ${char.job}`);
+                    return false;
+                }
                 return true;
             })
             .map(char => ({
-                character_id: decodeURIComponent(char.characterId), // Decode URL-encoded IDs
+                character_id: decodeURIComponent(char.characterId),
                 server_id: char.server_id,
                 name: cleanName(char.name),
                 level: char.level,
-                class_name: (() => {
-                    const rawClass = char.job;
-                    if (/[가-힣]/.test(rawClass)) return rawClass;
-                    const matched = CLASSES.find(c => c.id === rawClass);
-                    return matched ? matched.name : rawClass;
-                })(),
+                // class_name: supabaseApi.ts에서 이미 정확한 한글명으로 매핑해서 보냄
+                class_name: char.job,
                 race_name: char.race,
                 profile_image: char.imageUrl,
                 updated_at: new Date().toISOString()
             }))
 
-        // Perform Bulk Upsert
-        // We use 'character_id' as the unique key to detect conflicts
+        // Perform Bulk Upsert - only for NEW characters
+        // Existing characters with class_name will not be overwritten
         const { error } = await supabase
             .from('characters')
             .upsert(rowsToUpsert, {
                 onConflict: 'character_id',
-                ignoreDuplicates: true // Skip existing rows
+                ignoreDuplicates: true // Skip existing rows entirely
             })
 
         if (error) {

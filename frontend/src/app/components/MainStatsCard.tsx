@@ -60,7 +60,7 @@ const StaminaIcon = () => (
     </svg>
 )
 
-export default function MainStatsCard({ stats }: { stats: any }) {
+export default function MainStatsCard({ stats, isEmbedded = false }: { stats: any, isEmbedded?: boolean }) {
     const [expanded, setExpanded] = useState(false)
 
     if (!stats) return null
@@ -99,7 +99,7 @@ export default function MainStatsCard({ stats }: { stats: any }) {
     }))
 
     return (
-        <div style={{
+        <div style={isEmbedded ? { width: '100%' } : {
             background: '#111318',
             border: '1px solid #1F2433',
             borderRadius: '12px',
@@ -109,17 +109,19 @@ export default function MainStatsCard({ stats }: { stats: any }) {
             display: 'flex',
             flexDirection: 'column'
         }}>
-            {/* Header */}
-            <h3 style={{
-                fontSize: '0.95rem',
-                fontWeight: 'bold',
-                color: '#E5E7EB',
-                margin: 0,
-                marginBottom: '0.75rem',
-                height: '20px'
-            }}>
-                주요 스텟
-            </h3>
+            {/* Header - Hidden if embedded */}
+            {!isEmbedded && (
+                <h3 style={{
+                    fontSize: '0.95rem',
+                    fontWeight: 'bold',
+                    color: '#E5E7EB',
+                    margin: 0,
+                    marginBottom: '0.75rem',
+                    height: '20px'
+                }}>
+                    주요 스텟
+                </h3>
+            )}
 
             {/* 6 Stats Grid */}
             <div style={{

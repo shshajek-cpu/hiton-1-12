@@ -34,7 +34,15 @@
       "Bash(cat:*)",
       "Bash(taskkill /PID 13404 /F)",
       "Bash(cmd //c \"taskkill /PID 13404 /F\")",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(node normalize-race-data.js:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd //c \"taskkill /PID 21456 /F\")",
+      "Bash(node find-duplicates.js:*)",
+      "Bash(node fix-duplicate-characters.js:*)",
+      "Bash(node extract-class-mapping.js:*)",
+      "Bash(node update-unknown-classes.js:*)",
+      "Bash(node delete-level-zero.js:*)"
     ]
   }
 }

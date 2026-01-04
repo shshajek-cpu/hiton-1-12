@@ -6,6 +6,7 @@ import TitleCard from '../../../components/TitleCard'
 import MainStatsCard from '../../../components/MainStatsCard'
 import DaevanionCard from '../../../components/DaevanionCard'
 import EquipmentGrid from '../../../components/EquipmentGrid'
+import AccordionCard from '../../../components/AccordionCard'
 import { supabaseApi, CharacterDetail, SERVER_NAME_TO_ID } from '../../../../lib/supabaseApi'
 import RankingCard from '../../../components/RankingCard'
 import EquipmentDetailList from '../../../components/EquipmentDetailList'
@@ -244,7 +245,7 @@ export default function CharacterDetailPage() {
   const [rawData, setRawData] = useState<CharacterDetail | null>(null) // Keep full DB response if needed
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState('basic')
+  const [activeTab, setActiveTab] = useState('equipment')
 
   // Mapped Data States
   const [mappedEquipment, setMappedEquipment] = useState<{ equipment: any[], accessories: any[], arcana: any[] }>({ equipment: [], accessories: [], arcana: [] })
@@ -333,8 +334,8 @@ export default function CharacterDetailPage() {
       // Map server name to ID for accurate search
       const targetSearchServerId = SERVER_NAME_TO_ID[serverName]
 
-      // Step 1: Search to find ID (Global search to find exact match in any page)
-      const searchResults = await supabaseApi.searchCharacter(charName, undefined, raceParam)
+      // Step 1: Search with Server ID if available, otherwise Global
+      const searchResults = await supabaseApi.searchCharacter(charName, targetSearchServerId, raceParam)
 
       // Filter by server name or ID locally.
       const match = searchResults.find(r => {
@@ -388,7 +389,26 @@ export default function CharacterDetailPage() {
       setMappedTitles(mappedTitles)
       setMappedDaevanion(mappedDaevanion)
       setMappedRankings(mappedRankings)
+      setMappedRankings(mappedRankings)
       setMappedSkills(detail.skill || {})
+
+      // --- SYNC JOB TO DB ---
+      // If we have a valid Korean class name, sync it to the DB to fix any "pcId:X" issues in ranking
+      const className = detail.profile.className
+      if (className && /[가-힣]/.test(className) && !className.startsWith('pcId')) {
+        fetch('/api/character/sync-job', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            characterId: detail.profile.characterId,
+            serverId: serverId,
+            job: className,
+            level: detail.profile.characterLevel,
+            race: detail.profile.raceName,
+            name: detail.profile.characterName
+          })
+        }).catch(console.error)
+      }
 
     } catch (err: any) {
       console.error(err)
@@ -538,77 +558,173 @@ export default function CharacterDetailPage() {
           gap: '1.5rem'
         }}>
           {/* LEFT COLUMN: Profile Section */}
-          <div>
+          <div style={{ minWidth: '280px' }}>
             <ProfileSection character={data} arcana={mappedEquipment.arcana} onArcanaClick={handleItemClick} />
           </div>
 
-          {/* CENTER COLUMN: Equipment */}
-          <div style={{
-            background: '#111318',
-            border: '1px solid #1F2433',
-            borderRadius: '12px',
-            padding: '1rem',
-            // height: '638px', // Fixed height removed to show all items
-            boxSizing: 'border-box',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
+          {/* CENTER COLUMN: Equipment & Skills */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
+            {/* Tabs - Enhanced 3D Button Style */}
             <div style={{
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '0.75rem',
-              borderBottom: '1px solid #1F2433',
-              paddingBottom: '0.5rem',
-              flexShrink: 0
+              gap: '0.5rem',
+              background: '#0B0D12',
+              border: '1px solid #1F2433',
+              borderRadius: '8px',
+              padding: '0.5rem'
             }}>
-              <h2 style={{
-                fontSize: '1rem',
-                fontWeight: 'bold',
-                color: '#E5E7EB',
-                margin: 0
-              }}>
-                장비 & 장신구
-              </h2>
-              <span style={{ fontSize: '0.7rem', color: '#9CA3AF', fontWeight: 'normal', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                마우스 올리면 상세정보
-              </span>
+              {['equipment', 'skills', 'network'].map(tab => {
+                const isSkillsTab = tab === 'skills'
+                const isActive = activeTab === tab
+
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem 1rem',
+                      color: isActive ? '#0B0D12' : '#E5E7EB',
+                      fontWeight: isActive ? 'bold' : '600',
+                      background: isActive
+                        ? 'linear-gradient(180deg, #FBBF24 0%, #FACC15 100%)'
+                        : 'linear-gradient(180deg, #1F2433 0%, #111318 100%)',
+                      border: isActive
+                        ? '1px solid #FCD34D'
+                        : '1px solid #2D3748',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      fontSize: '0.875rem',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      // 3D Effect: Active = Pressed, Inactive = Raised
+                      boxShadow: isActive
+                        ? 'inset 0 2px 4px rgba(0,0,0,0.3), inset 0 -1px 2px rgba(255,255,255,0.1)'
+                        : isSkillsTab && !isActive
+                          ? '0 2px 4px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.05), 0 0 15px rgba(250, 204, 21, 0.15)'
+                          : '0 2px 4px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.05)',
+                      transform: isActive ? 'translateY(2px)' : 'translateY(0)',
+                      animation: isSkillsTab && !isActive ? 'shimmer 3s ease-in-out infinite' : 'none'
+                    }}
+                    onMouseDown={(e) => {
+                      e.currentTarget.style.transform = 'translateY(3px)'
+                      e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.4)'
+                    }}
+                    onMouseUp={(e) => {
+                      if (isActive) {
+                        e.currentTarget.style.transform = 'translateY(2px)'
+                        e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.3), inset 0 -1px 2px rgba(255,255,255,0.1)'
+                      } else {
+                        e.currentTarget.style.transform = 'translateY(0)'
+                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.05)'
+                      }
+                    }}
+                    onMouseOver={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'linear-gradient(180deg, #2D3748 0%, #1F2433 100%)'
+                        e.currentTarget.style.borderColor = '#4B5563'
+                      }
+                    }}
+                    onMouseOut={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.background = 'linear-gradient(180deg, #1F2433 0%, #111318 100%)'
+                        e.currentTarget.style.borderColor = '#2D3748'
+                      }
+                    }}
+                  >
+                    {/* Sparkle overlay for skills tab */}
+                    {isSkillsTab && !isActive && (
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: '-100%',
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(90deg, transparent, rgba(250, 204, 21, 0.2), transparent)',
+                        animation: 'slide 3s ease-in-out infinite',
+                        pointerEvents: 'none'
+                      }} />
+                    )}
+
+                    {tab === 'equipment' ? '장비' : tab === 'skills' ? '✨ 스킬' : '인맥'}
+                  </button>
+                )
+              })}
             </div>
-            <div style={{ flex: 1 }}>
-              <EquipmentGrid equipment={mappedEquipment.equipment} accessories={mappedEquipment.accessories} onItemClick={handleItemClick} />
-            </div>
+
+
+            {/* Sparkle Animation */}
+            <style dangerouslySetInnerHTML={{
+              __html: `
+              @keyframes shimmer {
+                0%, 100% {
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.05), 0 0 15px rgba(250, 204, 21, 0.15);
+                }
+                50% {
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.05), 0 0 25px rgba(250, 204, 21, 0.3);
+                }
+              }
+              
+              @keyframes slide {
+                0% {
+                  left: -100%;
+                }
+                100% {
+                  left: 200%;
+                }
+              }
+            `}} />
+
+            {activeTab === 'equipment' && (
+              <EquipmentGrid
+                equipment={mappedEquipment.equipment}
+                accessories={mappedEquipment.accessories}
+                onItemClick={handleItemClick}
+              />
+            )}
+
+            {activeTab === 'skills' && (
+              <SkillSection skills={mappedSkills} />
+            )}
+
+            {activeTab === 'network' && (
+              <div style={{ color: '#6B7280', padding: '2rem', textAlign: 'center' }}>
+                인맥 네트워크 기능 준비중...
+              </div>
+            )}
           </div>
 
-          {/* RIGHT COLUMN: MainStats, Title, Daevanion */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.5rem'
-          }}>
-            <MainStatsCard stats={mappedStats} />
-            <RankingCard rankings={mappedRankings} />
+          {/* RIGHT COLUMN: Stats & Rankings (Accordions) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: '350px' }}>
+            {/* 1. Title Card (Always Visible) */}
             <TitleCard titles={mappedTitles} />
-            <DaevanionCard daevanion={mappedDaevanion} />
+
+            {/* 2. Accordion Group */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+
+              {/* 1) Main Stats */}
+              <AccordionCard title="주요 능력치" defaultOpen={true}>
+                <MainStatsCard stats={mappedStats} isEmbedded={true} />
+              </AccordionCard>
+
+              {/* 2) Ranking */}
+              <AccordionCard title="랭킹 정보" defaultOpen={false}>
+                <RankingCard rankings={mappedRankings} isEmbedded={true} />
+              </AccordionCard>
+
+            </div>
           </div>
+
+          {/* Item Detail Modal (Global) */}
+          {selectedItem && (
+            <ItemDetailModal
+              item={selectedItem}
+              onClose={() => setSelectedItem(null)}
+            />
+          )}
         </div>
-
-        {/* Detailed Equipment List */}
-        <EquipmentDetailList equipment={mappedEquipment.equipment} accessories={mappedEquipment.accessories} onItemClick={handleItemClick} />
-
-        {/* SKILL SECTION */}
-        <div style={{ width: '100%', marginTop: '1.5rem' }}>
-          <SkillSection skills={mappedSkills} />
-        </div>
-
-        {/* Item Detail Modal */}
-        {selectedItem && (
-          <ItemDetailModal
-            item={selectedItem}
-            onClose={() => setSelectedItem(null)}
-          />
-        )}
       </div>
-    </div>
+    </div >
   )
 }

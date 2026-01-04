@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
-import { AionCharacterInfoResponse, AionCharacterEquipmentResponse, DbCharacter } from '../_shared/types.ts'
+import { AionCharacterInfoResponse, AionCharacterEquipmentResponse, DbCharacter, normalizeRaceName } from '../_shared/types.ts'
 
 serve(async (req) => {
     if (req.method === 'OPTIONS') {
@@ -43,7 +43,7 @@ serve(async (req) => {
             name: infoData.profile.characterName,
             level: infoData.profile.characterLevel,
             class_name: infoData.profile.className,
-            race_name: infoData.profile.raceName,
+            race_name: normalizeRaceName(infoData.profile.raceId, infoData.profile.raceName),
             combat_power: 0,
             profile_image: infoData.profile.profileImage,
 

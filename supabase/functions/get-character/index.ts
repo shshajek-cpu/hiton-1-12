@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
-import { AionCharacterInfoResponse, AionCharacterEquipmentResponse, DbCharacter } from '../_shared/types.ts'
+import { AionCharacterInfoResponse, AionCharacterEquipmentResponse, DbCharacter, normalizeRaceName } from '../_shared/types.ts'
 
 const CACHE_TTL_SECONDS = 300; // 5분 캐시 정책
 
@@ -205,7 +205,7 @@ serve(async (req) => {
             level: infoData.profile.characterLevel,
             item_level: infoData.profile.jobLevel || 0, // item_level이 없으면 jobLevel이나 0으로 대체 (API 응답 확인 필요)
             class_name: infoData.profile.className,
-            race_name: infoData.profile.raceName,
+            race_name: normalizeRaceName(infoData.profile.raceId, infoData.profile.raceName),
             combat_power: 0, // 필요 시 계산 로직 추가
             profile_image: infoData.profile.profileImage,
 

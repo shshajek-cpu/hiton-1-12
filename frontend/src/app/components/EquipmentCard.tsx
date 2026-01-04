@@ -90,7 +90,8 @@ export default function EquipmentCard({ slot, item, onClick }: EquipmentCardProp
             alignItems: 'center',
             maxWidth: '100%',
             boxSizing: 'border-box',
-            height: '100%'
+            height: '100%',
+            zIndex: isHovered ? 9999 : 1
         }}
             className="equipment-card-hover"
             onMouseEnter={() => setIsHovered(true)}

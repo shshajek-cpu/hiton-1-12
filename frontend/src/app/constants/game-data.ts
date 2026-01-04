@@ -7,7 +7,7 @@ export const CLASSES = [
     { id: 'Spiritmaster', name: '정령성', pcId: 0 }, // ID checking needed
     { id: 'Cleric', name: '치유성', pcId: 0 }, // ID checking needed
     { id: 'Chanter', name: '호법성', pcId: 36 },
-    { id: 'Thunderer', name: '권성', pcId: 0 } // Added just in case
+    { id: 'Thunderer', name: '검성', pcId: 0 } // Added just in case
 ];
 
 export const RACES = [

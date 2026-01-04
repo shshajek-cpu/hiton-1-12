@@ -1,4 +1,5 @@
 'use client'
+import RankingIcon from './RankingIcon'
 
 interface RankingItem {
     name: string
@@ -11,9 +12,10 @@ interface RankingCardProps {
     rankings: {
         rankingList: any[]
     }
+    isEmbedded?: boolean
 }
 
-export default function RankingCard({ rankings }: RankingCardProps) {
+export default function RankingCard({ rankings, isEmbedded = false }: RankingCardProps) {
     // Debug: Check the actual data structure
     // console.log('Ranking Data:', rankings)
 
@@ -73,7 +75,13 @@ export default function RankingCard({ rankings }: RankingCardProps) {
     })
 
     return (
-        <div style={{
+        <div style={isEmbedded ? {
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: '320px',
+            overflow: 'hidden'
+        } : {
             background: '#111318',
             border: '1px solid #1F2433',
             borderRadius: '12px',
@@ -85,17 +93,19 @@ export default function RankingCard({ rankings }: RankingCardProps) {
             width: '100%'
         }}>
             {/* Header */}
-            <h3 style={{
-                fontSize: '0.95rem',
-                fontWeight: 'bold',
-                color: '#E5E7EB',
-                margin: 0,
-                marginBottom: '0.75rem',
-                height: '20px',
-                flexShrink: 0
-            }}>
-                랭킹 정보
-            </h3>
+            {!isEmbedded && (
+                <h3 style={{
+                    fontSize: '0.95rem',
+                    fontWeight: 'bold',
+                    color: '#E5E7EB',
+                    margin: 0,
+                    marginBottom: '0.75rem',
+                    height: '20px',
+                    flexShrink: 0
+                }}>
+                    랭킹 정보
+                </h3>
+            )}
 
             {/* List with Scroll */}
             <div style={{
@@ -103,7 +113,8 @@ export default function RankingCard({ rankings }: RankingCardProps) {
                 flexDirection: 'column',
                 gap: '0.4rem',
                 overflowY: 'auto',
-                flex: 1
+                flex: 1,
+                paddingRight: '4px'
             }}>
                 {dataToShow.map((item, idx) => (
                     <div key={item.key} style={{
@@ -119,20 +130,16 @@ export default function RankingCard({ rankings }: RankingCardProps) {
                     }}>
                         {/* Wrapper for Left side */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            {/* Icon Placeholder */}
+                            {/* Ranking Icon */}
                             <div style={{
-                                width: '24px',
-                                height: '24px',
-                                borderRadius: '6px',
-                                background: `${item.iconColor}20`,
+                                width: '28px',
+                                height: '28px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                border: `1px solid ${item.iconColor}40`,
                                 flexShrink: 0
                             }}>
-                                {/* Simple Dot for now, or replace with specific SVGs later */}
-                                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: item.iconColor }}></div>
+                                <RankingIcon type={item.key as any} size={28} />
                             </div>
 
                             <span style={{ color: '#9CA3AF', fontSize: '0.8rem' }}>{item.label}</span>

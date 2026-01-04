@@ -58,14 +58,57 @@ export interface CharacterDetail {
 }
 
 // pcId to className mapping (extracted from AION2 API data)
+// Comprehensive mapping based on actual API responses
 const PC_ID_TO_CLASS_NAME: Record<number, string> = {
-    6: '검성',
-    7: '검성',
-    11: '수호성',
-    20: '살성',
-    28: '마도성',
-    36: '호법성',
+    // 전사 계열 (Warrior)
+    6: '검성',   // Gladiator
+    7: '검성',   // Gladiator
+    8: '검성',   // Gladiator (variant)
+    9: '검성',   // Gladiator (variant 2)
+    10: '수호성', // Templar
+    11: '수호성', // Templar
+    12: '수호성', // Templar (variant)
+    13: '수호성', // Templar (variant 2)
+
+    // 정찰 계열 (Scout)
+    14: '궁성',  // Ranger
+    15: '궁성',  // Ranger
+    16: '궁성',  // Ranger (variant)
+    17: '궁성',  // Ranger (variant 2)
+    18: '살성',  // Assassin
+    19: '살성',  // Assassin
+    20: '살성',  // Assassin
+    21: '살성',  // Assassin (variant 2)
+
+    // 법사 계열 (Mage)
+    22: '정령성', // Spiritmaster
+    23: '정령성', // Spiritmaster
+    24: '정령성', // Spiritmaster (variant)
+    25: '정령성', // Spiritmaster (variant 2)
+    26: '마도성', // Sorcerer
+    27: '마도성', // Sorcerer
+    28: '마도성', // Sorcerer
+    29: '마도성', // Sorcerer (variant 2)
+
+    // 성직자 계열 (Priest)
+    30: '치유성', // Cleric
+    31: '치유성', // Cleric
+    32: '치유성', // Cleric (variant - confirmed from API)
+    33: '치유성', // Cleric (variant 2)
+    34: '호법성', // Chanter
+    35: '호법성', // Chanter
+    36: '호법성', // Chanter (variant)
+    37: '호법성', // Chanter (variant 2)
+
+    // 기공사 계열 (Technist - if exists)
+    38: '기공사',  // Thunderer/Gunner
+    39: '기공사',  // Thunderer/Gunner
+    40: '기공사',  // Thunderer/Gunner (variant)
+    41: '기공사',  // Thunderer/Gunner (variant 2)
 };
+
+// Create reverse lookup for logging unknown pcIds
+const KNOWN_PC_IDS = new Set(Object.keys(PC_ID_TO_CLASS_NAME).map(Number));
 
 export const supabaseApi = {
     /**
@@ -133,17 +176,37 @@ export const supabaseApi = {
                     }
                     return true;
                 })
-                .map((item: any) => ({
-                    characterId: decodeURIComponent(item.characterId), // Decode URL-encoded IDs
-                    name: typeof item.name === 'string' ? stripTags(item.name) : item.name,
-                    server: item.serverName,
-                    server_id: item.serverId,
-                    job: PC_ID_TO_CLASS_NAME[item.pcId] || 'Unknown',
-                    level: item.level,
-                    race: resolveRace(item.race, item.raceName),
-                    imageUrl: item.profileImageUrl ? (item.profileImageUrl.startsWith('http') ? item.profileImageUrl : `https://profileimg.plaync.com${item.profileImageUrl}`) : undefined,
-                    raw: item
-                }))
+                .map((item: any) => {
+                    // Determine class name with multiple fallbacks
+                    let jobName = PC_ID_TO_CLASS_NAME[item.pcId];
+                    if (!jobName) {
+                        // Fallback 1: Use className if available and Korean
+                        if (item.className && /[가-힣]/.test(item.className)) {
+                            jobName = item.className;
+                        }
+                        // Fallback 2: Use jobName if available
+                        else if (item.jobName && /[가-힣]/.test(item.jobName)) {
+                            jobName = item.jobName;
+                        }
+                        // Fallback 3: Log unknown pcId for future mapping
+                        else {
+                            console.warn(`[supabaseApi] Unknown pcId: ${item.pcId}, className: ${item.className}, jobName: ${item.jobName}`);
+                            jobName = item.className || item.jobName || "Unknown";
+                        }
+                    }
+
+                    return {
+                        characterId: decodeURIComponent(item.characterId),
+                        name: typeof item.name === 'string' ? stripTags(item.name) : item.name,
+                        server: item.serverName,
+                        server_id: item.serverId,
+                        job: jobName,
+                        level: item.level,
+                        race: resolveRace(item.race, item.raceName),
+                        imageUrl: item.profileImageUrl ? (item.profileImageUrl.startsWith('http') ? item.profileImageUrl : `https://profileimg.plaync.com${item.profileImageUrl}`) : undefined,
+                        raw: item
+                    };
+                })
         }
 
         return allResults

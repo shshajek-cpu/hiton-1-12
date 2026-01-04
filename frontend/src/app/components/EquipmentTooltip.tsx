@@ -19,7 +19,7 @@ export default function EquipmentTooltip({ item }: EquipmentTooltipProps) {
     return (
         <div style={{
             position: 'absolute',
-            bottom: 'calc(100% + 10px)', // Above the card
+            top: 'calc(100% + 10px)', // Below the card
             left: '50%',
             transform: 'translateX(-50%)',
             width: '260px',
@@ -27,22 +27,22 @@ export default function EquipmentTooltip({ item }: EquipmentTooltipProps) {
             border: `1px solid ${tierColor}80`,
             borderRadius: '8px',
             padding: '12px',
-            zIndex: 9999,
+            zIndex: 10000,
             boxShadow: '0 10px 25px rgba(0,0,0,0.8)',
             pointerEvents: 'none', // Prevent tooltip from capturing mouse events
             textAlign: 'left'
         }}>
-            {/* Arrow */}
+            {/* Arrow - pointing upward */}
             <div style={{
                 position: 'absolute',
-                bottom: '-6px',
+                top: '-6px',
                 left: '50%',
                 transform: 'translateX(-50%) rotate(45deg)',
                 width: '10px',
                 height: '10px',
                 background: 'rgba(15, 17, 23, 0.98)',
-                borderRight: `1px solid ${tierColor}80`,
-                borderBottom: `1px solid ${tierColor}80`,
+                borderLeft: `1px solid ${tierColor}80`,
+                borderTop: `1px solid ${tierColor}80`,
             }}></div>
 
             {/* Header: Name & Enhance */}
