@@ -248,19 +248,32 @@ function extractDaevanionStats(daevanion: any): Map<string, StatSource[]> {
 }
 
 /**
- * 기본 스탯에서 추출
+ * 기본 스탯에서 2차 파생 능력치 추출 (statSecondList)
  */
-function extractBaseStats(stats: any): Map<string, number> {
-  const statsMap = new Map<string, number>()
+function extractBaseStats(stats: any): Map<string, StatSource[]> {
+  const statsMap = new Map<string, StatSource[]>()
 
   if (!stats || !stats.statList) return statsMap
 
   stats.statList.forEach((stat: any) => {
-    if (stat.name && stat.value !== undefined) {
-      statsMap.set(stat.name, typeof stat.value === 'string'
-        ? parseInt(stat.value.replace(/,/g, ''), 10)
-        : stat.value
-      )
+    const baseName = stat.name || '알 수 없음' // 위력, 민첩 등
+
+    // statSecondList에서 2차 파생 능력치 추출
+    if (stat.statSecondList && Array.isArray(stat.statSecondList)) {
+      stat.statSecondList.forEach((secondStat: string) => {
+        const parsed = parseStatString(secondStat)
+        if (parsed && parsed.name) {
+          if (!statsMap.has(parsed.name)) {
+            statsMap.set(parsed.name, [])
+          }
+          statsMap.get(parsed.name)!.push({
+            name: `${baseName} (${stat.value})`,
+            value: parsed.value,
+            percentage: parsed.percentage,
+            description: '기본 스탯'
+          })
+        }
+      })
     }
   })
 
@@ -276,11 +289,11 @@ export function aggregateStats(
   daevanion: any,
   stats: any
 ): StatDetail[] {
-  // 각 소스에서 스탯 추출
+  // 각 소스에서 2차 파생 능력치 추출
   const equipmentStats = extractEquipmentStats(equipment)
   const titleStats = extractTitleStats(titles)
   const daevanionStats = extractDaevanionStats(daevanion)
-  const baseStats = extractBaseStats(stats)
+  const baseStats = extractBaseStats(stats) // 이제 StatSource[] 반환
 
   // 모든 스탯 이름 수집
   const allStatNames = new Set<string>()
@@ -296,18 +309,23 @@ export function aggregateStats(
     const equipSources = equipmentStats.get(statName) || []
     const titleSources = titleStats.get(statName) || []
     const daevanionSources = daevanionStats.get(statName) || []
-    const baseValue = baseStats.get(statName) || 0
+    const baseSources = baseStats.get(statName) || []
 
     // 합계 계산
-    const totalValue = baseValue +
+    const totalValue =
       equipSources.reduce((sum, s) => sum + s.value, 0) +
       titleSources.reduce((sum, s) => sum + s.value, 0) +
-      daevanionSources.reduce((sum, s) => sum + s.value, 0)
+      daevanionSources.reduce((sum, s) => sum + s.value, 0) +
+      baseSources.reduce((sum, s) => sum + s.value, 0)
 
     const totalPercentage =
       equipSources.reduce((sum, s) => sum + (s.percentage || 0), 0) +
       titleSources.reduce((sum, s) => sum + (s.percentage || 0), 0) +
-      daevanionSources.reduce((sum, s) => sum + (s.percentage || 0), 0)
+      daevanionSources.reduce((sum, s) => sum + (s.percentage || 0), 0) +
+      baseSources.reduce((sum, s) => sum + (s.percentage || 0), 0)
+
+    // baseSources를 별도 카테고리로 표시
+    const allSources = [...equipSources, ...titleSources, ...daevanionSources, ...baseSources]
 
     statDetails.push({
       name: statName,
@@ -317,14 +335,19 @@ export function aggregateStats(
         equipment: equipSources,
         titles: titleSources,
         daevanion: daevanionSources,
-        baseValue
+        baseValue: 0,
+        baseStats: baseSources // 기본 스탯에서 파생된 2차 능력치
       },
-      color: getStatColor(statName, totalValue),
+      color: getStatColor(statName, totalValue + totalPercentage),
       category: getStatCategory(statName),
       isExpanded: false
     })
   })
 
   // 총합 값 기준으로 정렬 (높은 순)
-  return statDetails.sort((a, b) => b.totalValue - a.totalValue)
+  return statDetails.sort((a, b) => {
+    const aTotal = a.totalValue + a.totalPercentage
+    const bTotal = b.totalValue + b.totalPercentage
+    return bTotal - aTotal
+  })
 }

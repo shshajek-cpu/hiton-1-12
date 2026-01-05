@@ -120,8 +120,8 @@ export default function StatsDetailAccordion({ stat, onToggle }: StatsDetailAcco
           borderTop: '1px solid #1F2433',
           background: '#0A0C10'
         }}>
-          {/* 기본값 */}
-          {stat.sources.baseValue > 0 && (
+          {/* 기본 스탯 출처 (2차 파생) */}
+          {stat.sources.baseStats && stat.sources.baseStats.length > 0 && (
             <div style={{ marginTop: '1rem' }}>
               <div style={{
                 fontSize: '0.85rem',
@@ -129,17 +129,29 @@ export default function StatsDetailAccordion({ stat, onToggle }: StatsDetailAcco
                 marginBottom: '0.5rem',
                 fontWeight: '600'
               }}>
-                📊 기본값
+                📊 기본 스탯 출처 (+{stat.sources.baseStats.reduce((sum, s) => sum + s.value, 0).toLocaleString()}
+                {stat.sources.baseStats.reduce((sum, s) => sum + (s.percentage || 0), 0) > 0 &&
+                  `, +${stat.sources.baseStats.reduce((sum, s) => sum + (s.percentage || 0), 0).toFixed(1)}%`})
               </div>
-              <div style={{
-                padding: '0.75rem',
-                background: '#111318',
-                borderRadius: '6px',
-                borderLeft: '3px solid #6B7280',
-                color: '#D1D5DB',
-                fontSize: '0.9rem'
-              }}>
-                +{stat.sources.baseValue.toLocaleString()}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {stat.sources.baseStats.map((source, idx) => (
+                  <div key={idx} style={{
+                    padding: '0.75rem',
+                    background: '#111318',
+                    borderRadius: '6px',
+                    borderLeft: `3px solid ${stat.color}`,
+                    color: '#D1D5DB',
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    justifyContent: 'space-between'
+                  }}>
+                    <span>{source.name}</span>
+                    <span style={{ color: stat.color, fontWeight: '600' }}>
+                      {source.value > 0 && `+${source.value.toLocaleString()}`}
+                      {source.percentage && source.percentage > 0 && ` +${source.percentage}%`}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -265,7 +277,7 @@ export default function StatsDetailAccordion({ stat, onToggle }: StatsDetailAcco
               💡 최종 계산
             </div>
             <div style={{ fontSize: '0.85rem', color: '#9CA3AF', fontFamily: 'monospace' }}>
-              {stat.sources.baseValue > 0 && `${stat.sources.baseValue} (기본)`}
+              {stat.sources.baseStats && stat.sources.baseStats.length > 0 && `${stat.sources.baseStats.reduce((sum, s) => sum + s.value, 0)} (기본)`}
               {stat.sources.equipment.length > 0 && ` + ${stat.sources.equipment.reduce((sum, s) => sum + s.value, 0)} (장비)`}
               {stat.sources.titles.length > 0 && ` + ${stat.sources.titles.reduce((sum, s) => sum + s.value, 0)} (타이틀)`}
               {stat.sources.daevanion.length > 0 && ` + ${stat.sources.daevanion.reduce((sum, s) => sum + s.value, 0)} (대바니온)`}
@@ -273,6 +285,11 @@ export default function StatsDetailAccordion({ stat, onToggle }: StatsDetailAcco
               <span style={{ color: stat.color, fontWeight: 'bold' }}>
                 {stat.totalValue.toLocaleString()}
               </span>
+              {stat.totalPercentage > 0 && (
+                <span style={{ color: stat.color, fontWeight: 'bold', marginLeft: '0.5rem' }}>
+                  (+{stat.totalPercentage.toFixed(1)}%)
+                </span>
+              )}
             </div>
           </div>
         </div>

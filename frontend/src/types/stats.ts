@@ -15,7 +15,8 @@ export interface StatSources {
   equipment: StatSource[]        // 장비별 상세
   titles: StatSource[]           // 타이틀별 상세
   daevanion: StatSource[]        // 대바니온별 상세
-  baseValue: number              // 기본값
+  baseValue: number              // 기본값 (하위 호환용)
+  baseStats?: StatSource[]       // 기본 스탯에서 파생된 2차 능력치
 }
 
 export interface StatDetail {

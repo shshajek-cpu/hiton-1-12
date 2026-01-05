@@ -146,7 +146,7 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles }
         })}
       </div>
 
-      {/* 스탯 리스트 */}
+      {/* 스탯 리스트 - 2열 그리드 */}
       <div style={{
         flex: 1,
         overflowY: 'auto',
@@ -163,13 +163,19 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles }
             <div>해당 카테고리에 능력치가 없습니다</div>
           </div>
         ) : (
-          statsWithExpanded.map(stat => (
-            <StatsDetailAccordion
-              key={stat.name}
-              stat={stat}
-              onToggle={handleToggle}
-            />
-          ))
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '0.75rem'
+          }}>
+            {statsWithExpanded.map(stat => (
+              <StatsDetailAccordion
+                key={stat.name}
+                stat={stat}
+                onToggle={handleToggle}
+              />
+            ))}
+          </div>
         )}
       </div>
 
