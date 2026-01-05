@@ -25,33 +25,48 @@ const GODS = [
 const getClassCategory = (className: string): 'warrior' | 'mage' | 'priest' | 'scout' => {
     const lower = className.toLowerCase()
 
-    // Warriors/Tanks: Gladiator, Templar, etc.
+    // Warriors/Tanks: Gladiator (검성), Templar (수호성/템플러), etc.
     if (lower.includes('글래디에이터') || lower.includes('gladiator') ||
+        lower.includes('검성') ||  // Gladiator Korean
         lower.includes('템플러') || lower.includes('templar') ||
+        lower.includes('수호성') ||  // Templar Korean
         lower.includes('전사') || lower.includes('warrior') ||
         lower.includes('탱커') || lower.includes('tank')) {
         return 'warrior'
     }
 
-    // Scouts: Assassin, Ranger, etc.
+    // Scouts: Assassin (살성), Ranger (궁성), etc.
     if (lower.includes('어쌔신') || lower.includes('assassin') ||
+        lower.includes('살성') ||  // Assassin Korean
         lower.includes('레인저') || lower.includes('ranger') ||
+        lower.includes('궁성') ||  // Ranger Korean
         lower.includes('정찰') || lower.includes('scout') ||
         lower.includes('궁수') || lower.includes('archer')) {
         return 'scout'
     }
 
-    // Priests/Healers: Cleric, Chanter, etc.
+    // Priests/Healers: Cleric (치유성), Chanter (호법성), etc.
     if (lower.includes('클레릭') || lower.includes('cleric') ||
+        lower.includes('치유성') ||  // Cleric Korean
         lower.includes('찬터') || lower.includes('chanter') ||
+        lower.includes('호법성') ||  // Chanter Korean
         lower.includes('치유') || lower.includes('heal') ||
         lower.includes('사제') || lower.includes('priest')) {
         return 'priest'
     }
 
-    // Mages: Sorcerer, Spiritmaster, etc.
-    // Default to mage if not matched
-    return 'mage'
+    // Mages: Sorcerer (마도성), Spiritmaster (정령성), etc.
+    if (lower.includes('소서러') || lower.includes('sorcerer') ||
+        lower.includes('마도성') ||  // Sorcerer Korean
+        lower.includes('스피릿마스터') || lower.includes('spiritmaster') ||
+        lower.includes('정령성') ||  // Spiritmaster Korean
+        lower.includes('마법사') || lower.includes('mage') ||
+        lower.includes('위저드') || lower.includes('wizard')) {
+        return 'mage'
+    }
+
+    // Default to scout if not matched (safest default as it's most common)
+    return 'scout'
 }
 
 const getBoardIdBase = (race: string, className: string): number => {

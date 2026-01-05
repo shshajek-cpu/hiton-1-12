@@ -1,0 +1,434 @@
+{
+  "themeName": "dak.gg Theme",
+  "description": "dak.gg 웹사이트의 다크 테마를 기반으로 한 디자인 시스템",
+  "metadata": {
+    "source": "https://dak.gg",
+    "extractedDate": "2026-01-05",
+    "viewport": {
+      "width": 937,
+      "height": 929
+    }
+  },
+  "colors": {
+    "primary": {
+      "background": "rgb(22, 22, 24)",
+      "foreground": "rgb(255, 255, 255)",
+      "accent": "rgb(251, 219, 81)"
+    },
+    "backgrounds": {
+      "primary": "rgb(22, 22, 24)",
+      "secondary": "rgb(33, 34, 39)",
+      "tertiary": "rgb(39, 40, 46)",
+      "overlay": "rgba(0, 0, 0, 0.7)",
+      "card": "rgb(27, 27, 30)",
+      "hover": "rgb(50, 50, 50)",
+      "transparent": "rgba(255, 255, 255, 0.1)"
+    },
+    "text": {
+      "primary": "rgb(255, 255, 255)",
+      "secondary": "rgb(207, 209, 215)",
+      "tertiary": "rgb(165, 168, 180)",
+      "muted": "rgb(132, 137, 153)",
+      "disabled": "rgb(153, 153, 153)",
+      "accent": "rgb(138, 58, 0)"
+    },
+    "palette": {
+      "blue": {
+        "50": "#f3fbff",
+        "100": "#f2f6ff",
+        "200": "#d6edff",
+        "300": "#a0d4ff",
+        "400": "#57b0fb",
+        "500": "#1292ee",
+        "600": "#0077cc",
+        "700": "#005ca4",
+        "800": "#034077",
+        "900": "#002651"
+      },
+      "green": {
+        "100": "#f5fff9",
+        "200": "#e3fbee",
+        "300": "#c2f0d7",
+        "400": "#87dbae",
+        "500": "#56c288",
+        "600": "#39ac6e",
+        "700": "#268c55",
+        "750": "#248451",
+        "800": "#106236",
+        "900": "#003c1c"
+      },
+      "red": {
+        "100": "#fef7f6",
+        "200": "#ffe3e2",
+        "300": "#ffa2a2",
+        "400": "#f45b55",
+        "500": "#e52f28",
+        "600": "#d21b14",
+        "700": "#ba1f19",
+        "800": "#9d1f1a",
+        "900": "#731814"
+      },
+      "yellow": {
+        "50": "#fffbf3",
+        "100": "#fff9ef",
+        "200": "#fff2d7",
+        "300": "#ffe7b8",
+        "400": "#fdd88e",
+        "500": "#ffc555",
+        "600": "#fab347",
+        "700": "#e89635",
+        "800": "#ce7129",
+        "900": "#b24319",
+        "950": "#84142d"
+      },
+      "orange": {
+        "100": "#fff8f2",
+        "200": "#ffead8",
+        "300": "#ffd3ae",
+        "400": "#ffa75a",
+        "500": "#ff9139",
+        "600": "#e87800",
+        "700": "#c76400",
+        "800": "#a45300",
+        "900": "#813c00"
+      },
+      "purple": {
+        "100": "#fbfbfe",
+        "200": "#eaeafc",
+        "300": "#d1d2f6",
+        "400": "#a3a4f3",
+        "500": "#7e80e7",
+        "600": "#696aca",
+        "700": "#585b9e",
+        "800": "#45467d",
+        "900": "#383966"
+      },
+      "indigo": {
+        "100": "#f2f6ff",
+        "200": "#dfe7ff",
+        "300": "#b2c8fb",
+        "400": "#79a1f8",
+        "500": "#527ceb",
+        "600": "#3b64d2",
+        "700": "#2549a8",
+        "800": "#16337f",
+        "900": "#071e57"
+      },
+      "pink": {
+        "100": "#fff9fb",
+        "200": "#ffeef1",
+        "300": "#ffe1e7",
+        "400": "#ffccd7",
+        "500": "#ffb3c3",
+        "600": "#fd9aae",
+        "700": "#fd9aae",
+        "800": "#fc5d7d",
+        "900": "#f23459",
+        "950": "#e9074b",
+        "1000": "#c5003b"
+      },
+      "charcoal": {
+        "200": "#93a1b0",
+        "300": "#748494",
+        "400": "#556575",
+        "500": "#405261",
+        "600": "#314351",
+        "700": "#253642",
+        "800": "#1d2b36",
+        "900": "#1d2b36",
+        "1000": "#1d2b36",
+        "1100": "#1d2b36",
+        "1200": "#1d2b36"
+      },
+      "grey": {
+        "200": "#f9fafa",
+        "300": "#f1f3f5",
+        "400": "#e5e9ec",
+        "500": "#d5dce1",
+        "600": "#c5ced6",
+        "700": "#b7c2cc",
+        "800": "#a5b2bd"
+      }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "primary": "Pretendard, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", sans-serif",
+      "secondary": "\"Aktiv Grotesk\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "mono": "\"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace",
+      "system": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\""
+    },
+    "fontSize": {
+      "body": "16px",
+      "small": "12px",
+      "medium": "14px",
+      "large": "16px"
+    },
+    "fontWeight": {
+      "normal": "400",
+      "medium": "500",
+      "semibold": "600",
+      "bold": "700"
+    },
+    "lineHeight": {
+      "body": "24px",
+      "tight": "1.25",
+      "normal": "1.5",
+      "relaxed": "1.75"
+    },
+    "letterSpacing": {
+      "normal": "normal",
+      "tight": "-0.01em",
+      "wide": "0.025em"
+    },
+    "headings": {
+      "h1": {
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "24px",
+        "letterSpacing": "normal",
+        "color": "rgb(255, 255, 255)"
+      },
+      "h2": {
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "24px",
+        "letterSpacing": "normal",
+        "color": "rgb(255, 255, 255)"
+      },
+      "h3": {
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "lineHeight": "24px",
+        "letterSpacing": "normal",
+        "color": "rgb(255, 255, 255)"
+      }
+    }
+  },
+  "spacing": {
+    "0": "0px",
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px",
+    "20": "80px",
+    "24": "96px"
+  },
+  "borderRadius": {
+    "none": "0px",
+    "sm": "4px",
+    "md": "8px",
+    "lg": "10px",
+    "xl": "60px",
+    "full": "100px"
+  },
+  "shadows": {
+    "default": "rgba(0, 0, 0, 0.1) 0px 4px 7px 0px",
+    "large": "rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.15) 0px 5px 30px 0px, rgba(0, 0, 0, 0.05) 0px 3px 3px 0px"
+  },
+  "components": {
+    "button": {
+      "default": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "padding": "0px",
+        "borderRadius": "4px",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "border": "1px solid rgba(255, 255, 255, 0.1)"
+      },
+      "primary": {
+        "backgroundColor": "rgb(251, 219, 81)",
+        "color": "rgb(0, 0, 0)",
+        "borderRadius": "8px",
+        "padding": "12px 24px"
+      },
+      "secondary": {
+        "backgroundColor": "rgba(0, 0, 0, 0.7)",
+        "color": "rgb(255, 255, 255)",
+        "borderRadius": "8px",
+        "padding": "12px 24px"
+      },
+      "ghost": {
+        "backgroundColor": "transparent",
+        "color": "rgb(132, 137, 153)",
+        "border": "none"
+      }
+    },
+    "card": {
+      "backgroundColor": "rgb(27, 27, 30)",
+      "borderRadius": "8px",
+      "padding": "16px",
+      "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 7px 0px"
+    },
+    "container": {
+      "maxWidth": "1200px",
+      "padding": "0px 16px",
+      "margin": "0 auto"
+    }
+  },
+  "layout": {
+    "body": {
+      "backgroundColor": "rgb(22, 22, 24)",
+      "color": "rgb(255, 255, 255)",
+      "fontSize": "16px",
+      "fontFamily": "Pretendard, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", sans-serif",
+      "lineHeight": "24px"
+    },
+    "containerWidth": "922px",
+    "footer": {
+      "padding": "20px 16px",
+      "marginTop": "100px"
+    }
+  },
+  "transitions": {
+    "default": "all 0.3s ease",
+    "transform": "transform 0.3s",
+    "opacity": "opacity 0.3s",
+    "fast": "0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    "smooth": "opacity 1s cubic-bezier(0.19, 1, 0.22, 1)",
+    "width": "width 0.2s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+    "shadow": "box-shadow 0.25s, opacity 0.4s, scale 0.125s ease-in-out, transform 0.2s ease-in-out"
+  },
+  "cssVariables": {
+    "note": "이 섹션에는 dak.gg에서 사용하는 모든 CSS 커스텀 속성이 포함되어 있습니다. HSDS (HubSpot Design System) 변수들이 포함되어 있습니다.",
+    "colors": {
+      "blue": {
+        "--hsds-color-blue-default": "#1292ee",
+        "--hsds-color-blue-accent": "#1292ee",
+        "--hsds-color-blue-100": "#f3fbff",
+        "--hsds-color-blue-200": "#d6edff",
+        "--hsds-color-blue-300": "#a0d4ff",
+        "--hsds-color-blue-400": "#57b0fb",
+        "--hsds-color-blue-500": "#1292ee",
+        "--hsds-color-blue-600": "#0077cc",
+        "--hsds-color-blue-700": "#005ca4",
+        "--hsds-color-blue-800": "#034077",
+        "--hsds-color-blue-900": "#002651"
+      },
+      "green": {
+        "--hsds-color-green-default": "#56c288",
+        "--hsds-color-green-accent": "#56c288",
+        "--hsds-color-green-100": "#f5fff9",
+        "--hsds-color-green-200": "#e3fbee",
+        "--hsds-color-green-300": "#c2f0d7",
+        "--hsds-color-green-400": "#87dbae",
+        "--hsds-color-green-500": "#56c288",
+        "--hsds-color-green-600": "#39ac6e",
+        "--hsds-color-green-700": "#268c55",
+        "--hsds-color-green-750": "#248451",
+        "--hsds-color-green-800": "#106236",
+        "--hsds-color-green-900": "#003c1c"
+      },
+      "red": {
+        "--hsds-color-red-default": "#e52f28",
+        "--hsds-color-red-accent": "#e52f28",
+        "--hsds-color-red-100": "#fef7f6",
+        "--hsds-color-red-200": "#ffe3e2",
+        "--hsds-color-red-300": "#ffa2a2",
+        "--hsds-color-red-400": "#f45b55",
+        "--hsds-color-red-500": "#e52f28",
+        "--hsds-color-red-600": "#d21b14",
+        "--hsds-color-red-700": "#ba1f19",
+        "--hsds-color-red-800": "#9d1f1a",
+        "--hsds-color-red-900": "#731814"
+      },
+      "yellow": {
+        "--hsds-color-yellow-default": "#ffc555",
+        "--hsds-color-yellow-accent": "#ffc555",
+        "--hsds-color-yellow-50": "#fffbf3",
+        "--hsds-color-yellow-100": "#fff9ef",
+        "--hsds-color-yellow-200": "#fff2d7",
+        "--hsds-color-yellow-300": "#ffe7b8",
+        "--hsds-color-yellow-400": "#fdd88e",
+        "--hsds-color-yellow-500": "#ffc555",
+        "--hsds-color-yellow-600": "#fab347",
+        "--hsds-color-yellow-700": "#e89635",
+        "--hsds-color-yellow-800": "#ce7129",
+        "--hsds-color-yellow-900": "#b24319"
+      },
+      "grey": {
+        "--hsds-color-grey-default": "#d5dce1",
+        "--hsds-color-grey-accent": "#d5dce1",
+        "--hsds-color-grey-200": "#f9fafa",
+        "--hsds-color-grey-300": "#f1f3f5",
+        "--hsds-color-grey-400": "#e5e9ec",
+        "--hsds-color-grey-500": "#d5dce1",
+        "--hsds-color-grey-600": "#c5ced6",
+        "--hsds-color-grey-700": "#b7c2cc",
+        "--hsds-color-grey-800": "#a5b2bd"
+      },
+      "charcoal": {
+        "--hsds-color-charcoal-default": "#405261",
+        "--hsds-color-charcoal-accent": "#405261",
+        "--hsds-color-charcoal-200": "#93a1b0",
+        "--hsds-color-charcoal-300": "#748494",
+        "--hsds-color-charcoal-400": "#556575",
+        "--hsds-color-charcoal-500": "#405261",
+        "--hsds-color-charcoal-600": "#314351",
+        "--hsds-color-charcoal-700": "#253642",
+        "--hsds-color-charcoal-800": "#1d2b36"
+      }
+    },
+    "text": {
+      "--hsds-color-text-default": "currentColor",
+      "--hsds-color-text-subtle": "#405261",
+      "--hsds-color-text-muted": "#748494",
+      "--hsds-color-text-slightlyMuted": "#556575",
+      "--hsds-color-text-extraMuted": "#c5ced6",
+      "--hsds-color-text-faint": "#93a1b0"
+    },
+    "links": {
+      "--hsds-color-link-default": "#0077cc",
+      "--hsds-color-link-base": "#0077cc",
+      "--hsds-color-link-hover": "#1292ee",
+      "--hsds-color-link-active": "#1292ee",
+      "--hsds-color-link-focus": "#1292ee",
+      "--hsds-color-link-disabled": "#a5b2bd"
+    },
+    "borders": {
+      "--hsds-color-border-default": "#e5e9ec",
+      "--hsds-color-border-ui-default": "#d5dce1",
+      "--hsds-color-border-ui-dark": "#c5ced6",
+      "--hsds-color-border-divider": "#f1f3f5"
+    },
+    "buttons": {
+      "--hsds-color-button-border": "#d5d5d5",
+      "--hsds-color-button-hover": "#e6e6e6",
+      "--hsds-color-button-active": "#b6b6b6"
+    }
+  },
+  "usageExamples": {
+    "tailwind": {
+      "description": "Tailwind CSS 설정 예시",
+      "config": {
+        "theme": {
+          "extend": {
+            "colors": {
+              "primary": "rgb(22, 22, 24)",
+              "accent": "rgb(251, 219, 81)"
+            },
+            "fontFamily": {
+              "sans": ["Pretendard", "-apple-system", "sans-serif"]
+            }
+          }
+        }
+      }
+    },
+    "css": {
+      "description": "CSS 변수 사용 예시",
+      "example": ":root {\n  --color-background: rgb(22, 22, 24);\n  --color-foreground: rgb(255, 255, 255);\n  --color-accent: rgb(251, 219, 81);\n  --font-family: Pretendard, -apple-system, sans-serif;\n  --border-radius: 8px;\n  --shadow: rgba(0, 0, 0, 0.1) 0px 4px 7px 0px;\n}"
+    },
+    "reactComponents": {
+      "description": "React 컴포넌트에서 사용 예시",
+      "button": "const Button = styled.button`\n  background-color: rgba(0, 0, 0, 0.7);\n  color: rgb(255, 255, 255);\n  border-radius: 8px;\n  padding: 12px 24px;\n  border: none;\n  transition: all 0.3s ease;\n  \n  &:hover {\n    background-color: rgb(50, 50, 50);\n  }\n`;",
+      "card": "const Card = styled.div`\n  background-color: rgb(27, 27, 30);\n  border-radius: 8px;\n  padding: 16px;\n  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 7px 0px;\n`;"
+    }
+  }
+}
