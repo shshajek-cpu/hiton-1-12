@@ -1,8 +1,8 @@
 'use client'
 import { useState, useMemo } from 'react'
 import { aggregateStats } from '../../lib/statsAggregator'
-import StatsDetailAccordion from './StatsDetailAccordion'
-import type { StatDetail, StatCategory } from '../../types/stats'
+import StatTooltip from './StatTooltip'
+import type { StatCategory } from '../../types/stats'
 
 interface StatsSummaryViewProps {
   stats: any
@@ -21,7 +21,6 @@ const CATEGORY_TABS: { id: StatCategory, label: string, icon: string }[] = [
 
 export default function StatsSummaryView({ stats, equipment, daevanion, titles }: StatsSummaryViewProps) {
   const [activeCategory, setActiveCategory] = useState<StatCategory>('all')
-  const [expandedStats, setExpandedStats] = useState<Set<string>>(new Set())
 
   // 스탯 집계
   const aggregatedStats = useMemo(() => {
@@ -36,27 +35,6 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles }
     return aggregatedStats.filter(stat => stat.category === activeCategory)
   }, [aggregatedStats, activeCategory])
 
-  // 스탯 펼침/접힘 토글
-  const handleToggle = (statName: string) => {
-    setExpandedStats(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(statName)) {
-        newSet.delete(statName)
-      } else {
-        newSet.add(statName)
-      }
-      return newSet
-    })
-  }
-
-  // expandedStats 상태를 StatDetail 객체에 반영
-  const statsWithExpanded: StatDetail[] = useMemo(() => {
-    return filteredStats.map(stat => ({
-      ...stat,
-      isExpanded: expandedStats.has(stat.name)
-    }))
-  }, [filteredStats, expandedStats])
-
   return (
     <div style={{
       background: '#111318',
@@ -64,27 +42,32 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles }
       borderRadius: '8px',
       display: 'flex',
       flexDirection: 'column',
-      height: '600px',
+      height: 'auto', // 고정 높이 제거
       overflow: 'hidden'
     }}>
       {/* 헤더 */}
       <div style={{
-        padding: '1rem 1.25rem',
+        padding: '0.75rem 1rem',
         borderBottom: '1px solid #1F2433',
         background: '#0B0D12',
         color: '#E5E7EB',
-        fontSize: '1rem',
+        fontSize: '0.95rem',
         fontWeight: 'bold',
-        flexShrink: 0
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
-        📊 능력치 통합 뷰
+        <span>📊 능력치 통합 뷰</span>
+        <div style={{ fontSize: '0.8rem', color: '#6B7280', fontWeight: 'normal' }}>
+          총 {filteredStats.length}개
+        </div>
       </div>
 
       {/* 카테고리 탭 */}
       <div style={{
         display: 'flex',
-        gap: '0.5rem',
-        padding: '0.75rem 1rem',
+        gap: '0.25rem',
+        padding: '0.5rem',
         borderBottom: '1px solid #1F2433',
         background: '#0A0C10',
         flexShrink: 0,
@@ -92,122 +75,132 @@ export default function StatsSummaryView({ stats, equipment, daevanion, titles }
       }}>
         {CATEGORY_TABS.map(tab => {
           const isActive = activeCategory === tab.id
-          const count = tab.id === 'all'
-            ? aggregatedStats.length
-            : aggregatedStats.filter(s => s.category === tab.id).length
-
           return (
             <button
               key={tab.id}
               onClick={() => setActiveCategory(tab.id)}
               style={{
-                padding: '0.5rem 1rem',
+                padding: '0.35rem 0.75rem',
                 background: isActive
                   ? 'linear-gradient(180deg, #2563EB 0%, #1D4ED8 100%)'
-                  : '#111318',
+                  : 'transparent',
                 color: isActive ? '#FFFFFF' : '#9CA3AF',
-                border: isActive ? '1px solid #3B82F6' : '1px solid #1F2433',
-                borderRadius: '6px',
+                border: isActive ? '1px solid #3B82F6' : '1px solid transparent',
+                borderRadius: '4px',
                 cursor: 'pointer',
-                fontSize: '0.85rem',
+                fontSize: '0.8rem',
                 fontWeight: isActive ? '600' : 'normal',
-                transition: 'all 0.2s',
+                transition: 'all 0.15s',
                 whiteSpace: 'nowrap',
                 outline: 'none',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem'
+                gap: '0.35rem'
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
                   e.currentTarget.style.background = '#1F2433'
-                  e.currentTarget.style.borderColor = '#374151'
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.background = '#111318'
-                  e.currentTarget.style.borderColor = '#1F2433'
+                  e.currentTarget.style.background = 'transparent'
                 }
               }}
             >
               <span>{tab.icon}</span>
               <span>{tab.label}</span>
-              <span style={{
-                fontSize: '0.75rem',
-                background: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
-                padding: '0.125rem 0.375rem',
-                borderRadius: '4px'
-              }}>
-                {count}
-              </span>
             </button>
           )
         })}
       </div>
 
-      {/* 스탯 리스트 - 2열 그리드 */}
+      {/* 스탯 리스트 - 3열 그리드 (컴팩트) */}
       <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '1rem'
+        padding: '0.75rem',
+        background: '#0F1116'
       }}>
-        {statsWithExpanded.length === 0 ? (
+        {filteredStats.length === 0 ? (
           <div style={{
-            padding: '3rem 1rem',
+            padding: '2rem 1rem',
             textAlign: 'center',
             color: '#6B7280',
-            fontSize: '0.9rem'
+            fontSize: '0.85rem'
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📊</div>
-            <div>해당 카테고리에 능력치가 없습니다</div>
+            데이터 없음
           </div>
         ) : (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '0.75rem'
+            gridTemplateColumns: 'repeat(3, 1fr)', // 3열
+            gap: '0.5rem',
+            alignContent: 'start'
           }}>
-            {statsWithExpanded.map(stat => (
-              <StatsDetailAccordion
-                key={stat.name}
-                stat={stat}
-                onToggle={handleToggle}
-              />
+            {filteredStats.map(stat => (
+              <StatTooltip key={stat.name} stat={stat}>
+                <div
+                  style={{
+                    background: '#1A1D26',
+                    borderRadius: '4px',
+                    padding: '0.5rem 0.75rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.15rem',
+                    border: '1px solid #2D3748',
+                    transition: 'background 0.2s',
+                    cursor: 'pointer',
+                    height: '100%'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#252936'
+                    e.currentTarget.style.borderColor = '#4B5563'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#1A1D26'
+                    e.currentTarget.style.borderColor = '#2D3748'
+                  }}
+                >
+                  {/* 라벨 */}
+                  <div style={{
+                    fontSize: '0.75rem',
+                    color: '#9CA3AF',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}>
+                    <div style={{
+                      width: '3px',
+                      height: '10px',
+                      background: stat.color,
+                      borderRadius: '1px'
+                    }} />
+                    {stat.name}
+                  </div>
+
+                  {/* 값 */}
+                  <div style={{
+                    fontSize: '0.9rem',
+                    color: '#F3F4F6',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: '0.25rem'
+                  }}>
+                    {stat.totalValue.toLocaleString()}
+                    {stat.totalPercentage > 0 && (
+                      <span style={{ fontSize: '0.7rem', color: stat.color }}>
+                        (+{stat.totalPercentage.toFixed(1)}%)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </StatTooltip>
             ))}
           </div>
         )}
-      </div>
-
-      {/* 푸터 (통계 요약) */}
-      <div style={{
-        padding: '0.75rem 1.25rem',
-        borderTop: '1px solid #1F2433',
-        background: '#0A0C10',
-        color: '#9CA3AF',
-        fontSize: '0.8rem',
-        flexShrink: 0,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <div>
-          총 {activeCategory === 'all' ? '전체' : CATEGORY_TABS.find(t => t.id === activeCategory)?.label} 능력치: {filteredStats.length}개
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <div style={{ width: '8px', height: '8px', background: '#EF4444', borderRadius: '2px' }} />
-            <span style={{ fontSize: '0.7rem' }}>높음</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <div style={{ width: '8px', height: '8px', background: '#FBBF24', borderRadius: '2px' }} />
-            <span style={{ fontSize: '0.7rem' }}>보통</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <div style={{ width: '8px', height: '8px', background: '#10B981', borderRadius: '2px' }} />
-            <span style={{ fontSize: '0.7rem' }}>낮음</span>
-          </div>
-        </div>
       </div>
     </div>
   )

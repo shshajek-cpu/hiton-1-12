@@ -77,31 +77,26 @@ export function getStatCategory(statName: string): StatCategory {
 /**
  * 문자열에서 스탯 정보 파싱
  * 예: "공격력 +100" → { name: "공격력", value: 100 }
- *     "치명타 증가 +5%" → { name: "치명타", value: 0, percentage: 5 }
+ *     "치명타 증가 +5%" → { name: "치명타 증가", value: 0, percentage: 5 }
  */
 export function parseStatString(statStr: string): { name: string, value: number, percentage: number } | null {
   if (!statStr) return null
 
-  // 패턴: "스탯명 +숫자%" 또는 "스탯명 +숫자" 또는 "스탯명: +숫자"
-  const percentMatch = statStr.match(/([가-힣\s]+)\s*[+\-]?\s*(\d+(?:\.\d+)?)\s*%/)
+  // 패턴 1: 퍼센트 (예: "공격력 증가 +5%", "치명타 +10.5%")
+  const percentMatch = statStr.match(/(.+?)\s*[+\-]?\s*(\d+(?:\.\d+)?)\s*%/)
   if (percentMatch) {
-    const name = percentMatch[1].trim()
-      .replace(/증가|감소|저항|관통/g, '')
-      .trim()
     return {
-      name,
+      name: percentMatch[1].trim(),
       value: 0,
       percentage: parseFloat(percentMatch[2])
     }
   }
 
-  const valueMatch = statStr.match(/([가-힣\s]+)\s*[:+\-]?\s*(\d+(?:,\d+)*)/)
+  // 패턴 2: 고정값 (예: "공격력 +100", "방어력: 200", "생명력 1000")
+  const valueMatch = statStr.match(/(.+?)\s*[:+\-]?\s*(\d+(?:,\d+)*)/)
   if (valueMatch) {
-    const name = valueMatch[1].trim()
-      .replace(/증가|감소|저항|관통/g, '')
-      .trim()
     return {
-      name,
+      name: valueMatch[1].trim(),
       value: parseInt(valueMatch[2].replace(/,/g, ''), 10),
       percentage: 0
     }

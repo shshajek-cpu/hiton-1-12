@@ -741,9 +741,9 @@ export default function CharacterDetailPage() {
         <style jsx>{`
           .grid-container {
             display: grid !important;
-            grid-template-columns: 280px minmax(400px, 1fr) 450px !important;
-            gap: 1.5rem !important;
-            align-items: stretch !important;
+            grid-template-columns: 280px 450px 1fr !important;
+            gap: 0.75rem !important;
+            align-items: start !important;
           }
         `}</style>
         <div className="grid-container" style={{
@@ -921,7 +921,7 @@ export default function CharacterDetailPage() {
           </div>
 
           {/* RIGHT COLUMN: Stats Only */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: '350px', position: 'relative', zIndex: 1, height: '100%', padding: '1rem', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', position: 'relative', zIndex: 1, height: '100%', padding: '1rem', boxSizing: 'border-box' }}>
             {/* 1. Title Card (Always Visible) */}
             <TitleCard titles={mappedTitles} />
 
