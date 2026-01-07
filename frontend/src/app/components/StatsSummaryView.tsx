@@ -19,15 +19,13 @@ interface StatsSummaryViewProps {
 }
 
 const CATEGORY_TABS: { id: StatCategory, label: string, icon: string }[] = [
-  { id: 'all', label: '전체', icon: '📊' },
   { id: 'attack', label: '공격', icon: '⚔️' },
   { id: 'defense', label: '방어', icon: '🛡️' },
-  { id: 'critical', label: '치명', icon: '⚡' },
   { id: 'utility', label: '유틸', icon: '✨' },
 ]
 
 export default function StatsSummaryView({ stats, equipment, daevanion, titles, equippedTitleId, characterId, serverId }: StatsSummaryViewProps) {
-  const [activeCategory, setActiveCategory] = useState<StatCategory>('all')
+  const [activeCategory, setActiveCategory] = useState<StatCategory>('attack')
   const [debugMode, setDebugMode] = useState(DEBUG_CONFIG.enabled)
   const [validationResult, setValidationResult] = useState<any>(null)
   const [isValidating, setIsValidating] = useState(false)

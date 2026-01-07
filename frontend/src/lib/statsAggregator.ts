@@ -54,15 +54,15 @@ const STAT_CATEGORY_MAP: Record<string, StatCategory> = {
   'PVP 명중': 'attack',
   '보스 공격력': 'attack',
 
-  // 치명
-  '치명타': 'critical',
-  '치명타 공격력': 'critical',
-  '치명타 피해': 'critical',
-  '치명타 피해 증폭': 'critical',
-  '치명타 증가': 'critical',
-  '완벽': 'critical',
-  '다단 히트 적중': 'critical',
-  'PVP 치명타': 'critical',
+  // 치명 (공격에 포함)
+  '치명타': 'attack',
+  '치명타 공격력': 'attack',
+  '치명타 피해': 'attack',
+  '치명타 피해 증폭': 'attack',
+  '치명타 증가': 'attack',
+  '완벽': 'attack',
+  '다단 히트 적중': 'attack',
+  'PVP 치명타': 'attack',
 
   // 방어
   '방어력': 'defense',
@@ -88,13 +88,28 @@ const STAT_CATEGORY_MAP: Record<string, StatCategory> = {
   '보스 방어력': 'defense',
 
   // 유틸리티
-  '정신력': 'utility',
-  '전투 속도': 'utility',
   '이동 속도': 'utility',
   '재사용 시간': 'utility',
   '재사용 시간 감소': 'utility',
-  '정신력 소모량': 'utility',
-  '재생': 'utility',
+
+  // 방어로 이동 (생존 관련)
+  '재생': 'defense',
+  '정신력 증가': 'defense',
+  '생명력 증가': 'defense',
+
+  // 정신력 소모량은 공격
+  '정신력 소모량': 'attack',
+
+  // 공격으로 이동
+  '정신력': 'attack',
+  '전투 속도': 'attack',
+  '관통': 'attack',
+  '철벽 관통': 'attack',
+  '재생 관통': 'attack',
+  'PVP 피해 증폭': 'attack',
+  'PVE 피해 증폭': 'attack',
+  '무기 피해 증폭': 'attack',
+  '피해 증폭': 'attack',
 }
 
 /**

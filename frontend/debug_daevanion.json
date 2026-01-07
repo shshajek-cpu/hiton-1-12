@@ -1,64 +1,354 @@
 {
   "keys": [
-    "ranking",
     "daevanion",
     "stat",
     "title",
-    "profile"
+    "profile",
+    "ranking"
   ],
   "daevanion": {
     "boardList": [
       {
-        "id": 21,
+        "id": 41,
         "name": "네자칸",
         "totalNodeCount": 88,
-        "openNodeCount": 0,
+        "openNodeCount": 85,
         "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
-        "open": 0
+        "open": 1
       },
       {
-        "id": 22,
+        "id": 42,
         "name": "지켈",
         "totalNodeCount": 88,
-        "openNodeCount": 0,
+        "openNodeCount": 75,
         "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
-        "open": 0
+        "open": 1
       },
       {
-        "id": 23,
+        "id": 43,
         "name": "바이젤",
         "totalNodeCount": 88,
-        "openNodeCount": 0,
+        "openNodeCount": 81,
         "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
-        "open": 0
+        "open": 1
       },
       {
-        "id": 24,
+        "id": 44,
         "name": "트리니엘",
         "totalNodeCount": 116,
-        "openNodeCount": 0,
+        "openNodeCount": 103,
         "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
-        "open": 0
+        "open": 1
       },
       {
-        "id": 25,
+        "id": 45,
         "name": "아리엘",
         "totalNodeCount": 152,
-        "openNodeCount": 0,
+        "openNodeCount": 9,
         "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
-        "open": 0
+        "open": 1
       },
       {
-        "id": 26,
+        "id": 46,
         "name": "아스펠",
         "totalNodeCount": 152,
-        "openNodeCount": 0,
+        "openNodeCount": 5,
         "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
-        "open": 0
+        "open": 1
       }
     ]
   },
   "full_info_sample": {
+    "daevanion": {
+      "boardList": [
+        {
+          "id": 41,
+          "name": "네자칸",
+          "totalNodeCount": 88,
+          "openNodeCount": 85,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
+          "open": 1
+        },
+        {
+          "id": 42,
+          "name": "지켈",
+          "totalNodeCount": 88,
+          "openNodeCount": 75,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
+          "open": 1
+        },
+        {
+          "id": 43,
+          "name": "바이젤",
+          "totalNodeCount": 88,
+          "openNodeCount": 81,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
+          "open": 1
+        },
+        {
+          "id": 44,
+          "name": "트리니엘",
+          "totalNodeCount": 116,
+          "openNodeCount": 103,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
+          "open": 1
+        },
+        {
+          "id": 45,
+          "name": "아리엘",
+          "totalNodeCount": 152,
+          "openNodeCount": 9,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
+          "open": 1
+        },
+        {
+          "id": 46,
+          "name": "아스펠",
+          "totalNodeCount": 152,
+          "openNodeCount": 5,
+          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
+          "open": 1
+        }
+      ]
+    },
+    "stat": {
+      "statList": [
+        {
+          "type": "STR",
+          "name": "위력",
+          "value": 115,
+          "statSecondList": [
+            "공격력 증가 +11.5%"
+          ]
+        },
+        {
+          "type": "DEX",
+          "name": "민첩",
+          "value": 0,
+          "statSecondList": null
+        },
+        {
+          "type": "INT",
+          "name": "지식",
+          "value": 42,
+          "statSecondList": [
+            "상태이상 적중 +4.2%"
+          ]
+        },
+        {
+          "type": "CON",
+          "name": "체력",
+          "value": 51,
+          "statSecondList": [
+            "생명력 증가 +5.1%"
+          ]
+        },
+        {
+          "type": "AGI",
+          "name": "정확",
+          "value": 0,
+          "statSecondList": null
+        },
+        {
+          "type": "WIS",
+          "name": "의지",
+          "value": 0,
+          "statSecondList": null
+        },
+        {
+          "type": "Justice",
+          "name": "정의[네자칸]",
+          "value": 76,
+          "statSecondList": [
+            "방어력 증가 +15.2%",
+            "완벽 +15.2%"
+          ]
+        },
+        {
+          "type": "Freedom",
+          "name": "자유[바이젤]",
+          "value": 38,
+          "statSecondList": [
+            "명중 증가 +7.6%",
+            "회피 증가 +7.6%"
+          ]
+        },
+        {
+          "type": "Illusion",
+          "name": "환상[카이시넬]",
+          "value": 45,
+          "statSecondList": [
+            "재사용 시간 -9%",
+            "철벽 관통 +9%"
+          ]
+        },
+        {
+          "type": "Life",
+          "name": "생명[유스티엘]",
+          "value": 53,
+          "statSecondList": [
+            "생명력 증가 +10.6%",
+            "재생 +10.6%"
+          ]
+        },
+        {
+          "type": "Time",
+          "name": "시간[시엘]",
+          "value": 96,
+          "statSecondList": [
+            "전투 속도 +19.2%",
+            "강타 저항 +19.2%"
+          ]
+        },
+        {
+          "type": "Destruction",
+          "name": "파괴[지켈]",
+          "value": 20,
+          "statSecondList": [
+            "공격력 증가 +4%",
+            "완벽 저항 +4%"
+          ]
+        },
+        {
+          "type": "Death",
+          "name": "죽음[트리니엘]",
+          "value": 77,
+          "statSecondList": [
+            "치명타 증가 +15.4%",
+            "재생 관통 +15.4%"
+          ]
+        },
+        {
+          "type": "Wisdom",
+          "name": "지혜[루미엘]",
+          "value": 31,
+          "statSecondList": [
+            "정신력 소모량 -6.2%",
+            "강타 +6.2%"
+          ]
+        },
+        {
+          "type": "Destiny",
+          "name": "운명[마르쿠탄]",
+          "value": 29,
+          "statSecondList": [
+            "정신력 증가 +5.8%",
+            "철벽 +5.8%"
+          ]
+        },
+        {
+          "type": "Space",
+          "name": "공간[이스라펠]",
+          "value": 58,
+          "statSecondList": [
+            "이동 속도 +11.6%",
+            "막기 증가 +11.6%"
+          ]
+        },
+        {
+          "type": "ItemLevel",
+          "name": "아이템레벨",
+          "value": 2823,
+          "statSecondList": null
+        }
+      ]
+    },
+    "title": {
+      "totalCount": 305,
+      "ownedCount": 194,
+      "titleList": [
+        {
+          "id": 22030003,
+          "equipCategory": "Defense",
+          "name": "알트가르드의 성자",
+          "grade": "Unique",
+          "totalCount": 100,
+          "ownedCount": 63,
+          "statList": [
+            {
+              "desc": "PVE 피해 내성 +1%"
+            }
+          ],
+          "equipStatList": [
+            {
+              "desc": "추가 방어력 +300"
+            },
+            {
+              "desc": "피해 내성 +5%"
+            },
+            {
+              "desc": "막기 +110"
+            }
+          ]
+        },
+        {
+          "id": 23010010,
+          "equipCategory": "Etc",
+          "name": "지켈의 근원을 마주하다",
+          "grade": "Unique",
+          "totalCount": 101,
+          "ownedCount": 67,
+          "statList": [
+            {
+              "desc": "생명력 +50"
+            }
+          ],
+          "equipStatList": [
+            {
+              "desc": "생명력 물약 회복 +550"
+            },
+            {
+              "desc": "이동 속도 +5%"
+            },
+            {
+              "desc": "생명력 +800"
+            }
+          ]
+        },
+        {
+          "id": 23050017,
+          "equipCategory": "Attack",
+          "name": "샛노란 광채",
+          "grade": "Unique",
+          "totalCount": 104,
+          "ownedCount": 64,
+          "statList": [
+            {
+              "desc": "치명타 공격력 +3"
+            }
+          ],
+          "equipStatList": [
+            {
+              "desc": "치명타 공격력 +35"
+            },
+            {
+              "desc": "치명타 피해 증폭 +5.5%"
+            },
+            {
+              "desc": "완벽 +4%"
+            }
+          ]
+        }
+      ]
+    },
+    "profile": {
+      "characterId": "nytBf6WAPyotskC-YCOMsWL8NIev7zhL0tpYLQrdt8U=",
+      "characterName": "도룡뇽",
+      "serverId": 2002,
+      "serverName": "지켈",
+      "regionName": "봄",
+      "pcId": 20,
+      "className": "살성",
+      "raceId": 2,
+      "raceName": "마족",
+      "gender": 2,
+      "genderName": "여성",
+      "characterLevel": 45,
+      "titleId": 21020004,
+      "titleName": "열심히 했는데…",
+      "titleGrade": "Common",
+      "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2/images?gameServerKey=2002&charKey=563512903374794599"
+    },
     "ranking": {
       "rankingList": [
         {
@@ -102,19 +392,19 @@
         {
           "rankingContentsType": 4,
           "rankingContentsName": "초월",
-          "rankingType": null,
-          "rank": null,
+          "rankingType": 0,
+          "rank": 6964,
           "characterId": null,
-          "characterName": null,
-          "classId": null,
-          "className": null,
-          "guildName": null,
-          "point": null,
-          "prevRank": null,
-          "rankChange": null,
-          "gradeId": null,
-          "gradeName": null,
-          "gradeIcon": null,
+          "characterName": "도룡뇽",
+          "classId": 5,
+          "className": "Assassin",
+          "guildName": "봄",
+          "point": 175501,
+          "prevRank": 0,
+          "rankChange": -6,
+          "gradeId": 10,
+          "gradeName": "브론즈",
+          "gradeIcon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Arena_Ranking_Grade_Bronze.png",
           "profileImage": null,
           "extraDataMap": null
         },
@@ -178,235 +468,23 @@
         {
           "rankingContentsType": 21,
           "rankingContentsName": "각성전",
-          "rankingType": null,
-          "rank": null,
+          "rankingType": 0,
+          "rank": 8741,
           "characterId": null,
-          "characterName": null,
-          "classId": null,
-          "className": null,
-          "guildName": null,
-          "point": null,
-          "prevRank": null,
-          "rankChange": null,
-          "gradeId": null,
-          "gradeName": null,
-          "gradeIcon": null,
+          "characterName": "도룡뇽",
+          "classId": 5,
+          "className": "Assassin",
+          "guildName": "봄",
+          "point": 45761,
+          "prevRank": 0,
+          "rankChange": -46,
+          "gradeId": 10,
+          "gradeName": "브론즈",
+          "gradeIcon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Arena_Ranking_Grade_Bronze.png",
           "profileImage": null,
           "extraDataMap": null
         }
       ]
-    },
-    "daevanion": {
-      "boardList": [
-        {
-          "id": 21,
-          "name": "네자칸",
-          "totalNodeCount": 88,
-          "openNodeCount": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
-          "open": 0
-        },
-        {
-          "id": 22,
-          "name": "지켈",
-          "totalNodeCount": 88,
-          "openNodeCount": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
-          "open": 0
-        },
-        {
-          "id": 23,
-          "name": "바이젤",
-          "totalNodeCount": 88,
-          "openNodeCount": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
-          "open": 0
-        },
-        {
-          "id": 24,
-          "name": "트리니엘",
-          "totalNodeCount": 116,
-          "openNodeCount": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
-          "open": 0
-        },
-        {
-          "id": 25,
-          "name": "아리엘",
-          "totalNodeCount": 152,
-          "openNodeCount": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Sword_1H.png",
-          "open": 0
-        },
-        {
-          "id": 26,
-          "name": "아스펠",
-          "totalNodeCount": 152,
-          "openNodeCount": 0,
-          "icon": "https://assets.playnccdn.com/static-aion2-gamedata/resources/UT_Weapon_Mace.png",
-          "open": 0
-        }
-      ]
-    },
-    "stat": {
-      "statList": [
-        {
-          "type": "STR",
-          "name": "위력",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "DEX",
-          "name": "민첩",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "INT",
-          "name": "지식",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "CON",
-          "name": "체력",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "AGI",
-          "name": "정확",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "WIS",
-          "name": "의지",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "Justice",
-          "name": "정의[네자칸]",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "Freedom",
-          "name": "자유[바이젤]",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "Illusion",
-          "name": "환상[카이시넬]",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "Life",
-          "name": "생명[유스티엘]",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "Time",
-          "name": "시간[시엘]",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "Destruction",
-          "name": "파괴[지켈]",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "Death",
-          "name": "죽음[트리니엘]",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "Wisdom",
-          "name": "지혜[루미엘]",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "Destiny",
-          "name": "운명[마르쿠탄]",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "Space",
-          "name": "공간[이스라펠]",
-          "value": 0,
-          "statSecondList": null
-        },
-        {
-          "type": "ItemLevel",
-          "name": "아이템레벨",
-          "value": 1,
-          "statSecondList": null
-        }
-      ]
-    },
-    "title": {
-      "totalCount": 305,
-      "ownedCount": 0,
-      "titleList": [
-        {
-          "id": null,
-          "equipCategory": "Etc",
-          "name": null,
-          "grade": null,
-          "totalCount": 101,
-          "ownedCount": 0,
-          "statList": null,
-          "equipStatList": null
-        },
-        {
-          "id": null,
-          "equipCategory": "Attack",
-          "name": null,
-          "grade": null,
-          "totalCount": 104,
-          "ownedCount": 0,
-          "statList": null,
-          "equipStatList": null
-        },
-        {
-          "id": null,
-          "equipCategory": "Defense",
-          "name": null,
-          "grade": null,
-          "totalCount": 100,
-          "ownedCount": 0,
-          "statList": null,
-          "equipStatList": null
-        }
-      ]
-    },
-    "profile": {
-      "characterId": "CUO8quJPF5gPWedlhvPi7CIaM6SnZbZ55kbJ_gMoiH4=",
-      "characterName": "E",
-      "serverId": 2008,
-      "serverName": "브리트라",
-      "regionName": "",
-      "pcId": 12,
-      "className": "수호성",
-      "raceId": 2,
-      "raceName": "마족",
-      "gender": 2,
-      "genderName": "여성",
-      "characterLevel": 1,
-      "titleId": 0,
-      "titleName": "",
-      "titleGrade": "",
-      "profileImage": "https://profileimg.plaync.com/game_profile_images/aion2/images?gameServerKey=2008&charKey=565201753235205028"
     }
   }
 }
