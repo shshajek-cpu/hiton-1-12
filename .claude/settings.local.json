@@ -68,7 +68,19 @@
       "mcp__playwright__browser_wait_for",
       "mcp__playwright__browser_network_requests",
       "mcp__playwright__browser_snapshot",
-      "mcp__playwright__browser_navigate_back"
+      "mcp__playwright__browser_navigate_back",
+      "Bash(timeout 10 cat:*)",
+      "mcp__playwright__browser_tabs",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_hover",
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(cmd //c \"taskkill /PID 34176 /F\")",
+      "Bash(timeout 5 cat:*)",
+      "Bash(node -e:*)",
+      "Bash(do echo \"Testing: $endpoint\")",
+      "Bash(node:*)",
+      "Bash(npm install:*)",
+      "Bash(opencode --version:*)"
     ]
   }
 }

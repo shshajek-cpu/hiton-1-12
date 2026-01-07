@@ -38,6 +38,9 @@ type CharacterData = {
   character_image_url?: string
   item_level?: number
   skills?: any
+  title_name?: string
+  title_grade?: string
+  title_id?: number
 }
 
 // --- Helper Functions for Data Mapping ---
@@ -578,7 +581,10 @@ export default function CharacterDetailPage() {
         item_level: detail.profile.jobLevel,
         race: detail.profile.raceName,
         stats: mappedStats,
-        skills: mappedSkills
+        skills: mappedSkills,
+        title_name: detail.profile.titleName,
+        title_grade: detail.profile.titleGrade,
+        title_id: detail.profile.titleId
       })
 
 
@@ -915,6 +921,7 @@ export default function CharacterDetailPage() {
                   equipment={[...mappedEquipment.equipment, ...mappedEquipment.accessories]}
                   daevanion={mappedDaevanion}
                   titles={mappedTitles}
+                  equippedTitleId={data.title_id}
                 />
               )}
             </div>

@@ -284,7 +284,6 @@ export async function GET(request: NextRequest) {
                 server_id: parseInt(infoData.profile.serverId || '0'),
                 name: infoData.profile.characterName,
                 level: infoData.profile.characterLevel,
-                item_level: infoData.profile.jobLevel || 0,
                 class_name: (() => {
                     const rawClass = infoData.profile.className;
                     // Check if it's already Korean (simple check)

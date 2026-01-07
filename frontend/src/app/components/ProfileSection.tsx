@@ -173,6 +173,19 @@ export default function ProfileSection({ character, arcana, onArcanaClick, stats
                     }}>
                         {character.name}
                     </h2>
+                    {/* Equipped Title */}
+                    {character.title_name && (
+                        <div style={{
+                            fontSize: '0.75rem',
+                            color: character.title_grade === 'Unique' ? '#8B5CF6' :
+                                   character.title_grade === 'Legend' ? '#F59E0B' :
+                                   character.title_grade === 'Rare' ? '#3B82F6' : '#9CA3AF',
+                            marginBottom: '0.5rem',
+                            fontStyle: 'italic'
+                        }}>
+                            『{character.title_name}』
+                        </div>
+                    )}
                     <div style={{
                         display: 'flex',
                         gap: '0.4rem',

@@ -38,3 +38,12 @@ export interface StatColorThreshold {
 export interface StatThresholds {
   [key: string]: StatColorThreshold
 }
+
+export interface StatBonusResult {
+  baseValue: number              // 기본 수치
+  bonusValue: number             // 증가 수치
+  totalValue: number             // 최종 수치
+  increasePercentage: number       // 증가 퍼센트
+  source: string                 // 증가 출처 (장비, 스킬, 버프 등)
+  isDiminishingReturns: boolean // 수확 체감 여부
+}

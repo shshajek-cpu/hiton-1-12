@@ -15,7 +15,7 @@ export default function StatTooltip({ stat, children }: StatTooltipProps) {
     const rect = e.currentTarget.getBoundingClientRect()
     setPosition({
       x: rect.left + rect.width / 2,
-      y: rect.top
+      y: rect.bottom
     })
     setShowTooltip(true)
   }
@@ -45,8 +45,8 @@ export default function StatTooltip({ stat, children }: StatTooltipProps) {
           style={{
             position: 'fixed',
             left: `${position.x}px`,
-            top: `${position.y - 10}px`,
-            transform: 'translate(-50%, -100%)',
+            top: `${position.y + 10}px`,
+            transform: 'translate(-50%, 0%)',
             background: 'rgba(0, 0, 0, 0.95)',
             border: `1px solid ${stat.color}`,
             borderRadius: '8px',
@@ -90,7 +90,7 @@ export default function StatTooltip({ stat, children }: StatTooltipProps) {
                   <span>{source.name}</span>
                   <span style={{ color: stat.color }}>
                     {source.value > 0 && `+${source.value.toLocaleString()}`}
-                    {source.percentage && source.percentage > 0 && ` +${source.percentage}%`}
+                    {source.percentage > 0 && ` +${source.percentage}%`}
                   </span>
                 </div>
               ))}
@@ -103,24 +103,27 @@ export default function StatTooltip({ stat, children }: StatTooltipProps) {
               <div style={{ fontSize: '0.7rem', color: '#9CA3AF', marginBottom: '0.25rem' }}>
                 📦 장비
               </div>
-              {stat.sources.equipment.map((source, idx) => (
-                <div key={idx} style={{
-                  fontSize: '0.75rem',
-                  color: '#E5E7EB',
-                  padding: '0.25rem 0.5rem',
-                  background: '#1F2937',
-                  borderRadius: '4px',
-                  marginBottom: '0.25rem',
-                  display: 'flex',
-                  justifyContent: 'space-between'
-                }}>
-                  <span>{source.name}</span>
-                  <span style={{ color: stat.color }}>
-                    {source.value > 0 && `+${source.value.toLocaleString()}`}
-                    {source.percentage && source.percentage > 0 && ` +${source.percentage}%`}
-                  </span>
-                </div>
-              ))}
+              {stat.sources.equipment.map((source, idx) => {
+                const displayValue = source.value > 0 ? `+${source.value.toLocaleString()}` : ''
+                return (
+                  <div key={idx} style={{
+                    fontSize: '0.75rem',
+                    color: '#E5E7EB',
+                    padding: '0.25rem 0.5rem',
+                    background: '#1F2937',
+                    borderRadius: '4px',
+                    marginBottom: '0.25rem',
+                    display: 'flex',
+                    justifyContent: 'space-between'
+                  }}>
+                    <span>{source.name}</span>
+                    <span style={{ color: stat.color }}>
+                      {displayValue}
+                      {source.percentage > 0 && ` +${source.percentage}%`}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           )}
 
@@ -144,7 +147,7 @@ export default function StatTooltip({ stat, children }: StatTooltipProps) {
                   <span>{source.name}</span>
                   <span style={{ color: stat.color }}>
                     {source.value > 0 && `+${source.value.toLocaleString()}`}
-                    {source.percentage && source.percentage > 0 && ` +${source.percentage}%`}
+                    {source.percentage > 0 && ` +${source.percentage}%`}
                   </span>
                 </div>
               ))}
@@ -171,7 +174,7 @@ export default function StatTooltip({ stat, children }: StatTooltipProps) {
                   <span>{source.name}</span>
                   <span style={{ color: stat.color }}>
                     {source.value > 0 && `+${source.value.toLocaleString()}`}
-                    {source.percentage && source.percentage > 0 && ` +${source.percentage}%`}
+                    {source.percentage > 0 && ` +${source.percentage}%`}
                   </span>
                 </div>
               ))}
@@ -197,14 +200,14 @@ export default function StatTooltip({ stat, children }: StatTooltipProps) {
           {/* 화살표 */}
           <div style={{
             position: 'absolute',
-            bottom: '-6px',
+            top: '-6px',
             left: '50%',
             transform: 'translateX(-50%)',
             width: 0,
             height: 0,
             borderLeft: '6px solid transparent',
             borderRight: '6px solid transparent',
-            borderTop: `6px solid ${stat.color}`
+            borderBottom: `6px solid ${stat.color}`
           }} />
         </div>
       )}
