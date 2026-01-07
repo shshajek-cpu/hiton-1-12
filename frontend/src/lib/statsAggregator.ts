@@ -109,7 +109,6 @@ const STAT_CATEGORY_MAP: Record<string, StatCategory> = {
   'PVP 피해 증폭': 'attack',
   'PVE 피해 증폭': 'attack',
   '무기 피해 증폭': 'attack',
-  '피해 증폭': 'attack',
 }
 
 /**
@@ -146,7 +145,7 @@ export function parseStatString(statStr: string): { name: string, value: number,
   if (!statStr) return null
 
   const cleanStatStr = statStr.trim().replace(/\s+/g, ' ')
-  
+
   // 패턴 0: 복합 형식 - 고정값 + 추가 보너스 + 퍼센트 보너스
   // 예: "공격력: 800 (+200) (+5%)", "생명력 1000 (+200) (+10%)"
   const complexMatch = cleanStatStr.match(/(.+?)\s*[:+\-]?\s*(\d+(?:[.,]\d+)*)\s*\(\s*[+\-]?\s*(\d+(?:[.,]\d+)*)\s*\)\s*\(\s*[+\-]?\s*(\d+(?:[.,]\d+)*)\s*%\s*\)/)
@@ -154,7 +153,7 @@ export function parseStatString(statStr: string): { name: string, value: number,
     const baseValue = parseFloat(complexMatch[2].replace(/[,.]/g, m => m === ',' ? '' : '.'))
     const bonusValue = parseFloat(complexMatch[3].replace(/[,.]/g, m => m === ',' ? '' : '.'))
     const percentageValue = parseFloat(complexMatch[4].replace(/[,.]/g, ''))
-    
+
     return {
       name: complexMatch[1].trim(),
       value: baseValue + bonusValue,
@@ -167,7 +166,7 @@ export function parseStatString(statStr: string): { name: string, value: number,
   if (bonusMatch) {
     const baseValue = parseFloat(bonusMatch[2].replace(/[,.]/g, m => m === ',' ? '' : '.'))
     const bonusValue = parseFloat(bonusMatch[3].replace(/[,.]/g, m => m === ',' ? '' : '.'))
-    
+
     return {
       name: bonusMatch[1].trim(),
       value: baseValue + bonusValue,
@@ -202,7 +201,7 @@ export function parseStatString(statStr: string): { name: string, value: number,
     const value = parseFloat(keywordMatch[3].replace(/[,.]/g, m => m === ',' ? '' : '.'))
     const keyword = keywordMatch[2]
     const isNegative = keyword === '감소' || keyword === '하락'
-    
+
     return {
       name: `${keywordMatch[1].trim()} ${keyword}`,
       value: isNegative ? -value : value,
@@ -215,7 +214,7 @@ export function parseStatString(statStr: string): { name: string, value: number,
   if (rangeMatch) {
     const minValue = parseFloat(rangeMatch[2].replace(/[,.]/g, m => m === ',' ? '' : '.'))
     const maxValue = parseFloat(rangeMatch[3].replace(/[,.]/g, m => m === ',' ? '' : '.'))
-    
+
     return {
       name: rangeMatch[1].trim(),
       value: Math.floor((minValue + maxValue) / 2), // 평균값 사용
@@ -235,9 +234,9 @@ export function parseStatString(statStr: string): { name: string, value: number,
 
   // 디버그: 파싱 실패한 경우 기록
   if (process.env.NODE_ENV === 'development') {
-    console.warn('parseStatString: 파싱 실패', { 
-      original: statStr, 
-      cleaned: cleanStatStr 
+    console.warn('parseStatString: 파싱 실패', {
+      original: statStr,
+      cleaned: cleanStatStr
     })
   }
 
@@ -379,8 +378,8 @@ function extractTitleStats(titles: any, equippedTitleId?: number): Map<string, S
           // 카테고리 대표 타이틀인 경우 카테고리 표시
           const categoryLabel = isCategoryTitle
             ? title.equipCategory === 'Attack' ? '공격계열'
-            : title.equipCategory === 'Defense' ? '방어계열'
-            : '기타계열'
+              : title.equipCategory === 'Defense' ? '방어계열'
+                : '기타계열'
             : ''
 
           const sourceName = isCategoryTitle
