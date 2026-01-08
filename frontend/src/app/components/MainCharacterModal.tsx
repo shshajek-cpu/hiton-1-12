@@ -79,7 +79,7 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
             clearTimeout(searchTimeoutRef.current)
         }
 
-        if (name.trim().length < 2) {
+        if (name.trim().length < 1) {
             setResults([])
             setShowResults(false)
             return
@@ -89,13 +89,12 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
             setIsSearching(true)
             try {
                 const serverId = server ? SERVER_NAME_TO_ID[server] : undefined
-                const raceId = race === 'elyos' ? 1 : 2
 
                 // 로컬 DB 검색
                 const localResults = await supabaseApi.searchLocalCharacter(name.trim())
 
-                // 라이브 API 검색
-                const liveResults = await supabaseApi.searchCharacter(name.trim(), serverId, race, 1)
+                // 라이브 API 검색 (종족 필터 없이 전체 검색)
+                const liveResults = await supabaseApi.searchCharacter(name.trim(), serverId, undefined, 1)
 
                 // 병합 및 중복 제거
                 const allResults = [...localResults]
@@ -110,7 +109,7 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
                 // noa_score 기준 정렬
                 allResults.sort((a, b) => (b.noa_score ?? 0) - (a.noa_score ?? 0))
 
-                setResults(allResults.slice(0, 10))
+                setResults(allResults.slice(0, 5))
                 setShowResults(true)
             } catch (e) {
                 console.error('Search failed', e)
@@ -128,7 +127,6 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
 
     // 캐릭터 선택
     const handleSelect = async (char: CharacterSearchResult) => {
-        // noa_score 가져오기
         let hitScore = char.noa_score
         let itemLevel = char.item_level
 
@@ -210,338 +208,253 @@ export default function MainCharacterModal({ isOpen, onClose }: MainCharacterMod
                 borderBottom: 'none',
                 transform: 'rotate(45deg)'
             }} />
-                {/* 헤더 */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '1.25rem'
-                }}>
-                    <h2 style={{
-                        margin: 0,
-                        fontSize: '1.1rem',
-                        fontWeight: 700,
-                        color: '#FACC15'
-                    }}>
-                        대표 캐릭터 설정
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            display: 'flex',
-                            color: 'var(--text-secondary)'
-                        }}
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
 
-                {/* 종족 선택 */}
-                <div style={{ marginBottom: '1rem' }}>
-                    <label style={{
-                        fontSize: '0.75rem',
-                        color: 'var(--text-secondary)',
-                        marginBottom: '0.5rem',
-                        display: 'block'
-                    }}>
-                        종족
-                    </label>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button
-                            onClick={() => setRace('elyos')}
-                            style={{
-                                flex: 1,
-                                padding: '0.6rem',
-                                borderRadius: '8px',
-                                border: race === 'elyos' ? '2px solid #FACC15' : '1px solid var(--border)',
-                                background: race === 'elyos' ? 'rgba(250, 204, 21, 0.1)' : 'var(--bg-hover)',
-                                color: race === 'elyos' ? '#FACC15' : 'var(--text-main)',
-                                fontWeight: race === 'elyos' ? 600 : 400,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            천족
-                        </button>
-                        <button
-                            onClick={() => setRace('asmodian')}
-                            style={{
-                                flex: 1,
-                                padding: '0.6rem',
-                                borderRadius: '8px',
-                                border: race === 'asmodian' ? '2px solid #FACC15' : '1px solid var(--border)',
-                                background: race === 'asmodian' ? 'rgba(250, 204, 21, 0.1)' : 'var(--bg-hover)',
-                                color: race === 'asmodian' ? '#FACC15' : 'var(--text-main)',
-                                fontWeight: race === 'asmodian' ? 600 : 400,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            마족
-                        </button>
-                    </div>
-                </div>
-
-                {/* 서버 선택 */}
-                <div style={{ marginBottom: '1rem', position: 'relative' }}>
-                    <label style={{
-                        fontSize: '0.75rem',
-                        color: 'var(--text-secondary)',
-                        marginBottom: '0.5rem',
-                        display: 'block'
-                    }}>
-                        서버 (선택사항)
-                    </label>
-                    <button
-                        onClick={() => setIsServerDropdownOpen(!isServerDropdownOpen)}
-                        style={{
-                            width: '100%',
-                            padding: '0.6rem 0.75rem',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border)',
-                            background: 'var(--bg-hover)',
-                            color: server ? 'var(--text-main)' : 'var(--text-secondary)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            fontSize: '0.9rem'
-                        }}
-                    >
-                        {server || '전체 서버'}
-                        <ChevronDown size={16} style={{
-                            transform: isServerDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
-                            transition: 'transform 0.2s'
-                        }} />
-                    </button>
-
-                    {isServerDropdownOpen && (
-                        <div style={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: 0,
-                            right: 0,
-                            background: 'var(--bg-secondary)',
-                            border: '1px solid var(--border)',
-                            borderRadius: '8px',
-                            marginTop: '4px',
-                            maxHeight: '200px',
-                            overflowY: 'auto',
-                            zIndex: 10
-                        }}>
-                            <div
-                                onClick={() => {
-                                    setServer('')
-                                    setIsServerDropdownOpen(false)
-                                }}
-                                style={{
-                                    padding: '0.6rem 0.75rem',
-                                    cursor: 'pointer',
-                                    background: !server ? 'rgba(250, 204, 21, 0.1)' : 'transparent',
-                                    color: !server ? '#FACC15' : 'var(--text-main)',
-                                    fontSize: '0.85rem'
-                                }}
-                            >
-                                전체 서버
-                            </div>
-                            {servers.map(s => (
-                                <div
-                                    key={s}
-                                    onClick={() => {
-                                        setServer(s)
-                                        setIsServerDropdownOpen(false)
-                                    }}
-                                    style={{
-                                        padding: '0.6rem 0.75rem',
-                                        cursor: 'pointer',
-                                        background: server === s ? 'rgba(250, 204, 21, 0.1)' : 'transparent',
-                                        color: server === s ? '#FACC15' : 'var(--text-main)',
-                                        fontSize: '0.85rem'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (server !== s) e.currentTarget.style.background = 'var(--bg-hover)'
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (server !== s) e.currentTarget.style.background = 'transparent'
-                                    }}
-                                >
-                                    {s}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* 캐릭터명 입력 */}
-                <div style={{ marginBottom: '1rem' }}>
-                    <label style={{
-                        fontSize: '0.75rem',
-                        color: 'var(--text-secondary)',
-                        marginBottom: '0.5rem',
-                        display: 'block'
-                    }}>
-                        캐릭터명
-                    </label>
-                    <div style={{
+            {/* 헤더 */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '0.75rem'
+            }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#FACC15' }}>
+                    대표 캐릭터 설정
+                </span>
+                <button
+                    onClick={onClose}
+                    style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '2px',
                         display: 'flex',
-                        alignItems: 'center',
-                        background: 'var(--bg-hover)',
-                        borderRadius: '8px',
-                        border: '1px solid var(--border)',
-                        padding: '0 0.75rem'
-                    }}>
-                        <Search size={16} style={{ color: 'var(--text-secondary)' }} />
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="캐릭터명을 입력하세요"
-                            style={{
-                                flex: 1,
-                                padding: '0.6rem 0.5rem',
-                                border: 'none',
-                                background: 'transparent',
-                                color: 'var(--text-main)',
-                                fontSize: '0.9rem',
-                                outline: 'none'
-                            }}
-                        />
-                        {isSearching && (
-                            <div style={{
-                                width: '16px',
-                                height: '16px',
-                                border: '2px solid var(--text-secondary)',
-                                borderTopColor: 'transparent',
-                                borderRadius: '50%',
-                                animation: 'spin 1s linear infinite'
-                            }} />
-                        )}
-                    </div>
-                </div>
+                        color: 'var(--text-secondary)'
+                    }}
+                >
+                    <X size={16} />
+                </button>
+            </div>
 
-                {/* 검색 결과 */}
-                {showResults && results.length > 0 && (
-                    <div style={{
+            {/* 종족 선택 */}
+            <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                <button
+                    onClick={() => setRace('elyos')}
+                    style={{
                         flex: 1,
-                        overflowY: 'auto',
+                        padding: '0.4rem',
+                        borderRadius: '6px',
+                        border: race === 'elyos' ? '1px solid #FACC15' : '1px solid var(--border)',
+                        background: race === 'elyos' ? 'rgba(250, 204, 21, 0.15)' : 'transparent',
+                        color: race === 'elyos' ? '#FACC15' : 'var(--text-secondary)',
+                        fontWeight: race === 'elyos' ? 600 : 400,
+                        fontSize: '0.75rem',
+                        cursor: 'pointer'
+                    }}
+                >
+                    천족
+                </button>
+                <button
+                    onClick={() => setRace('asmodian')}
+                    style={{
+                        flex: 1,
+                        padding: '0.4rem',
+                        borderRadius: '6px',
+                        border: race === 'asmodian' ? '1px solid #FACC15' : '1px solid var(--border)',
+                        background: race === 'asmodian' ? 'rgba(250, 204, 21, 0.15)' : 'transparent',
+                        color: race === 'asmodian' ? '#FACC15' : 'var(--text-secondary)',
+                        fontWeight: race === 'asmodian' ? 600 : 400,
+                        fontSize: '0.75rem',
+                        cursor: 'pointer'
+                    }}
+                >
+                    마족
+                </button>
+            </div>
+
+            {/* 서버 선택 */}
+            <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
+                <button
+                    onClick={() => setIsServerDropdownOpen(!isServerDropdownOpen)}
+                    style={{
+                        width: '100%',
+                        padding: '0.4rem 0.6rem',
+                        borderRadius: '6px',
                         border: '1px solid var(--border)',
-                        borderRadius: '8px',
-                        background: 'var(--bg-main)'
+                        background: 'var(--bg-hover, #111827)',
+                        color: server ? 'var(--text-main)' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '0.75rem'
+                    }}
+                >
+                    {server || '전체 서버'}
+                    <ChevronDown size={14} style={{
+                        transform: isServerDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
+                        transition: 'transform 0.2s'
+                    }} />
+                </button>
+
+                {isServerDropdownOpen && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '6px',
+                        marginTop: '4px',
+                        maxHeight: '120px',
+                        overflowY: 'auto',
+                        zIndex: 10
                     }}>
-                        {results.map((char) => (
+                        <div
+                            onClick={() => { setServer(''); setIsServerDropdownOpen(false) }}
+                            style={{
+                                padding: '0.35rem 0.6rem',
+                                cursor: 'pointer',
+                                background: !server ? 'rgba(250, 204, 21, 0.1)' : 'transparent',
+                                color: !server ? '#FACC15' : 'var(--text-main)',
+                                fontSize: '0.7rem'
+                            }}
+                        >
+                            전체 서버
+                        </div>
+                        {servers.map(s => (
                             <div
-                                key={char.characterId}
-                                onClick={() => handleSelect(char)}
+                                key={s}
+                                onClick={() => { setServer(s); setIsServerDropdownOpen(false) }}
                                 style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.75rem',
-                                    padding: '0.75rem',
+                                    padding: '0.35rem 0.6rem',
                                     cursor: 'pointer',
-                                    borderBottom: '1px solid var(--border)',
-                                    transition: 'background 0.15s'
+                                    background: server === s ? 'rgba(250, 204, 21, 0.1)' : 'transparent',
+                                    color: server === s ? '#FACC15' : 'var(--text-main)',
+                                    fontSize: '0.7rem'
                                 }}
-                                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
-                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                onMouseEnter={(e) => { if (server !== s) e.currentTarget.style.background = 'var(--bg-hover)' }}
+                                onMouseLeave={(e) => { if (server !== s) e.currentTarget.style.background = 'transparent' }}
                             >
-                                {/* 프로필 이미지 */}
-                                <div style={{
-                                    width: '36px',
-                                    height: '36px',
-                                    borderRadius: '50%',
-                                    overflow: 'hidden',
-                                    background: '#374151',
-                                    flexShrink: 0
-                                }}>
-                                    {char.imageUrl ? (
-                                        <img
-                                            src={char.imageUrl}
-                                            alt={char.name}
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        />
-                                    ) : (
-                                        <div style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '0.8rem',
-                                            color: '#9ca3af'
-                                        }}>
-                                            {char.name.replace(/<\/?[^>]+(>|$)/g, '').charAt(0)}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* 캐릭터 정보 */}
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{
-                                        fontSize: '0.9rem',
-                                        fontWeight: 600,
-                                        color: 'var(--text-main)',
-                                        marginBottom: '2px'
-                                    }}
-                                        dangerouslySetInnerHTML={{ __html: char.name }}
-                                    />
-                                    <div style={{
-                                        fontSize: '0.7rem',
-                                        color: 'var(--text-secondary)'
-                                    }}>
-                                        {char.server} · {char.job || char.className} · Lv.{char.level}
-                                        {char.item_level ? ` · IL ${char.item_level}` : ''}
-                                    </div>
-                                </div>
-
-                                {/* 전투력 */}
-                                {char.noa_score && char.noa_score > 0 && (
-                                    <div style={{
-                                        fontSize: '0.8rem',
-                                        fontWeight: 700,
-                                        color: 'var(--brand-red-main, #D92B4B)'
-                                    }}>
-                                        {char.noa_score.toLocaleString()}
-                                    </div>
-                                )}
+                                {s}
                             </div>
                         ))}
                     </div>
                 )}
-
-                {/* 검색 결과 없음 */}
-                {showResults && results.length === 0 && name.trim().length >= 2 && !isSearching && (
-                    <div style={{
-                        padding: '2rem',
-                        textAlign: 'center',
-                        color: 'var(--text-secondary)',
-                        fontSize: '0.85rem'
-                    }}>
-                        검색 결과가 없습니다
-                    </div>
-                )}
-
-                {/* 안내 문구 */}
-                {!showResults && (
-                    <div style={{
-                        padding: '2rem',
-                        textAlign: 'center',
-                        color: 'var(--text-secondary)',
-                        fontSize: '0.85rem'
-                    }}>
-                        캐릭터명을 2글자 이상 입력하세요
-                    </div>
-                )}
-
-                <style jsx>{`
-                    @keyframes spin {
-                        to { transform: rotate(360deg); }
-                    }
-                `}</style>
             </div>
+
+            {/* 캐릭터명 입력 */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: 'var(--bg-hover, #111827)',
+                borderRadius: '6px',
+                border: '1px solid var(--border)',
+                padding: '0 0.5rem',
+                marginBottom: '0.5rem'
+            }}>
+                <Search size={14} style={{ color: 'var(--text-secondary)' }} />
+                <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="캐릭터명"
+                    style={{
+                        flex: 1,
+                        padding: '0.4rem',
+                        border: 'none',
+                        background: 'transparent',
+                        color: 'var(--text-main)',
+                        fontSize: '0.75rem',
+                        outline: 'none'
+                    }}
+                />
+                {isSearching && (
+                    <div style={{
+                        width: '12px',
+                        height: '12px',
+                        border: '2px solid var(--text-secondary)',
+                        borderTopColor: 'transparent',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                    }} />
+                )}
+            </div>
+
+            {/* 검색 결과 */}
+            {showResults && results.length > 0 && (
+                <div style={{
+                    maxHeight: '150px',
+                    overflowY: 'auto',
+                    border: '1px solid var(--border)',
+                    borderRadius: '6px',
+                    background: 'var(--bg-main, #0B0D12)'
+                }}>
+                    {results.map((char) => (
+                        <div
+                            key={char.characterId}
+                            onClick={() => handleSelect(char)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.5rem',
+                                cursor: 'pointer',
+                                borderBottom: '1px solid var(--border)'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                            <div style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '50%',
+                                overflow: 'hidden',
+                                background: '#374151',
+                                flexShrink: 0
+                            }}>
+                                {char.imageUrl ? (
+                                    <img src={char.imageUrl} alt={char.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#9ca3af' }}>
+                                        {char.name.replace(/<\/?[^>]+(>|$)/g, '').charAt(0)}
+                                    </div>
+                                )}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-main)' }} dangerouslySetInnerHTML={{ __html: char.name }} />
+                                <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>
+                                    {char.server} · {char.job || char.className}
+                                </div>
+                            </div>
+                            {char.noa_score && char.noa_score > 0 && (
+                                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--brand-red-main, #D92B4B)' }}>
+                                    {char.noa_score.toLocaleString()}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* 검색 결과 없음 */}
+            {showResults && results.length === 0 && name.trim().length >= 1 && !isSearching && (
+                <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.7rem' }}>
+                    검색 결과가 없습니다
+                </div>
+            )}
+
+            {/* 안내 문구 */}
+            {!showResults && (
+                <div style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.7rem' }}>
+                    캐릭터명을 입력해주세요
+                </div>
+            )}
+
+            <style jsx>{`
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
         </div>
     )
 }

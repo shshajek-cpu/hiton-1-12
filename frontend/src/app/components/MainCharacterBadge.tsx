@@ -46,9 +46,9 @@ export default function MainCharacterBadge() {
     // 대표 캐릭터 클릭 - 상세 페이지로 이동
     const handleClick = () => {
         if (!mainCharacter) return
-        let raceVal: 'elyos' | 'asmodian' = 'elyos'
-        if (mainCharacter.race === 'Asmodian' || mainCharacter.race === '마족') raceVal = 'asmodian'
-        router.push(`/c/${mainCharacter.server}/${mainCharacter.name}?race=${raceVal}`)
+        const raceStr = (mainCharacter.race || '').toLowerCase()
+        const raceVal = raceStr.includes('asmo') || raceStr.includes('마족') ? 'asmodian' : 'elyos'
+        router.push(`/c/${encodeURIComponent(mainCharacter.server)}/${encodeURIComponent(mainCharacter.name)}?race=${raceVal}`)
     }
 
     // 대표 캐릭터 해제
