@@ -203,10 +203,10 @@ export default function CombatPowerRecalcPanel() {
                                 <span style={{ color: 'var(--text-main)' }}>{r.name}</span>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span style={{ color: 'var(--text-secondary)' }}>
-                                        {r.oldScore.toLocaleString()} →
+                                        {(r.oldScore ?? 0).toLocaleString()} →
                                     </span>
                                     <span style={{ color: '#FACC15', fontWeight: 600 }}>
-                                        {r.newScore.toLocaleString()}
+                                        {(r.newScore ?? 0).toLocaleString()}
                                     </span>
                                     <DSBadge variant={r.success ? 'success' : 'warning'} size="sm">
                                         {r.grade || (r.success ? 'OK' : 'ERR')}

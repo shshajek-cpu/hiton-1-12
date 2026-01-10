@@ -70,26 +70,25 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid settings object' }, { status: 400 })
         }
 
-        // 각 설정을 upsert
-        const upsertPromises = Object.entries(settings).map(async ([key, value]) => {
+        // 각 설정을 RPC 함수로 업데이트 (스키마 캐시 문제 우회)
+        const updatePromises = Object.entries(settings).map(async ([key, value]) => {
             // 유효한 키만 저장
             if (!(key in DEFAULT_SETTINGS)) return null
 
-            const { error } = await supabase
-                .from('settings')
-                .upsert(
-                    { key, value, updated_at: new Date().toISOString() },
-                    { onConflict: 'key' }
-                )
+            // RPC 함수 사용
+            const { error } = await supabase.rpc('update_setting', {
+                p_key: key,
+                p_value: value
+            })
 
             if (error) {
-                console.error(`[Settings] Upsert error for ${key}:`, error)
+                console.error(`[Settings] RPC update error for ${key}:`, error)
                 return { key, error: error.message }
             }
             return { key, success: true }
         })
 
-        const results = await Promise.all(upsertPromises)
+        const results = await Promise.all(updatePromises)
         const errors = results.filter(r => r && 'error' in r)
 
         if (errors.length > 0) {

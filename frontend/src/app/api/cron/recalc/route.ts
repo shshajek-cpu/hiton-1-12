@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
             success: true,
             message: 'Auto recalculation completed',
             processed: totalProcessed,
-            success: totalSuccess,
+            successCount: totalSuccess,
             failed: totalFailed,
             timestamp: new Date().toISOString()
         })

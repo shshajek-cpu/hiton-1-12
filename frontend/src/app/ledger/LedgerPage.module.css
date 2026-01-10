@@ -524,6 +524,7 @@
     opacity: 0;
     transform: translateY(-6px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -566,4 +567,79 @@
   .salesGrid {
     grid-template-columns: repeat(auto-fit, 140px);
   }
+}
+
+/* Added for RevenueInputForm */
+.incomeInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnAddRecord {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnAddRecord:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.3);
+  transform: scale(1.05);
+}
+
+.btnAddRecord:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.emptyRecord {
+  padding: 12px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+/* Added for ItemSalesSection Search */
+.itemSearchWrapper {
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 10;
+}
+
+.itemSearchInput {
+  width: 100%;
+  padding: 14px 16px;
+  padding-left: 44px;
+  background: rgba(12, 12, 13, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.itemSearchInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1);
+  outline: none;
+}
+
+.itemSearchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
 }
