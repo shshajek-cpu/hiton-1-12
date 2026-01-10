@@ -110,25 +110,25 @@ export default function CombatPowerRecalcPanel() {
                     <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>전체</div>
                         <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                            {progress.total.toLocaleString()}
+                            {(progress.total ?? 0).toLocaleString()}
                         </div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>처리됨</div>
                         <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#60A5FA' }}>
-                            {progress.processed.toLocaleString()}
+                            {(progress.processed ?? 0).toLocaleString()}
                         </div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>성공</div>
                         <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#34D399' }}>
-                            {progress.success.toLocaleString()}
+                            {(progress.success ?? 0).toLocaleString()}
                         </div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>실패</div>
                         <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#EF4444' }}>
-                            {progress.failed.toLocaleString()}
+                            {(progress.failed ?? 0).toLocaleString()}
                         </div>
                     </div>
                 </div>

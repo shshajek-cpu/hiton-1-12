@@ -221,7 +221,7 @@ export default function AutoUpdatePanel() {
                     color: 'var(--text-secondary)',
                     marginBottom: '0.4rem'
                 }}>
-                    <span>{status.updated.toLocaleString()} / {status.total.toLocaleString()}</span>
+                    <span>{(status.updated ?? 0).toLocaleString()} / {(status.total ?? 0).toLocaleString()}</span>
                     <span style={{ color: 'var(--brand-red-main)', fontWeight: 'bold' }}>{progressPercent}%</span>
                 </div>
                 <div style={{
@@ -240,7 +240,7 @@ export default function AutoUpdatePanel() {
                     }} />
                 </div>
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-disabled)', marginTop: '0.25rem' }}>
-                    대기: {status.pending.toLocaleString()}개
+                    대기: {(status.pending ?? 0).toLocaleString()}개
                 </div>
             </div>
 
