@@ -272,28 +272,62 @@ export function parseStatString(statStr: string): { name: string, value: number,
  * - 장신구: 공격력 +20, 방어력 +20, 공격력 증가 +1% (per level)
  */
 function calculateBreakthroughBonus(item: any): { name: string, value: number, percentage: number }[] {
-  // 엄격한 체크: breakthrough가 숫자이고 1 이상이어야 함
-  const breakthrough = typeof item.breakthrough === 'number' ? item.breakthrough : parseInt(item.breakthrough) || 0
+  // 엄격한 체크: breakthrough 또는 exceedLevel이 숫자이고 1 이상이어야 함
+  // 클라이언트에서는 breakthrough, 서버에서는 exceedLevel 사용
+  const rawBreakthrough = item.breakthrough ?? item.exceedLevel ?? 0
+  const breakthrough = typeof rawBreakthrough === 'number' ? rawBreakthrough : parseInt(rawBreakthrough) || 0
   if (!breakthrough || breakthrough <= 0) return []
 
-  const slot = (item.slot || '').toLowerCase()
-  const category = (item.category || '').toLowerCase()
+  // 클라이언트: slot, category / 서버: slotPosName, categoryName
+  const slot = (item.slot || item.slotPosName || '').toLowerCase()
+  const category = (item.category || item.categoryName || '').toLowerCase()
+  const slotPos = item.slotPos || item.raw?.slotPos || 0
   const bonuses: { name: string, value: number, percentage: number }[] = []
 
+  // slotPos 기반 분류 (가장 신뢰할 수 있는 방법)
+  // 무기: 1 (주무기), 2 (보조무기)
+  // 방어구: 3~8, 11, 12, 17, 19 (투구, 견갑, 흉갑, 장갑, 각반, 장화, 허리띠, 망토)
+  // 장신구: 7, 8, 9, 10, 13, 14, 15, 16, 22, 23, 24 (귀걸이, 반지, 목걸이, 팔찌, 아뮬렛, 룬)
+  const isWeaponByPos = slotPos === 1 || slotPos === 2
+  const isArmorByPos = [3, 4, 5, 6, 11, 12, 17, 19].includes(slotPos)
+  const isAccessoryByPos = [7, 8, 9, 10, 13, 14, 15, 16, 22, 23, 24].includes(slotPos)
+
   // 무기/가더 (MainHand, OffHand with 가더)
-  const isWeapon = slot.includes('주무기') || slot.includes('무기') || slot === 'mainhand'
-  const isGuard = slot.includes('보조') || slot.includes('가더') || category.includes('가더') || slot === 'offhand'
+  // 서버 API는 영어(main, mainhand), 클라이언트는 한국어(주무기)
+  const isWeapon = isWeaponByPos ||
+                   slot.includes('주무기') || slot.includes('무기') ||
+                   slot === 'mainhand' || slot === 'main' || slot.includes('mainhand') ||
+                   slot.includes('보조') || slot.includes('가더') || category.includes('가더') ||
+                   slot === 'offhand' || slot === 'sub' || slot.includes('offhand')
+  // isGuard is now merged into isWeapon since they have the same bonus
+  const isGuard = false
 
   // 방어구 (투구, 견갑, 상의, 하의, 장갑, 신발)
-  const isArmor = slot.includes('투구') || slot.includes('견갑') || slot.includes('상의') ||
+  // 서버 API 영어 이름: head, shoulder, torso/chest, legs/pants, gloves/hand, shoes/foot
+  const isArmor = isArmorByPos ||
+                  slot.includes('투구') || slot.includes('견갑') || slot.includes('상의') ||
                   slot.includes('하의') || slot.includes('장갑') || slot.includes('신발') ||
-                  slot === 'head' || slot === 'shoulder' || slot === 'chest' ||
-                  slot === 'pants' || slot === 'gloves' || slot === 'shoes'
+                  slot.includes('흉갑') || slot.includes('각반') || slot.includes('장화') ||
+                  slot.includes('망토') || slot.includes('허리') ||
+                  slot === 'head' || slot === 'shoulder' || slot === 'chest' || slot === 'torso' ||
+                  slot === 'pants' || slot === 'legs' || slot === 'leg' ||
+                  slot === 'gloves' || slot === 'glove' || slot === 'hand' ||
+                  slot === 'shoes' || slot === 'foot' || slot === 'feet' || slot === 'boots' ||
+                  slot === 'cape' || slot === 'waist' || slot === 'belt' ||
+                  slot.includes('helmet') || slot.includes('pauldron') || slot.includes('greaves')
 
-  // 장신구 (귀걸이, 목걸이, 반지, 벨트)
-  const isAccessory = slot.includes('귀걸이') || slot.includes('목걸이') ||
-                      slot.includes('반지') || slot.includes('벨트') ||
-                      slot === 'earring' || slot === 'necklace' || slot === 'ring' || slot === 'belt'
+  // 장신구 (귀걸이, 목걸이, 반지, 팔찌, 룬, 아뮬렛)
+  // 서버 API 영어 이름: earring, necklace, ring, bracelet, rune, amulet
+  const isAccessory = isAccessoryByPos ||
+                      slot.includes('귀걸이') || slot.includes('목걸이') ||
+                      slot.includes('반지') || slot.includes('팔찌') ||
+                      slot.includes('룬') || slot.includes('아뮬렛') ||
+                      slot === 'earring' || slot.includes('earring') ||
+                      slot === 'necklace' || slot.includes('necklace') ||
+                      slot === 'ring' || slot.includes('ring') ||
+                      slot === 'bracelet' || slot.includes('bracelet') ||
+                      slot === 'rune' || slot.includes('rune') ||
+                      slot === 'amulet' || slot.includes('amulet')
 
   if (isWeapon || isGuard) {
     // 무기/가더: 공격력 +30, 공격력 증가 +1%
@@ -323,7 +357,8 @@ function extractEquipmentStats(equipment: any[]): Map<string, StatSource[]> {
   equipment.forEach(item => {
     if (!item) return
 
-    const itemName = item.name || item.slot || '알 수 없음'
+    // 클라이언트: name, slot / 서버: name, slotPosName
+    const itemName = item.name || item.slot || item.slotPosName || '알 수 없음'
 
     // 이 아이템에서 나오는 스탯을 임시로 모음 (같은 스탯명 합산용)
     const itemStatsTemp = new Map<string, { value: number, percentage: number }>()
@@ -340,8 +375,10 @@ function extractEquipmentStats(equipment: any[]): Map<string, StatSource[]> {
     }
 
     // 1. 마석 (Manastones) - { type: "공격력", value: 80 } 또는 { type: "공격력", value: "+80" } 형식
-    if (item.manastones && Array.isArray(item.manastones)) {
-      item.manastones.forEach((manastone: any) => {
+    // 클라이언트: manastones / 서버: manastoneList
+    const manastones = item.manastones || item.manastoneList || []
+    if (manastones && Array.isArray(manastones)) {
+      manastones.forEach((manastone: any) => {
         const statName = manastone.type || manastone.name || ''
         const rawValue = manastone.value || manastone.point || 0
 
