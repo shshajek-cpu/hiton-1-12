@@ -1,0 +1,729 @@
+/* Container Layout */
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Info Row & Badges */
+.infoRow {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.badge {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    color: #9CA3AF;
+}
+
+/* Showcase Wrapper */
+.showcaseWrapper {
+    width: 100%;
+    min-height: 420px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Glass Panel Utilities */
+.glassPanel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.glassPanel:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Section Headers */
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.4rem;
+    padding-left: 0.25rem;
+}
+
+.sectionTitle {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.4rem;
+}
+
+.sectionTitle::before {
+    content: '';
+    display: block;
+    width: 3px;
+    height: 12px;
+    background: var(--brand-red-main);
+    border-radius: 2px;
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.statCard {
+    composes: glassPanel;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: rgba(12, 12, 13, 0.4);
+    /* Slightly darker for contrast */
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.02em;
+}
+
+.statValue {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.statValueHighlight {
+    color: var(--primary);
+    /* Amber */
+    text-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+/* Equipment Grid */
+.equipmentGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    /* 5 items per row typical for MMO inventories */
+    gap: 0.5rem;
+    padding: 1rem;
+}
+
+.itemSlot {
+    aspect-ratio: 1/1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    position: relative;
+    overflow: visible;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.itemSlot:hover {
+    border-color: var(--brand-red-main);
+    box-shadow: 0 0 15px rgba(217, 43, 75, 0.2);
+    transform: translateY(-2px);
+}
+
+.itemImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.itemPlaceholder {
+    color: var(--text-secondary);
+    opacity: 0.3;
+    font-size: 1.5rem;
+}
+
+.itemGradeLegend {
+    border-color: #F59E0B;
+    box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.itemGradeUnique {
+    border-color: #D92B4B;
+    box-shadow: inset 0 0 10px rgba(217, 43, 75, 0.2);
+}
+
+.itemGradeEpic {
+    border-color: #8B5CF6;
+    box-shadow: inset 0 0 10px rgba(139, 92, 246, 0.2);
+}
+
+.itemGradeRare {
+    border-color: #3B82F6;
+    box-shadow: inset 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+/* Combat Power Display (Special) */
+.combatPowerCard {
+    composes: glassPanel;
+    padding: 1.5rem;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
+    margin-bottom: 1.5rem;
+}
+
+.cpLabel {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+}
+
+.cpValue {
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #FACC15 0%, #FDE047 50%, #FACC15 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 15px rgba(250, 204, 21, 0.4));
+    line-height: 1.1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .equipmentGrid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Horizontal Equipment Card Styles */
+.equipmentRows {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    /* 2 columns for horizontal cards */
+    gap: 0.3rem;
+}
+
+.equipmentCard {
+    background: rgba(12, 12, 13, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.equipmentCard:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.equipmentIconWrapper {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #000;
+}
+
+.equipmentInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    /* Enable text-overflow */
+}
+
+.slotName {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    margin-bottom: 1px;
+}
+
+.itemName {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.manastoneRow {
+    display: flex;
+    gap: 1px;
+    margin-top: 1px;
+}
+
+.manastoneDot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+}
+
+/* Responsive for Equipment Grid */
+@media (max-width: 640px) {
+    .equipmentRows {
+        grid-template-columns: 1fr;
+        /* Stack on mobile */
+    }
+}
+
+/* Breakthrough Badge Animation */
+@keyframes gemSparkle {
+
+    0%,
+    100% {
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.15);
+    }
+}
+
+.breakthroughWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 24px;
+    flex-shrink: 0;
+    margin-right: 2px;
+}
+
+.breakthroughBadge {
+    position: relative;
+    width: 12px;
+    height: 12px;
+    transform: rotate(45deg);
+    background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 40%, #2563EB 60%, #1D4ED8 100%);
+    border: 1px solid #93C5FD;
+    border-radius: 1px;
+    box-shadow: 0 0 4px rgba(59, 130, 246, 0.8),
+        0 0 8px rgba(96, 165, 250, 0.4),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+        inset 1px 1px 2px rgba(147, 197, 253, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: gemSparkle 2s ease-in-out infinite;
+}
+
+.breakthroughText {
+    transform: rotate(-45deg);
+    font-weight: 900;
+    font-size: 0.5rem;
+    color: #FFFFFF;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+    line-height: 1;
+    letter-spacing: -0.5px;
+}
+
+.enhancementBadge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: rgba(11, 13, 18, 0.95);
+    color: var(--text-main);
+    font-size: 0.5rem;
+    font-weight: bold;
+    padding: 0 1px;
+    border-top-left-radius: 2px;
+    line-height: 1;
+}
+
+/* Stats Summary View */
+.statsContainer {
+    composes: glassPanel;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: hidden;
+}
+
+.statsHeader {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    /* Using glass border */
+    background: rgba(11, 13, 18, 0.6);
+    /* Slightly darker header */
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.statsControls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: normal;
+}
+
+.controlButton {
+    padding: 0.25rem 0.5rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-secondary);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.controlButton:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+
+/* Tabs */
+.statsTabBar {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+    overflow-x: auto;
+}
+
+.statsTab {
+    padding: 0.35rem 0.75rem;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: normal;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.statsTab:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.statsTabActive {
+    background: linear-gradient(180deg, rgba(37, 99, 235, 0.8) 0%, rgba(29, 78, 216, 0.8) 100%);
+    color: white;
+    border-color: #3B82F6;
+    font-weight: 600;
+}
+
+/* Stats Content */
+.statsContent {
+    padding: 0.75rem;
+    background: rgba(15, 17, 22, 0.4);
+}
+
+.statsGrid3Col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    align-content: start;
+}
+
+.statItem {
+    background: rgba(26, 29, 38, 0.6);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s;
+    cursor: pointer;
+    height: 100%;
+    position: relative;
+}
+
+.statItem:hover {
+    background: rgba(37, 41, 54, 0.8);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.statItemLabel {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.statColorBar {
+    width: 3px;
+    height: 10px;
+    border-radius: 1px;
+}
+
+.statItemValue {
+    font-size: 0.9rem;
+    color: #F3F4F6;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+/* Stats Summary View - New 2-Column Grid */
+.statsGrid2Col {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    align-content: start;
+}
+
+/* Expandable Stat Card */
+.statCardExpand {
+    background: rgba(26, 29, 38, 0.6);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.statCardExpand:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.statCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.statCardHeader:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.statCardName {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.statCardValue {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #F3F4F6;
+}
+
+.statColorDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.dropdownArrow {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+/* Expanded Details */
+.statCardDetails {
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.statSourceRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+}
+
+.sourceLabel {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.sourceValue {
+    color: #86EFAC;
+    font-weight: 500;
+}
+
+/* Simple Stat Card (no expand) */
+.statCard {
+    background: rgba(26, 29, 38, 0.6);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    transition: all 0.2s;
+}
+
+.statCard:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(37, 41, 54, 0.8);
+}
+
+/* Main Stats Tab Grid */
+.mainStatsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.mainStatCard {
+    background: rgba(26, 29, 38, 0.6);
+    border-radius: 8px;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s;
+}
+
+.mainStatCard:hover {
+    border-color: rgba(250, 204, 21, 0.3);
+    background: rgba(37, 41, 54, 0.8);
+}
+
+.mainStatHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mainStatName {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.mainStatValue {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #F3F4F6;
+}
+
+.mainStatSecondary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.secondaryStat {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    padding-left: 0.25rem;
+}
+
+/* Stats Pagination */
+.statsPagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+}
+
+.pageButton {
+    padding: 0.4rem 0.8rem;
+    background: rgba(250, 204, 21, 0.1);
+    border: 1px solid rgba(250, 204, 21, 0.3);
+    border-radius: 4px;
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pageButton:hover:not(:disabled) {
+    background: rgba(250, 204, 21, 0.2);
+    border-color: rgba(250, 204, 21, 0.5);
+}
+
+.pageButton:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.pageIndicator {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* No Data Message */
+.noData {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .statsGrid2Col {
+        grid-template-columns: 1fr;
+    }
+
+    .mainStatsGrid {
+        grid-template-columns: 1fr;
+    }
+}

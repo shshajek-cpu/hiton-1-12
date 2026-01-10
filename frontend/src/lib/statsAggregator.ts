@@ -5,8 +5,8 @@
  * 파일: frontend/src/lib/statsAggregator.ts
  */
 
-import type { StatDetail, StatSource, StatThresholds, StatCategory } from '../types/stats'
-import { getDaevanionStats } from '../data/daevanionStats'
+import type { StatDetail, StatSource, StatThresholds, StatCategory, PercentageSource } from '../types/stats'
+import { getDaevanionStats, getDaevanionStatsByName } from '../data/daevanionStats'
 
 /**
  * 스탯 임계값 정의 (서버 평균 기준)
@@ -339,12 +339,19 @@ function extractEquipmentStats(equipment: any[]): Map<string, StatSource[]> {
       current.percentage += percentage
     }
 
-    // 1. 마석 (Manastones)
+    // 1. 마석 (Manastones) - { type: "공격력", value: 80 } 또는 { type: "공격력", value: "+80" } 형식
     if (item.manastones && Array.isArray(item.manastones)) {
       item.manastones.forEach((manastone: any) => {
-        const parsed = parseStatString(manastone.type || manastone.name || '')
-        if (parsed && parsed.name) {
-          addToItemStats(parsed.name, parsed.value, parsed.percentage)
+        const statName = manastone.type || manastone.name || ''
+        const rawValue = manastone.value || manastone.point || 0
+
+        // "+80" 형식의 문자열도 파싱
+        const statValue = typeof rawValue === 'string'
+          ? parseFloat(rawValue.replace(/[+%]/g, '')) || 0
+          : rawValue
+
+        if (statName && statValue > 0) {
+          addToItemStats(statName, statValue, 0)
         }
       })
     }
@@ -412,14 +419,43 @@ function extractEquipmentStats(equipment: any[]): Map<string, StatSource[]> {
         })
       }
 
-      // Manastones from detail (마석) - 이미 위에서 item.manastones 처리했으므로 중복 체크
-      if (!item.manastones && detail.manastones && Array.isArray(detail.manastones)) {
+      // 마석 데이터 처리 - item.manastones가 없을 때만 detail에서 가져옴 (중복 방지)
+      const hasItemManastones = item.manastones && item.manastones.length > 0
+
+      // Manastones from detail.manastones
+      if (!hasItemManastones && detail.manastones && Array.isArray(detail.manastones)) {
         detail.manastones.forEach((stone: any) => {
-          const parsed = parseStatString(stone.type || stone.name || '')
-          if (parsed && parsed.name) {
-            addToItemStats(parsed.name, parsed.value, parsed.percentage)
+          const statName = stone.type || stone.name || ''
+          const rawValue = stone.value || 0
+
+          // "+80" 형식의 문자열도 파싱
+          const statValue = typeof rawValue === 'string'
+            ? parseFloat(rawValue.replace(/[+%]/g, '')) || 0
+            : rawValue
+
+          if (statName && statValue > 0) {
+            addToItemStats(statName, statValue, 0)
           }
         })
+      }
+
+      // magicStoneStat from _raw - item.manastones와 detail.manastones 둘 다 없을 때만
+      if (!hasItemManastones && (!detail.manastones || detail.manastones.length === 0)) {
+        if (rawDetail.magicStoneStat && Array.isArray(rawDetail.magicStoneStat)) {
+          rawDetail.magicStoneStat.forEach((stone: any) => {
+            const statName = stone.name
+            const statValue = stone.value || ''
+            if (!statName) return
+
+            // "+80" 형식에서 숫자 추출
+            const isPercent = String(statValue).includes('%')
+            const numValue = parseFloat(String(statValue).replace(/[+%]/g, '')) || 0
+
+            if (numValue > 0) {
+              addToItemStats(statName, isPercent ? 0 : numValue, isPercent ? numValue : 0)
+            }
+          })
+        }
       }
     }
 
@@ -526,11 +562,18 @@ function extractDaevanionStats(daevanion: any): Map<string, StatSource[]> {
     '치명타 피해 증폭',
     '치명타 피해 내성',
     '다단 히트 적중',
-    '다단 히트 저항'
+    '다단 히트 저항',
+    '재사용 시간 감소'
   ])
 
   daevanion.boardList.forEach((board: any) => {
-    const boardStats = getDaevanionStats(board.id, board.openNodeCount)
+    // board.id 또는 board.name으로 스탯 가져오기
+    let boardStats = getDaevanionStats(board.id, board.openNodeCount)
+
+    // board.id로 못 찾으면 board.name으로 찾기
+    if (!boardStats && board.name) {
+      boardStats = getDaevanionStatsByName(board.name, board.openNodeCount, board.totalNodeCount)
+    }
 
     if (!boardStats) return
 
@@ -627,7 +670,7 @@ export function aggregateStats(
   const equipmentStats = extractEquipmentStats(equipment)
   const titleStats = extractTitleStats(titles, equippedTitleId)
   const daevanionStats = extractDaevanionStats(daevanion)
-  const baseStats = extractBaseStats(stats) // 이제 StatSource[] 반환
+  const baseStats = extractBaseStats(stats)
 
   // 모든 스탯 이름 수집
   const allStatNames = new Set<string>()
@@ -657,14 +700,69 @@ export function aggregateStats(
   // StatDetail 배열 생성
   const statDetails: StatDetail[] = []
 
-  // 먼저 퍼센트 증가 스탯의 총 퍼센트를 미리 계산
+  // 먼저 퍼센트 증가 스탯의 총 퍼센트를 미리 계산 + 개별 출처 추적
   const percentageIncreaseValues: Record<string, number> = {}
-  Object.values(PERCENTAGE_INCREASE_MAP).forEach(increaseStatName => {
-    const equipInc = (equipmentStats.get(increaseStatName) || []).reduce((sum, s) => sum + (s.percentage || 0), 0)
-    const titleInc = (titleStats.get(increaseStatName) || []).reduce((sum, s) => sum + (s.percentage || 0), 0)
-    const daevanionInc = (daevanionStats.get(increaseStatName) || []).reduce((sum, s) => sum + (s.percentage || 0), 0)
-    const baseInc = (baseStats.get(increaseStatName) || []).reduce((sum, s) => sum + (s.percentage || 0), 0)
-    percentageIncreaseValues[increaseStatName] = equipInc + titleInc + daevanionInc + baseInc
+  const percentageSourcesMap: Record<string, PercentageSource[]> = {}
+
+  Object.entries(PERCENTAGE_INCREASE_MAP).forEach(([baseStat, increaseStatName]) => {
+    const sources: PercentageSource[] = []
+
+    // 장비에서 오는 % 증가
+    const equipSources = equipmentStats.get(increaseStatName) || []
+    equipSources.forEach(s => {
+      if (s.percentage && s.percentage > 0) {
+        sources.push({
+          sourceName: s.name,
+          sourceValue: s.value,
+          statName: increaseStatName,
+          percentage: s.percentage
+        })
+      }
+    })
+
+    // 타이틀에서 오는 % 증가
+    const titleSources = titleStats.get(increaseStatName) || []
+    titleSources.forEach(s => {
+      if (s.percentage && s.percentage > 0) {
+        sources.push({
+          sourceName: s.name,
+          sourceValue: s.value,
+          statName: increaseStatName,
+          percentage: s.percentage
+        })
+      }
+    })
+
+    // 대바니온에서 오는 % 증가
+    const daevanionSources = daevanionStats.get(increaseStatName) || []
+    daevanionSources.forEach(s => {
+      if (s.percentage && s.percentage > 0) {
+        sources.push({
+          sourceName: s.name,
+          sourceValue: s.value,
+          statName: increaseStatName,
+          percentage: s.percentage
+        })
+      }
+    })
+
+    // 기본 스탯에서 오는 % 증가 (위력, 파괴[지켈] 등)
+    const baseSourcesForPercent = baseStats.get(increaseStatName) || []
+
+    baseSourcesForPercent.forEach(s => {
+      if (s.percentage && s.percentage > 0) {
+        sources.push({
+          sourceName: s.name,
+          sourceValue: s.value,
+          statName: increaseStatName,
+          percentage: s.percentage
+        })
+      }
+    })
+
+    const totalPercent = sources.reduce((sum, s) => sum + s.percentage, 0)
+    percentageIncreaseValues[increaseStatName] = totalPercent
+    percentageSourcesMap[baseStat] = sources
   })
 
   allStatNames.forEach(statName => {
@@ -727,7 +825,8 @@ export function aggregateStats(
     let appliedIncreasePercent = 0
     let increaseValue = 0
 
-    if (increaseStatName && percentageIncreaseValues[increaseStatName]) {
+    // percentageIncreaseValues[increaseStatName]이 0일 수 있으므로 !== undefined 체크
+    if (increaseStatName && percentageIncreaseValues[increaseStatName] !== undefined && percentageIncreaseValues[increaseStatName] > 0) {
       appliedIncreasePercent = percentageIncreaseValues[increaseStatName]
       increaseValue = Math.floor(totalValue * (appliedIncreasePercent / 100))
       totalValue += increaseValue
@@ -752,7 +851,8 @@ export function aggregateStats(
         titles: titleSources,
         daevanion: daevanionSources,
         baseValue: 0,
-        baseStats: baseSources // 기본 스탯에서 파생된 2차 능력치 + 증가 퍼센트
+        baseStats: baseSources, // 기본 스탯에서 파생된 2차 능력치 + 증가 퍼센트
+        percentageSources: percentageSourcesMap[statName] || [] // % 증가 출처 상세
       },
       color: getStatColor(statName, totalValue + totalPercentage),
       category: getStatCategory(statName),
