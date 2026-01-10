@@ -39,7 +39,9 @@ export default function CollectorPage() {
         try {
             const res = await fetch('/api/admin/collector?type=status')
             const data = await res.json()
-            setState(data.state)
+            if (data.state) {
+                setState(data.state)
+            }
         } catch (err) {
             console.error('Status fetch error:', err)
         }
@@ -50,7 +52,9 @@ export default function CollectorPage() {
         try {
             const res = await fetch('/api/admin/collector?type=config')
             const data = await res.json()
-            setConfig(data)
+            if (data && data.delayMs !== undefined) {
+                setConfig(data)
+            }
         } catch (err) {
             console.error('Config fetch error:', err)
         }
@@ -61,7 +65,9 @@ export default function CollectorPage() {
         try {
             const res = await fetch('/api/admin/collector?type=logs')
             const data = await res.json()
-            setLogs(data)
+            if (Array.isArray(data)) {
+                setLogs(data)
+            }
         } catch (err) {
             console.error('Logs fetch error:', err)
         }
