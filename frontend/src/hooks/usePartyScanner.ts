@@ -117,8 +117,8 @@ export const usePartyScanner = () => {
                 const startX = Math.round(img.width * 0.12);
                 const cropWidth = Math.round(img.width * 0.55);
 
-                // 3배 확대하여 OCR 정확도 향상 (2배 → 3배)
-                const scale = 3;
+                // 2배 확대 (속도와 정확도 균형)
+                const scale = 2;
                 canvas.width = cropWidth * scale;
                 canvas.height = cropHeight * scale;
 
