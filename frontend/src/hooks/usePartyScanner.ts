@@ -85,10 +85,10 @@ export const usePartyScanner = () => {
     // 단일 영역 모드용 (기존 호환성)
     const [useSingleRegion, setUseSingleRegion] = useState(true);
     const [singleCropSettings, setSingleCropSettings] = useState({
-        startX: 120,
-        startY: 950,
-        width: 1679,
-        height: 80
+        startX: 413,
+        startY: 973,
+        width: 940,
+        height: 24
     });
 
     // 이미지 전처리: 약한 이진화 (텍스트 강조)
