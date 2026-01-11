@@ -280,7 +280,7 @@ export const usePartyScanner = () => {
 
         const addMember = (name: string, rawServer: string, possibleServers: string[], isMain: boolean = false) => {
             const cleanName = name.replace(/[^a-zA-Z0-9가-힣]/g, '');
-            if (cleanName.length < 2 || seenNames.has(cleanName)) return false;
+            if (cleanName.length < 1 || seenNames.has(cleanName)) return false; // 1글자 캐릭터도 허용
             matches.push({ name: cleanName, rawServer, possibleServers, isMainCharacter: isMain });
             seenNames.add(cleanName);
             console.log('[smartParse] Added member:', cleanName, possibleServers, isMain);
@@ -331,9 +331,9 @@ export const usePartyScanner = () => {
                 continue;
             }
 
-            // 이름이 2자 미만이면 스킵
-            if (name.length < 2) {
-                addLog(`[패턴 스킵] ${name}[${rawServer}] - 이름이 너무 짧음`);
+            // 이름이 비어있으면 스킵 (1글자 허용)
+            if (name.length < 1) {
+                addLog(`[패턴 스킵] ${name}[${rawServer}] - 이름이 비어있음`);
                 continue;
             }
 
@@ -376,8 +376,8 @@ export const usePartyScanner = () => {
         if (mainChar && matches.length < 4) {
             addLog(`[패턴 검색] 서버명 없는 캐릭터 찾는 중 (대표 서버: ${mainChar.server})...`);
 
-            // 한글 이름 패턴 (2~6글자)
-            const nameOnlyRegex = /([가-힣]{2,6})/g;
+            // 한글 이름 패턴 (1~6글자)
+            const nameOnlyRegex = /([가-힣]{1,6})/g;
             const allNames = Array.from(fullText.matchAll(nameOnlyRegex));
 
             for (const match of allNames) {
