@@ -82,7 +82,7 @@ export default function OfficialNewsFeed() {
                         borderRadius: '50%',
                         animation: 'spin 0.8s linear infinite'
                     }} />
-                    <span style={{ color: 'var(--text-disabled)', fontSize: '0.85rem' }}>공식 소식 로딩중...</span>
+                    <span style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.85rem + 2px)' }}>공식 소식 로딩중...</span>
                 </div>
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </section>
@@ -98,7 +98,7 @@ export default function OfficialNewsFeed() {
                 padding: '1.25rem',
                 border: '1px solid rgba(248, 113, 113, 0.3)'
             }}>
-                <div style={{ color: '#f87171', fontSize: '0.85rem', textAlign: 'center' }}>
+                <div style={{ color: '#f87171', fontSize: 'calc(0.85rem + 2px)', textAlign: 'center' }}>
                     공식 소식을 불러올 수 없습니다
                     <button
                         onClick={fetchNews}
@@ -134,7 +134,7 @@ export default function OfficialNewsFeed() {
                 marginBottom: '1rem'
             }}>
                 <h2 style={{
-                    fontSize: '0.9rem',
+                    fontSize: 'calc(0.9rem + 2px)',
                     fontWeight: 'bold',
                     color: '#9CA3AF',
                     letterSpacing: '-0.02em',
@@ -150,7 +150,7 @@ export default function OfficialNewsFeed() {
                         alignItems: 'center',
                         gap: '4px',
                         color: 'var(--text-secondary)',
-                        fontSize: '0.75rem',
+                        fontSize: 'calc(0.75rem + 2px)',
                         textDecoration: 'none'
                     }}
                 >
@@ -193,7 +193,7 @@ export default function OfficialNewsFeed() {
                                 padding: '2px 6px',
                                 background: 'var(--brand-red-main)',
                                 borderRadius: '4px',
-                                fontSize: '0.7rem',
+                                fontSize: 'calc(0.7rem + 2px)',
                                 fontWeight: 600,
                                 color: '#fff',
                                 textAlign: 'center'
@@ -204,7 +204,7 @@ export default function OfficialNewsFeed() {
                             {/* Title */}
                             <div style={{
                                 flex: 1,
-                                fontSize: '0.85rem',
+                                fontSize: 'calc(0.85rem + 2px)',
                                 color: 'var(--text-main)',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
@@ -219,7 +219,7 @@ export default function OfficialNewsFeed() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '3px',
-                                fontSize: '0.7rem',
+                                fontSize: 'calc(0.7rem + 2px)',
                                 color: 'var(--text-disabled)',
                                 minWidth: '50px',
                                 justifyContent: 'flex-end'

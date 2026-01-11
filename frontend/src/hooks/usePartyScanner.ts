@@ -35,6 +35,7 @@ export interface PendingServerSelection {
     name: string;
     abbreviation: string; // OCR로 인식된 서버 약어
     candidates: ServerCandidate[]; // 선택 가능한 서버별 캐릭터 정보
+    type?: 'server' | 'name'; // 선택 타입 (서버 선택 or 이름 선택)
 }
 
 export interface ServerCandidate {
@@ -42,6 +43,13 @@ export interface ServerCandidate {
     serverId: number;
     characterData?: PartyMember; // 검색된 캐릭터 정보 (있으면)
     found: boolean;
+    alternativeName?: string; // 대체 이름 (이름 선택용)
+}
+
+// 캐릭터 검색 결과 (원본 + 대체 이름 포함)
+export interface LookupResult {
+    primary: PartyMember | null; // 원본 이름으로 찾은 캐릭터
+    alternatives: { name: string; character: PartyMember }[]; // 대체 이름으로 찾은 캐릭터들
 }
 
 export const usePartyScanner = () => {
@@ -519,7 +527,7 @@ export const usePartyScanner = () => {
         ];
 
         // 이름을 글자 배열로 분해
-        const chars = [...name];
+        const chars = Array.from(name);
         const charInfos: { char: string; choIdx: number; jungIdx: number; jongIdx: number; isHangul: boolean }[] = [];
 
         for (const char of chars) {
@@ -923,6 +931,162 @@ export const usePartyScanner = () => {
         }
     };
 
+    // 원본 이름과 대체 이름 모두 검색하여 반환
+    const lookupCharacterWithAlternatives = async (name: string, serverName: string): Promise<LookupResult> => {
+        const correctedServer = correctServerName(serverName);
+        const serverId = SERVER_NAME_TO_ID[correctedServer];
+
+        if (!serverId) {
+            return { primary: null, alternatives: [] };
+        }
+
+        const originalLength = name.length;
+        const vowelAltNames = generateAlternativeNames(name);
+        const consonantAltNames = generateDoubleConsonantAlternatives(name);
+        const altNames = [...vowelAltNames, ...consonantAltNames].filter(
+            alt => alt.length === originalLength
+        );
+
+        addSearchLog(`🔍 "${name}" + 대체이름 ${altNames.length}개 동시 검색 중...`);
+
+        // 원본 이름 검색 (기존 lookupCharacter의 앞부분만 사용)
+        const searchPrimary = async (): Promise<PartyMember | null> => {
+            const findExactMatch = (results: any[], searchName: string) => {
+                if (results.length === 0) return null;
+                const exact = results.find(r => r.name === searchName && r.name.length === originalLength);
+                return exact || null;
+            };
+
+            try {
+                // 로컬 DB 검색
+                const localResults = await supabaseApi.searchLocalCharacter(name, serverId);
+                const localMatch = findExactMatch(localResults, name);
+
+                if (localMatch) {
+                    return {
+                        id: localMatch.characterId,
+                        characterId: localMatch.characterId,
+                        name: localMatch.name,
+                        class: localMatch.job || 'Unknown',
+                        cp: localMatch.noa_score || 0,
+                        gearScore: localMatch.item_level || 0,
+                        server: localMatch.server,
+                        level: localMatch.level,
+                        profileImage: localMatch.imageUrl,
+                        isMvp: false,
+                        isFromDb: true
+                    };
+                }
+
+                // 라이브 API 검색
+                const liveResults = await supabaseApi.searchCharacter(name, serverId);
+                const liveMatch = findExactMatch(liveResults, name);
+
+                if (liveMatch) {
+                    return {
+                        id: liveMatch.characterId,
+                        characterId: liveMatch.characterId,
+                        name: liveMatch.name,
+                        class: liveMatch.job || 'Unknown',
+                        cp: liveMatch.noa_score || 0,
+                        gearScore: liveMatch.item_level || 0,
+                        server: liveMatch.server,
+                        level: liveMatch.level,
+                        profileImage: liveMatch.imageUrl,
+                        isMvp: false,
+                        isFromDb: true
+                    };
+                }
+
+                return null;
+            } catch {
+                return null;
+            }
+        };
+
+        // 대체 이름 검색
+        const searchAlternative = async (altName: string): Promise<{ name: string; character: PartyMember } | null> => {
+            const findExactMatch = (results: any[], searchName: string) => {
+                if (results.length === 0) return null;
+                const exact = results.find(r => r.name === searchName && r.name.length === originalLength);
+                return exact || null;
+            };
+
+            try {
+                // 로컬 DB 검색
+                const localResults = await supabaseApi.searchLocalCharacter(altName, serverId);
+                const localMatch = findExactMatch(localResults, altName);
+
+                if (localMatch) {
+                    return {
+                        name: altName,
+                        character: {
+                            id: localMatch.characterId,
+                            characterId: localMatch.characterId,
+                            name: localMatch.name,
+                            class: localMatch.job || 'Unknown',
+                            cp: localMatch.noa_score || 0,
+                            gearScore: localMatch.item_level || 0,
+                            server: localMatch.server,
+                            level: localMatch.level,
+                            profileImage: localMatch.imageUrl,
+                            isMvp: false,
+                            isFromDb: true
+                        }
+                    };
+                }
+
+                // 라이브 API 검색
+                const liveResults = await supabaseApi.searchCharacter(altName, serverId);
+                const liveMatch = findExactMatch(liveResults, altName);
+
+                if (liveMatch) {
+                    return {
+                        name: altName,
+                        character: {
+                            id: liveMatch.characterId,
+                            characterId: liveMatch.characterId,
+                            name: liveMatch.name,
+                            class: liveMatch.job || 'Unknown',
+                            cp: liveMatch.noa_score || 0,
+                            gearScore: liveMatch.item_level || 0,
+                            server: liveMatch.server,
+                            level: liveMatch.level,
+                            profileImage: liveMatch.imageUrl,
+                            isMvp: false,
+                            isFromDb: true
+                        }
+                    };
+                }
+
+                return null;
+            } catch {
+                return null;
+            }
+        };
+
+        // 병렬 검색 실행
+        const [primaryResult, ...altResults] = await Promise.all([
+            searchPrimary(),
+            ...altNames.map(altName => searchAlternative(altName))
+        ]);
+
+        // 결과 정리
+        const foundAlternatives = altResults.filter((r): r is { name: string; character: PartyMember } => r !== null);
+
+        if (primaryResult) {
+            addSearchLog(`✅ 원본 "${name}" 발견`);
+        }
+        if (foundAlternatives.length > 0) {
+            addSearchLog(`✅ 대체이름 발견: ${foundAlternatives.map(a => a.name).join(', ')}`);
+        }
+
+        return {
+            primary: primaryResult,
+            alternatives: foundAlternatives
+        };
+    };
+
     // OCR 결과로 캐릭터 정보 조회 및 결과 생성
     const buildAnalysisResult = async (
         parsedMembers: ParsedMember[]
@@ -942,13 +1106,13 @@ export const usePartyScanner = () => {
         const members: PartyMember[] = [];
         const pendingSelections: PendingServerSelection[] = [];
 
-        // 병렬 검색: 모든 멤버를 동시에 검색
+        // 병렬 검색: 모든 멤버를 동시에 검색 (원본 + 대체 이름)
         console.log(`[buildAnalysisResult] 병렬 검색 시작: ${parsedMembers.length}명`);
 
         const searchPromises = parsedMembers.map(async (m, idx) => {
-            // 서버가 하나만 있는 경우 - 바로 검색
+            // 서버가 하나만 있는 경우 - 원본+대체 이름 동시 검색
             if (m.possibleServers.length === 1) {
-                const result = await lookupCharacter(m.name, m.possibleServers[0]);
+                const result = await lookupCharacterWithAlternatives(m.name, m.possibleServers[0]);
                 return { idx, m, result, type: 'single' as const };
             } else {
                 // 서버가 여러 개인 경우 - 모든 서버에서 병렬 검색
@@ -956,8 +1120,8 @@ export const usePartyScanner = () => {
 
                 const serverSearchPromises = m.possibleServers.map(async (serverName) => {
                     const serverId = SERVER_NAME_TO_ID[serverName];
-                    if (!serverId) return { serverName, serverId: 0, result: null };
-                    const result = await lookupCharacter(m.name, serverName);
+                    if (!serverId) return { serverName, serverId: 0, result: { primary: null, alternatives: [] } as LookupResult };
+                    const result = await lookupCharacterWithAlternatives(m.name, serverName);
                     return { serverName, serverId, result };
                 });
 
@@ -974,11 +1138,81 @@ export const usePartyScanner = () => {
             const { idx, m } = res;
 
             if (res.type === 'single') {
-                const result = res.result;
-                if (result) {
-                    result.isMainCharacter = m.isMainCharacter;
-                    members.push({ ...result, id: `member-${idx}` });
-                } else {
+                const { primary, alternatives } = res.result;
+
+                // 원본과 대체 이름 모두 찾은 경우 → 이름 선택 필요
+                if (primary && alternatives.length > 0) {
+                    const nameCandidates: ServerCandidate[] = [
+                        {
+                            server: m.possibleServers[0],
+                            serverId: SERVER_NAME_TO_ID[m.possibleServers[0]],
+                            characterData: primary,
+                            found: true,
+                            alternativeName: primary.name // 원본 이름
+                        },
+                        ...alternatives.map(alt => ({
+                            server: m.possibleServers[0],
+                            serverId: SERVER_NAME_TO_ID[m.possibleServers[0]],
+                            characterData: alt.character,
+                            found: true,
+                            alternativeName: alt.name // 대체 이름
+                        }))
+                    ];
+
+                    pendingSelections.push({
+                        slotIndex: idx,
+                        name: m.name,
+                        abbreviation: m.rawServer,
+                        candidates: nameCandidates,
+                        type: 'name' // 이름 선택 타입
+                    });
+
+                    // 일단 원본 이름으로 표시 (선택 필요 표시)
+                    members.push({
+                        ...primary,
+                        id: `member-${idx}`,
+                        isMainCharacter: m.isMainCharacter,
+                        name: `${primary.name} (선택 필요)`
+                    });
+                }
+                // 원본만 찾은 경우
+                else if (primary) {
+                    primary.isMainCharacter = m.isMainCharacter;
+                    members.push({ ...primary, id: `member-${idx}` });
+                }
+                // 대체 이름만 찾은 경우 (1개)
+                else if (alternatives.length === 1) {
+                    const alt = alternatives[0];
+                    alt.character.isMainCharacter = m.isMainCharacter;
+                    members.push({ ...alt.character, id: `member-${idx}` });
+                }
+                // 대체 이름이 여러 개인 경우 → 이름 선택 필요
+                else if (alternatives.length > 1) {
+                    const nameCandidates: ServerCandidate[] = alternatives.map(alt => ({
+                        server: m.possibleServers[0],
+                        serverId: SERVER_NAME_TO_ID[m.possibleServers[0]],
+                        characterData: alt.character,
+                        found: true,
+                        alternativeName: alt.name
+                    }));
+
+                    pendingSelections.push({
+                        slotIndex: idx,
+                        name: m.name,
+                        abbreviation: m.rawServer,
+                        candidates: nameCandidates,
+                        type: 'name'
+                    });
+
+                    members.push({
+                        ...alternatives[0].character,
+                        id: `member-${idx}`,
+                        isMainCharacter: m.isMainCharacter,
+                        name: `${alternatives[0].name} (선택 필요)`
+                    });
+                }
+                // 아무것도 못 찾은 경우
+                else {
                     members.push({
                         id: `ocr-member-${idx}`,
                         name: m.name,
@@ -1000,15 +1234,29 @@ export const usePartyScanner = () => {
 
                 for (const sr of res.serverResults) {
                     if (!sr.serverId) continue;
-                    if (sr.result) {
+                    const { primary, alternatives } = sr.result;
+
+                    // 원본 또는 대체 이름 중 하나라도 찾으면 추가
+                    if (primary) {
                         foundCount++;
-                        foundResult = sr.result;
+                        foundResult = primary;
                         foundServer = sr.serverName;
                         candidates.push({
                             server: sr.serverName,
                             serverId: sr.serverId,
-                            characterData: sr.result,
+                            characterData: primary,
                             found: true
+                        });
+                    } else if (alternatives.length > 0) {
+                        foundCount++;
+                        foundResult = alternatives[0].character;
+                        foundServer = sr.serverName;
+                        candidates.push({
+                            server: sr.serverName,
+                            serverId: sr.serverId,
+                            characterData: alternatives[0].character,
+                            found: true,
+                            alternativeName: alternatives[0].name
                         });
                     } else {
                         candidates.push({
@@ -1030,7 +1278,8 @@ export const usePartyScanner = () => {
                         slotIndex: idx,
                         name: m.name,
                         abbreviation: m.rawServer,
-                        candidates: candidates.filter(c => c.found)
+                        candidates: candidates.filter(c => c.found),
+                        type: 'server' // 서버 선택 타입
                     });
                     const firstFound = candidates.find(c => c.found && c.characterData);
                     if (firstFound && firstFound.characterData) {

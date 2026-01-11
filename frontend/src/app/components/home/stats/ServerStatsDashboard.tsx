@@ -55,7 +55,7 @@ export default function ServerStatsDashboard() {
                         borderRadius: '50%',
                         animation: 'spin 0.8s linear infinite'
                     }} />
-                    <span style={{ color: 'var(--text-disabled)', fontSize: '0.85rem' }}>통계 로딩중...</span>
+                    <span style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.85rem + 2px)' }}>통계 로딩중...</span>
                 </div>
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </section>
@@ -72,7 +72,7 @@ export default function ServerStatsDashboard() {
                 padding: '1.25rem',
                 border: '1px solid rgba(248, 113, 113, 0.3)'
             }}>
-                <div style={{ color: '#f87171', fontSize: '0.85rem', textAlign: 'center' }}>
+                <div style={{ color: '#f87171', fontSize: 'calc(0.85rem + 2px)', textAlign: 'center' }}>
                     {error || '통계 데이터를 불러올 수 없습니다'}
                 </div>
             </section>
@@ -88,7 +88,7 @@ export default function ServerStatsDashboard() {
             border: '1px solid rgba(255,255,255,0.05)'
         }}>
             <h2 style={{
-                fontSize: '0.9rem',
+                fontSize: 'calc(0.9rem + 2px)',
                 fontWeight: 'bold',
                 color: '#9CA3AF',
                 letterSpacing: '-0.02em',
@@ -100,7 +100,7 @@ export default function ServerStatsDashboard() {
 
             {/* Race Balance */}
             <div style={{ marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: 'calc(0.85rem + 2px)' }}>
                     <span style={{ color: '#4BC0C0' }}>천족 {stats.elyosPercent}%</span>
                     <span style={{ color: 'var(--text-disabled)' }}>전체 {stats.totalCharacters.toLocaleString()}명</span>
                     <span style={{ color: '#FF6384' }}>마족 {stats.asmodianPercent}%</span>
@@ -113,12 +113,12 @@ export default function ServerStatsDashboard() {
 
             {/* Class Distribution - Mini */}
             <div>
-                <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>인기 직업 TOP 3</h4>
+                <h4 style={{ fontSize: 'calc(0.8rem + 2px)', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>인기 직업 TOP 3</h4>
                 {stats.topClasses && stats.topClasses.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {stats.topClasses.map((cls, idx) => (
-                            <div key={idx} style={{ display: 'flex', alignItems: 'center', fontSize: '0.85rem' }}>
-                                <div style={{ width: '60px', color: 'var(--text-main)', fontSize: '0.8rem' }}>{cls.name}</div>
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', fontSize: 'calc(0.85rem + 2px)' }}>
+                                <div style={{ width: '60px', color: 'var(--text-main)', fontSize: 'calc(0.8rem + 2px)' }}>{cls.name}</div>
                                 <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
                                     <div style={{
                                         width: `${cls.percent}%`,
@@ -127,12 +127,12 @@ export default function ServerStatsDashboard() {
                                         transition: 'width 0.5s'
                                     }} />
                                 </div>
-                                <div style={{ width: '35px', textAlign: 'right', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{cls.percent}%</div>
+                                <div style={{ width: '35px', textAlign: 'right', color: 'var(--text-secondary)', fontSize: 'calc(0.8rem + 2px)' }}>{cls.percent}%</div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div style={{ color: 'var(--text-disabled)', fontSize: '0.8rem' }}>
+                    <div style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.8rem + 2px)' }}>
                         직업 데이터가 없습니다
                     </div>
                 )}

@@ -1,22 +1,44 @@
 'use client'
 
 import { useState } from 'react'
-import { Gem, Search } from 'lucide-react'
+import { Gem, Search, Plus } from 'lucide-react'
 import styles from '../../ledger/LedgerPage.module.css'
 import { ItemSale } from '@/types/ledger'
+import SmartAmountInput from './SmartAmountInput'
 
 interface ItemSalesSectionProps {
     items: ItemSale[]
     onSearchItem: (query: string) => void
+    onAddItem: (name: string, price: number) => void
 }
 
-export default function ItemSalesSection({ items, onSearchItem }: ItemSalesSectionProps) {
+export default function ItemSalesSection({ items, onSearchItem, onAddItem }: ItemSalesSectionProps) {
     const [searchQuery, setSearchQuery] = useState('')
+    const [isAdding, setIsAdding] = useState(false)
+    const [priceInput, setPriceInput] = useState('')
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const query = e.target.value
         setSearchQuery(query)
         onSearchItem(query)
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && searchQuery.trim()) {
+            setIsAdding(true)
+        }
+    }
+
+    const handleAddConfirm = () => {
+        if (!searchQuery.trim() || !priceInput) return
+        
+        const price = parseInt(priceInput, 10) * 10000
+        if (price > 0) {
+            onAddItem(searchQuery, price)
+            setSearchQuery('')
+            setPriceInput('')
+            setIsAdding(false)
+        }
     }
 
     const formatKina = (value: number) => value.toLocaleString('ko-KR')
@@ -26,7 +48,7 @@ export default function ItemSalesSection({ items, onSearchItem }: ItemSalesSecti
             <div className={styles.sectionHeader}>
                 <div>
                     <h2>아이템 판매</h2>
-                    <p>고정 크기 카드로 판매 내역을 빠르게 확인하세요.</p>
+                    <p>아이템 이름을 검색하고 엔터를 눌러 판매를 기록하세요.</p>
                 </div>
                 <div className={styles.sectionBadgeAlt}>
                     <Gem size={16} />
@@ -40,10 +62,29 @@ export default function ItemSalesSection({ items, onSearchItem }: ItemSalesSecti
                 <input
                     type="text"
                     className={styles.itemSearchInput}
-                    placeholder="판매한 아이템을 검색하여 기록하세요... (예: 전설의 장검, 키나)"
+                    placeholder="판매한 아이템 이름 입력 (엔터로 기록)..."
                     value={searchQuery}
                     onChange={handleSearchChange}
+                    onKeyDown={handleKeyDown}
+                    disabled={isAdding}
                 />
+                {isAdding && (
+                    <div className={styles.priceInputPopup}>
+                        <input
+                            type="number"
+                            placeholder="금액 (만 키나)"
+                            value={priceInput}
+                            onChange={(e) => setPriceInput(e.target.value)}
+                            className={styles.miniPriceInput}
+                            autoFocus
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleAddConfirm()
+                                if (e.key === 'Escape') setIsAdding(false)
+                            }}
+                        />
+                        <button onClick={handleAddConfirm} className={styles.btnConfirm}>추가</button>
+                    </div>
+                )}
             </div>
 
             <div className={styles.salesGrid}>

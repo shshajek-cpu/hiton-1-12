@@ -96,7 +96,7 @@ export default function Home() {
                         padding: '0 4px'
                     }}>
                         <h3 style={{
-                            fontSize: '0.9rem',
+                            fontSize: 'calc(0.9rem + 2px)',
                             fontWeight: 'bold',
                             color: '#9CA3AF',
                             margin: 0
@@ -112,7 +112,7 @@ export default function Home() {
                                 background: 'none',
                                 border: 'none',
                                 color: '#6B7280',
-                                fontSize: '0.8rem',
+                                fontSize: 'calc(0.8rem + 2px)',
                                 cursor: 'pointer',
                                 textDecoration: 'underline'
                             }}
@@ -147,10 +147,10 @@ export default function Home() {
                     padding: '4rem 0',
                     color: '#6B7280'
                 }}>
-                    <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                    <p style={{ fontSize: 'calc(1.1rem + 2px)', marginBottom: '0.5rem' }}>
                         검색한 캐릭터가 없습니다
                     </p>
-                    <p style={{ fontSize: '0.9rem' }}>
+                    <p style={{ fontSize: 'calc(0.9rem + 2px)' }}>
                         위 검색창에서 캐릭터를 검색해보세요!
                     </p>
                 </div>

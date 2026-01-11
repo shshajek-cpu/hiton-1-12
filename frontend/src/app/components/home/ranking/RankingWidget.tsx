@@ -72,12 +72,12 @@ export default function RankingWidget() {
                 {/* Elyos Column */}
                 <div>
                     <div style={{
-                        fontSize: '0.75rem', fontWeight: 'bold', color: '#4BC0C0',
+                        fontSize: 'calc(0.75rem + 2px)', fontWeight: 'bold', color: '#4BC0C0',
                         marginBottom: '0.5rem', padding: '0.25rem 0',
                         borderBottom: '1px solid rgba(75, 192, 192, 0.3)'
                     }}>천족 TOP 5</div>
                     {elyos.length === 0 ? (
-                        <div style={{ color: 'var(--text-disabled)', fontSize: '0.8rem', padding: '0.5rem 0' }}>데이터 없음</div>
+                        <div style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.8rem + 2px)', padding: '0.5rem 0' }}>데이터 없음</div>
                     ) : elyos.map((char, idx) => (
                         <RankingMiniItem key={char.character_id} character={char} rank={idx + 1} raceColor="#4BC0C0" />
                     ))}
@@ -85,12 +85,12 @@ export default function RankingWidget() {
                 {/* Asmodian Column */}
                 <div>
                     <div style={{
-                        fontSize: '0.75rem', fontWeight: 'bold', color: '#FF6384',
+                        fontSize: 'calc(0.75rem + 2px)', fontWeight: 'bold', color: '#FF6384',
                         marginBottom: '0.5rem', padding: '0.25rem 0',
                         borderBottom: '1px solid rgba(255, 99, 132, 0.3)'
                     }}>마족 TOP 5</div>
                     {asmodian.length === 0 ? (
-                        <div style={{ color: 'var(--text-disabled)', fontSize: '0.8rem', padding: '0.5rem 0' }}>데이터 없음</div>
+                        <div style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.8rem + 2px)', padding: '0.5rem 0' }}>데이터 없음</div>
                     ) : asmodian.map((char, idx) => (
                         <RankingMiniItem key={char.character_id} character={char} rank={idx + 1} raceColor="#FF6384" />
                     ))}
@@ -111,7 +111,7 @@ export default function RankingWidget() {
                         width: '100%', padding: '0.5rem',
                         background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)',
                         border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px',
-                        fontSize: '0.85rem', marginBottom: '0.75rem', cursor: 'pointer'
+                        fontSize: 'calc(0.85rem + 2px)', marginBottom: '0.75rem', cursor: 'pointer'
                     }}
                 >
                     {SERVERS.map(s => (
@@ -120,12 +120,12 @@ export default function RankingWidget() {
                 </select>
                 {/* Server Ranking List */}
                 <div style={{
-                    fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)',
+                    fontSize: 'calc(0.75rem + 2px)', fontWeight: 'bold', color: 'var(--text-secondary)',
                     marginBottom: '0.5rem', padding: '0.25rem 0',
                     borderBottom: '1px solid rgba(255,255,255,0.1)'
                 }}>{SERVER_MAP[selectedServer]} TOP 5</div>
                 {server.length === 0 ? (
-                    <div style={{ color: 'var(--text-disabled)', fontSize: '0.8rem', padding: '0.5rem 0' }}>데이터 없음</div>
+                    <div style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.8rem + 2px)', padding: '0.5rem 0' }}>데이터 없음</div>
                 ) : server.map((char, idx) => (
                     <RankingMiniItem key={char.character_id} character={char} rank={idx + 1} showClass />
                 ))}
@@ -147,7 +147,7 @@ export default function RankingWidget() {
                             key={cls}
                             onClick={() => setSelectedClass(cls)}
                             style={{
-                                padding: '0.3rem 0.5rem', fontSize: '0.7rem',
+                                padding: '0.3rem 0.5rem', fontSize: 'calc(0.7rem + 2px)',
                                 borderRadius: '4px', cursor: 'pointer',
                                 border: selectedClass === cls ? '1px solid var(--brand-red-main)' : '1px solid rgba(255,255,255,0.1)',
                                 background: selectedClass === cls ? 'rgba(var(--brand-red-rgb), 0.2)' : 'transparent',
@@ -162,13 +162,13 @@ export default function RankingWidget() {
                 </div>
                 {/* Class Ranking List */}
                 <div style={{
-                    fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--brand-red-main)',
+                    fontSize: 'calc(0.75rem + 2px)', fontWeight: 'bold', color: 'var(--brand-red-main)',
                     marginBottom: '0.5rem', padding: '0.25rem 0',
                     borderBottom: '1px solid rgba(var(--brand-red-rgb), 0.3)'
                 }}>{selectedClass} 전투력 랭킹</div>
                 <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
                     {classData.length === 0 ? (
-                        <div style={{ color: 'var(--text-disabled)', fontSize: '0.8rem', padding: '0.5rem 0' }}>데이터 없음</div>
+                        <div style={{ color: 'var(--text-disabled)', fontSize: 'calc(0.8rem + 2px)', padding: '0.5rem 0' }}>데이터 없음</div>
                     ) : classData.map((char, idx) => (
                         <RankingMiniItem key={char.character_id} character={char} rank={idx + 1} showServer />
                     ))}
@@ -186,10 +186,10 @@ export default function RankingWidget() {
         }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                 <h2 style={{
-                    fontSize: '0.85rem', fontWeight: 'bold', color: '#9CA3AF',
+                    fontSize: 'calc(0.85rem + 2px)', fontWeight: 'bold', color: '#9CA3AF',
                     letterSpacing: '-0.02em', margin: 0
                 }}>실시간 전투력 랭킹</h2>
-                <Link href="/ranking" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                <Link href="/ranking" style={{ fontSize: 'calc(0.75rem + 2px)', color: 'var(--text-secondary)', textDecoration: 'none' }}>
                     전체보기 &gt;
                 </Link>
             </div>
@@ -205,7 +205,7 @@ export default function RankingWidget() {
                             aria-selected={filterMode === mode}
                             onClick={() => setFilterMode(mode)}
                             style={{
-                                padding: '0.4rem 0.8rem', borderRadius: '16px', fontSize: '0.8rem',
+                                padding: '0.4rem 0.8rem', borderRadius: '16px', fontSize: 'calc(0.8rem + 2px)',
                                 background: filterMode === mode ? 'rgba(255,255,255,0.1)' : 'transparent',
                                 border: filterMode === mode ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent',
                                 color: filterMode === mode ? 'var(--text-main)' : 'var(--text-secondary)',
@@ -227,13 +227,13 @@ export default function RankingWidget() {
                             borderRadius: '50%', animation: 'spin 0.8s linear infinite',
                             margin: '0 auto 0.4rem'
                         }} />
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>로딩중...</span>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: 'calc(0.8rem + 2px)' }}>로딩중...</span>
                         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                     </div>
                 ) : error ? (
                     <div style={{
                         padding: '1.5rem', textAlign: 'center', color: '#f87171',
-                        background: 'rgba(248, 113, 113, 0.1)', borderRadius: '8px', fontSize: '0.8rem'
+                        background: 'rgba(248, 113, 113, 0.1)', borderRadius: '8px', fontSize: 'calc(0.8rem + 2px)'
                     }}>{error}</div>
                 ) : (
                     <>
@@ -279,7 +279,7 @@ function RankingMiniItem({ character, rank, raceColor, showClass, showServer }: 
                     width: '18px', height: '18px', borderRadius: '50%',
                     background: rank <= 3 ? (rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : '#CD7F32') : 'rgba(255,255,255,0.1)',
                     color: rank <= 3 ? '#000' : 'var(--text-secondary)',
-                    fontSize: '0.65rem', fontWeight: 'bold',
+                    fontSize: 'calc(0.65rem + 2px)', fontWeight: 'bold',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     flexShrink: 0
                 }}>{rank}</div>
@@ -300,10 +300,10 @@ function RankingMiniItem({ character, rank, raceColor, showClass, showServer }: 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                        color: 'var(--text-main)', fontSize: '0.8rem', fontWeight: '600',
+                        color: 'var(--text-main)', fontSize: 'calc(0.8rem + 2px)', fontWeight: '600',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
                     }}>{character.name}</div>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--text-disabled)' }}>
+                    <div style={{ fontSize: 'calc(0.65rem + 2px)', color: 'var(--text-disabled)' }}>
                         {showClass && character.class_name}
                         {showServer && serverName}
                         {!showClass && !showServer && (isElyos ? '천족' : '마족')}
@@ -312,7 +312,7 @@ function RankingMiniItem({ character, rank, raceColor, showClass, showServer }: 
 
                 {/* HITON Score */}
                 <div style={{
-                    fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--brand-red-main)',
+                    fontSize: 'calc(0.75rem + 2px)', fontWeight: 'bold', color: 'var(--brand-red-main)',
                     flexShrink: 0
                 }}>
                     {(character.noa_score || character.hiton_score || 0).toLocaleString()}
