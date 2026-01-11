@@ -532,11 +532,14 @@ export const usePartyScanner = () => {
             return matrix[b.length][a.length];
         };
 
-        const findExactMatch = (results: any[], searchName: string) => {
+        const findExactMatch = (results: any[], searchName: string, originalLength?: number) => {
             if (results.length === 0) return null;
 
-            // 정확히 이름이 일치하는 캐릭터만 반환
-            const exact = results.find(r => r.name === searchName);
+            // 글자수가 일치하고 이름이 정확히 일치하는 캐릭터만 반환
+            const targetLength = originalLength || searchName.length;
+            const exact = results.find(r =>
+                r.name === searchName && r.name.length === targetLength
+            );
             if (exact) return { match: exact, type: 'exact' };
 
             return null;
@@ -728,17 +731,21 @@ export const usePartyScanner = () => {
 
             // 3. 못 찾으면 대체 이름(모음 교체 + 쌍자음 교체)으로 재검색
             addSearchLog(`❌ "${name}" 못 찾음 → 대체 이름 검색 시작`);
+            const originalLength = name.length; // 원본 글자수 저장
             const vowelAltNames = generateAlternativeNames(name);
             const consonantAltNames = generateDoubleConsonantAlternatives(name);
-            const altNames = [...vowelAltNames, ...consonantAltNames];
-            addSearchLog(`🔄 대체 이름 ${altNames.length}개: ${altNames.join(', ')}`);
+            // 글자수가 같은 대체 이름만 사용
+            const altNames = [...vowelAltNames, ...consonantAltNames].filter(
+                alt => alt.length === originalLength
+            );
+            addSearchLog(`🔄 대체 이름 ${altNames.length}개 (${originalLength}글자): ${altNames.join(', ')}`);
 
             for (const altName of altNames) {
-                addSearchLog(`   🔍 대체 검색: "${altName}"`);
+                addSearchLog(`   🔍 대체 검색: "${altName}" (${altName.length}글자)`);
 
-                // 로컬 DB 검색
+                // 로컬 DB 검색 - 글자수 일치 확인
                 const altLocalResults = await supabaseApi.searchLocalCharacter(altName, serverId);
-                const altLocalMatch = findExactMatch(altLocalResults, altName);
+                const altLocalMatch = findExactMatch(altLocalResults, altName, originalLength);
 
                 if (altLocalMatch) {
                     addSearchLog(`   ✅ 대체이름 로컬DB: "${altName}" (원본: "${name}")`);
@@ -758,9 +765,9 @@ export const usePartyScanner = () => {
                     };
                 }
 
-                // 라이브 API 검색
+                // 라이브 API 검색 - 글자수 일치 확인
                 const altLiveResults = await supabaseApi.searchCharacter(altName, serverId);
-                const altLiveMatch = findExactMatch(altLiveResults, altName);
+                const altLiveMatch = findExactMatch(altLiveResults, altName, originalLength);
 
                 if (altLiveMatch) {
                     addSearchLog(`   ✅ 대체이름 라이브API: "${altName}" (원본: "${name}")`);
