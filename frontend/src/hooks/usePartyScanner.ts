@@ -53,29 +53,48 @@ export const usePartyScanner = () => {
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null); // 분석 결과 저장
     const [debugData, setDebugData] = useState<any[]>([]); // 디버그용 API 응답 데이터
 
-    // 이미지 전처리: 그레이스케일 + 대비 강화
+    // 이미지 전처리: 대비/밝기 강화 (OCR 정확도 향상)
     const preprocessImage = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
         const imageData = ctx.getImageData(0, 0, width, height);
         const data = imageData.data;
 
-        // 그레이스케일 변환 + 대비 강화
-        const contrastFactor = 1.5; // 대비 강화 계수
+        // 설정값
+        const contrastFactor = 2.2; // 대비 강화 (1.5 → 2.2)
+        const brightnessFactor = 30; // 밝기 증가
+        const saturationBoost = 1.3; // 채도 증가
+
         for (let i = 0; i < data.length; i += 4) {
-            // 그레이스케일 (가중 평균)
-            const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+            let r = data[i];
+            let g = data[i + 1];
+            let b = data[i + 2];
 
-            // 대비 강화
-            let enhanced = ((gray - 128) * contrastFactor) + 128;
-            enhanced = Math.max(0, Math.min(255, enhanced));
+            // 1. 밝기 증가
+            r = Math.min(255, r + brightnessFactor);
+            g = Math.min(255, g + brightnessFactor);
+            b = Math.min(255, b + brightnessFactor);
 
-            // 이진화에 가깝게 (임계값 기반)
-            const threshold = 128;
-            const final = enhanced > threshold ? 255 : enhanced < 50 ? 0 : enhanced;
+            // 2. 대비 강화
+            r = Math.max(0, Math.min(255, ((r - 128) * contrastFactor) + 128));
+            g = Math.max(0, Math.min(255, ((g - 128) * contrastFactor) + 128));
+            b = Math.max(0, Math.min(255, ((b - 128) * contrastFactor) + 128));
 
-            data[i] = final;     // R
-            data[i + 1] = final; // G
-            data[i + 2] = final; // B
-            // Alpha는 유지
+            // 3. 흰색/밝은 텍스트 강조 (게임 UI는 보통 밝은 글자)
+            const avg = (r + g + b) / 3;
+            if (avg > 150) {
+                // 밝은 부분은 더 밝게
+                r = Math.min(255, r * 1.1);
+                g = Math.min(255, g * 1.1);
+                b = Math.min(255, b * 1.1);
+            } else if (avg < 80) {
+                // 어두운 부분은 더 어둡게 (배경 제거)
+                r = Math.max(0, r * 0.7);
+                g = Math.max(0, g * 0.7);
+                b = Math.max(0, b * 0.7);
+            }
+
+            data[i] = r;
+            data[i + 1] = g;
+            data[i + 2] = b;
         }
 
         ctx.putImageData(imageData, 0, 0);
@@ -89,19 +108,17 @@ export const usePartyScanner = () => {
                 const ctx = canvas.getContext('2d');
                 if (!ctx) { resolve(base64Image); return; }
 
-                // 파티바 영역: 화면 맨 아래 약 15% 높이, 왼쪽~중앙 55% 너비
-                const cropHeight = Math.max(150, Math.round(img.height * 0.15));
-                const startY = img.height - cropHeight;
+                // 파티바 영역: 더 정밀하게 파티원 이름만 캡처
+                // 높이: 화면 하단 10% (이름+서버만)
+                const cropHeight = Math.max(100, Math.round(img.height * 0.10));
+                const startY = img.height - cropHeight - Math.round(img.height * 0.02); // 약간 위로
 
-                // 너비: 왼쪽 15%부터 70%까지 (파티원 4명 전체 포함)
-                const startX = Math.round(img.width * 0.15);
-                const cropWidth = Math.round(img.width * 0.55);
+                // 너비: 파티원 4명만 정확히 캡처 (왼쪽 8%부터 60%)
+                const startX = Math.round(img.width * 0.08);
+                const cropWidth = Math.round(img.width * 0.60);
 
-                canvas.width = cropWidth;
-                canvas.height = cropHeight;
-
-                // 2배 확대하여 OCR 정확도 향상
-                const scale = 2;
+                // 3배 확대하여 OCR 정확도 향상 (2배 → 3배)
+                const scale = 3;
                 canvas.width = cropWidth * scale;
                 canvas.height = cropHeight * scale;
 
@@ -110,7 +127,7 @@ export const usePartyScanner = () => {
                 // 크롭된 영역을 확대해서 그리기
                 ctx.drawImage(img, startX, startY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
 
-                // 전처리 적용 (대비 강화)
+                // 전처리 적용 (대비/밝기 강화)
                 preprocessImage(ctx, canvas.width, canvas.height);
 
                 resolve(canvas.toDataURL('image/png'));
