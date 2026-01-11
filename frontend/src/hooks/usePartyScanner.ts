@@ -848,18 +848,43 @@ export const usePartyScanner = () => {
         const members: PartyMember[] = [];
         const pendingSelections: PendingServerSelection[] = [];
 
-        // 각 멤버별로 처리
-        for (let idx = 0; idx < parsedMembers.length; idx++) {
-            const m = parsedMembers[idx];
+        // 병렬 검색: 모든 멤버를 동시에 검색
+        console.log(`[buildAnalysisResult] 병렬 검색 시작: ${parsedMembers.length}명`);
 
+        const searchPromises = parsedMembers.map(async (m, idx) => {
             // 서버가 하나만 있는 경우 - 바로 검색
             if (m.possibleServers.length === 1) {
                 const result = await lookupCharacter(m.name, m.possibleServers[0]);
+                return { idx, m, result, type: 'single' as const };
+            } else {
+                // 서버가 여러 개인 경우 - 모든 서버에서 병렬 검색
+                console.log(`[buildAnalysisResult] Multiple servers for ${m.name}: ${m.possibleServers.join(', ')}`);
+
+                const serverSearchPromises = m.possibleServers.map(async (serverName) => {
+                    const serverId = SERVER_NAME_TO_ID[serverName];
+                    if (!serverId) return { serverName, serverId: 0, result: null };
+                    const result = await lookupCharacter(m.name, serverName);
+                    return { serverName, serverId, result };
+                });
+
+                const serverResults = await Promise.all(serverSearchPromises);
+                return { idx, m, serverResults, type: 'multiple' as const };
+            }
+        });
+
+        const results = await Promise.all(searchPromises);
+        console.log(`[buildAnalysisResult] 병렬 검색 완료`);
+
+        // 결과 처리
+        for (const res of results) {
+            const { idx, m } = res;
+
+            if (res.type === 'single') {
+                const result = res.result;
                 if (result) {
                     result.isMainCharacter = m.isMainCharacter;
                     members.push({ ...result, id: `member-${idx}` });
                 } else {
-                    // DB에서 찾지 못해도 OCR 인식 이름으로 멤버 생성
                     members.push({
                         id: `ocr-member-${idx}`,
                         name: m.name,
@@ -873,32 +898,28 @@ export const usePartyScanner = () => {
                     });
                 }
             } else {
-                // 서버가 여러 개인 경우 - 모든 서버에서 검색
-                console.log(`[buildAnalysisResult] Multiple servers for ${m.name}: ${m.possibleServers.join(', ')}`);
+                // 서버가 여러 개인 경우 결과 처리
                 const candidates: ServerCandidate[] = [];
                 let foundCount = 0;
                 let foundResult: PartyMember | null = null;
                 let foundServer = '';
 
-                for (const serverName of m.possibleServers) {
-                    const serverId = SERVER_NAME_TO_ID[serverName];
-                    if (!serverId) continue;
-
-                    const result = await lookupCharacter(m.name, serverName);
-                    if (result) {
+                for (const sr of res.serverResults) {
+                    if (!sr.serverId) continue;
+                    if (sr.result) {
                         foundCount++;
-                        foundResult = result;
-                        foundServer = serverName;
+                        foundResult = sr.result;
+                        foundServer = sr.serverName;
                         candidates.push({
-                            server: serverName,
-                            serverId,
-                            characterData: result,
+                            server: sr.serverName,
+                            serverId: sr.serverId,
+                            characterData: sr.result,
                             found: true
                         });
                     } else {
                         candidates.push({
-                            server: serverName,
-                            serverId,
+                            server: sr.serverName,
+                            serverId: sr.serverId,
                             found: false
                         });
                     }
@@ -907,19 +928,16 @@ export const usePartyScanner = () => {
                 console.log(`[buildAnalysisResult] Found in ${foundCount} server(s)`);
 
                 if (foundCount === 1 && foundResult) {
-                    // 하나의 서버에서만 발견 - 자동 선택
                     foundResult.isMainCharacter = m.isMainCharacter;
                     foundResult.server = foundServer;
                     members.push({ ...foundResult, id: `member-${idx}` });
                 } else if (foundCount > 1) {
-                    // 여러 서버에서 발견 - 사용자 선택 필요
                     pendingSelections.push({
                         slotIndex: idx,
                         name: m.name,
                         abbreviation: m.rawServer,
                         candidates: candidates.filter(c => c.found)
                     });
-                    // 임시로 첫 번째 후보 추가 (나중에 선택으로 교체)
                     const firstFound = candidates.find(c => c.found && c.characterData);
                     if (firstFound && firstFound.characterData) {
                         members.push({
@@ -930,7 +948,6 @@ export const usePartyScanner = () => {
                         });
                     }
                 } else {
-                    // 어느 서버에서도 찾지 못함
                     members.push({
                         id: `ocr-member-${idx}`,
                         name: m.name,
