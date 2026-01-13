@@ -32,10 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <head>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
                 <Script
-                    async
                     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2302283411324365"
                     crossOrigin="anonymous"
-                    strategy="afterInteractive"
+                    strategy="beforeInteractive"
                 />
             </head>
             <body>
