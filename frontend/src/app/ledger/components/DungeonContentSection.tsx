@@ -107,67 +107,37 @@ export default function DungeonContentSection({
   })
 
   // 초월 상태 (props 우선, 없으면 기본값)
-  const [transcendTickets, setTranscendTickets] = useState({ base: baseTickets.transcend || 14, bonus: 0 })
+  const [transcendTickets, setTranscendTickets] = useState({ base: baseTickets.transcend || 14, bonus: bonusTickets.transcend || 0 })
   const [transcendDouble, setTranscendDouble] = useState(false)
   const [transcendBoss, setTranscendBoss] = useState('')
   const [transcendTier, setTranscendTier] = useState(1)
   const [transcendRecords, setTranscendRecords] = useState<ContentRecord[]>([])
 
   // 원정 상태 (props 우선, 없으면 기본값)
-  const [expeditionTickets, setExpeditionTickets] = useState({ base: baseTickets.expedition || 21, bonus: 0 })
+  const [expeditionTickets, setExpeditionTickets] = useState({ base: baseTickets.expedition || 21, bonus: bonusTickets.expedition || 0 })
   const [expeditionDouble, setExpeditionDouble] = useState(false)
   const [expeditionCategory, setExpeditionCategory] = useState('')
   const [expeditionBoss, setExpeditionBoss] = useState('')
   const [expeditionRecords, setExpeditionRecords] = useState<ContentRecord[]>([])
 
   // 성역 상태 (props 우선, 없으면 기본값)
-  const [sanctuaryTickets, setSanctuaryTickets] = useState({ base: baseTickets.sanctuary || 4, bonus: 0 })
+  const [sanctuaryTickets, setSanctuaryTickets] = useState({ base: baseTickets.sanctuary || 4, bonus: bonusTickets.sanctuary || 0 })
   const [sanctuaryDouble, setSanctuaryDouble] = useState(false)
   const [sanctuaryBoss, setSanctuaryBoss] = useState('')
   const [sanctuaryRecords, setSanctuaryRecords] = useState<ContentRecord[]>([])
 
-  // 티켓 불러오기 (주간 기준 - 수요일 5시 리셋)
+  // 캐릭터별 보스/단계 선택 저장 여부
+  const selectionsLoadedRef = useRef(false)
+
+  // props 변경 시 티켓 state 동기화 (DB에서 관리하므로 localStorage 사용 안 함)
   useEffect(() => {
-    if (!characterId) {
-      setTranscendTickets({ base: dungeonData?.transcend?.maxTickets || 14, bonus: 0 })
-      setExpeditionTickets({ base: dungeonData?.expedition?.maxTickets || 21, bonus: 0 })
-      setSanctuaryTickets({ base: dungeonData?.sanctuary?.maxTickets || 4, bonus: 0 })
-      return
-    }
+    setTranscendTickets({ base: baseTickets.transcend, bonus: bonusTickets.transcend })
+    setExpeditionTickets({ base: baseTickets.expedition, bonus: bonusTickets.expedition })
+    setSanctuaryTickets({ base: baseTickets.sanctuary, bonus: bonusTickets.sanctuary })
+  }, [baseTickets.transcend, baseTickets.expedition, baseTickets.sanctuary, bonusTickets.transcend, bonusTickets.expedition, bonusTickets.sanctuary])
 
-    const ticketKey = `dungeonTickets_${characterId}_${weekKey}`
-    const savedTickets = localStorage.getItem(ticketKey)
-    if (savedTickets) {
-      try {
-        const parsed = JSON.parse(savedTickets)
-        if (parsed.transcendTickets) setTranscendTickets(parsed.transcendTickets)
-        if (parsed.expeditionTickets) setExpeditionTickets(parsed.expeditionTickets)
-        if (parsed.sanctuaryTickets) setSanctuaryTickets(parsed.sanctuaryTickets)
-      } catch (e) {
-        console.error('Failed to parse dungeon tickets:', e)
-        setTranscendTickets({ base: dungeonData?.transcend?.maxTickets || 14, bonus: 0 })
-        setExpeditionTickets({ base: dungeonData?.expedition?.maxTickets || 21, bonus: 0 })
-        setSanctuaryTickets({ base: dungeonData?.sanctuary?.maxTickets || 4, bonus: 0 })
-      }
-    } else {
-      setTranscendTickets({ base: dungeonData?.transcend?.maxTickets || 14, bonus: 0 })
-      setExpeditionTickets({ base: dungeonData?.expedition?.maxTickets || 21, bonus: 0 })
-      setSanctuaryTickets({ base: dungeonData?.sanctuary?.maxTickets || 4, bonus: 0 })
-    }
-  }, [characterId, weekKey, dungeonData])
-
-  // 티켓 저장 (주간 기준)
-  useEffect(() => {
-    if (!characterId || isLoadingRef.current || !canEdit) return
-
-    const ticketData = {
-      transcendTickets,
-      expeditionTickets,
-      sanctuaryTickets
-    }
-    const ticketKey = `dungeonTickets_${characterId}_${weekKey}`
-    localStorage.setItem(ticketKey, JSON.stringify(ticketData))
-  }, [characterId, weekKey, canEdit, transcendTickets, expeditionTickets, sanctuaryTickets])
+  // 티켓은 DB에서 관리하므로 localStorage 저장 제거됨
+  // (page.tsx의 useEffect에서 character-state API로 저장)
 
   // 기록 불러오기 (일별 기준 - 당일만 표시)
   useEffect(() => {
@@ -241,6 +211,54 @@ export default function DungeonContentSection({
     }
   }, [transcendRecords, expeditionRecords, sanctuaryRecords, onTotalKinaChange])
 
+  // 캐릭터별 보스/단계 선택 불러오기
+  useEffect(() => {
+    selectionsLoadedRef.current = false
+
+    if (!characterId) {
+      selectionsLoadedRef.current = true
+      return
+    }
+
+    const selectionsKey = `dungeonSelections_${characterId}`
+    const savedSelections = localStorage.getItem(selectionsKey)
+
+    if (savedSelections) {
+      try {
+        const parsed = JSON.parse(savedSelections)
+        if (parsed.transcendBoss) setTranscendBoss(parsed.transcendBoss)
+        if (parsed.transcendTier) setTranscendTier(parsed.transcendTier)
+        if (parsed.expeditionCategory) setExpeditionCategory(parsed.expeditionCategory)
+        if (parsed.expeditionBoss) setExpeditionBoss(parsed.expeditionBoss)
+        if (parsed.sanctuaryBoss) setSanctuaryBoss(parsed.sanctuaryBoss)
+      } catch (e) {
+        console.error('Failed to parse dungeon selections:', e)
+      }
+    }
+
+    setTimeout(() => {
+      selectionsLoadedRef.current = true
+    }, 100)
+  }, [characterId])
+
+  // 캐릭터별 보스/단계 선택 저장
+  useEffect(() => {
+    if (!characterId || !selectionsLoadedRef.current) return
+
+    // 선택값이 비어있으면 저장하지 않음
+    if (!transcendBoss && !expeditionBoss && !sanctuaryBoss) return
+
+    const selectionsData = {
+      transcendBoss,
+      transcendTier,
+      expeditionCategory,
+      expeditionBoss,
+      sanctuaryBoss
+    }
+    const selectionsKey = `dungeonSelections_${characterId}`
+    localStorage.setItem(selectionsKey, JSON.stringify(selectionsData))
+  }, [characterId, transcendBoss, transcendTier, expeditionCategory, expeditionBoss, sanctuaryBoss])
+
   // 던전 데이터 로드
   useEffect(() => {
     const fetchData = async () => {
@@ -273,17 +291,31 @@ export default function DungeonContentSection({
           sanctuary: sanctuaryData
         })
 
-        // 초기 선택값 설정
-        if (transcendData.bosses.length > 0) {
+        // 캐릭터별 저장된 선택값이 있는지 확인
+        let savedSelections: Record<string, string | number> | null = null
+        if (characterId) {
+          const selectionsKey = `dungeonSelections_${characterId}`
+          const saved = localStorage.getItem(selectionsKey)
+          if (saved) {
+            try {
+              savedSelections = JSON.parse(saved)
+            } catch (e) {
+              console.error('Failed to parse saved selections:', e)
+            }
+          }
+        }
+
+        // 초기 선택값 설정 (저장된 값이 없을 때만 기본값 설정)
+        if (transcendData.bosses.length > 0 && !savedSelections?.transcendBoss) {
           setTranscendBoss(transcendData.bosses[0].id)
         }
-        if (expeditionData.categories.length > 0) {
+        if (expeditionData.categories.length > 0 && !savedSelections?.expeditionCategory) {
           setExpeditionCategory(expeditionData.categories[0].id)
-          if (expeditionData.categories[0].bosses.length > 0) {
+          if (expeditionData.categories[0].bosses.length > 0 && !savedSelections?.expeditionBoss) {
             setExpeditionBoss(expeditionData.categories[0].bosses[0].id)
           }
         }
-        if (sanctuaryData.categories.length > 0 && sanctuaryData.categories[0].bosses.length > 0) {
+        if (sanctuaryData.categories.length > 0 && sanctuaryData.categories[0].bosses.length > 0 && !savedSelections?.sanctuaryBoss) {
           setSanctuaryBoss(sanctuaryData.categories[0].bosses[0].id)
         }
       } catch (error) {
@@ -292,7 +324,7 @@ export default function DungeonContentSection({
     }
 
     fetchData()
-  }, [])
+  }, [characterId])
 
   // 초월 기록 추가
   const handleAddTranscendRecord = (record: Omit<ContentRecord, 'id'>) => {

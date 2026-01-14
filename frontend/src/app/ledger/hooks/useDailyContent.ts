@@ -16,61 +16,66 @@ const DEFAULT_DAILY_CONTENTS: Omit<DailyContent, 'completionCount'>[] = [
     id: 'daily_dungeon',
     name: '일일던전',
     icon: '',
-    maxCount: 7,  // 수요일 리셋, 주 7회
+    maxCount: 7,  // 수요일 5시 리셋, 주 7회
     baseReward: 20000,
     color: '#facc15',
     colorLight: '#fde047',
     colorDark: '#eab308',
     colorGlow: 'rgba(250, 204, 21, 0.5)',
-    imageUrl: '/메달/주간컨텐츠/일일던전.png'
+    imageUrl: '/메달/주간컨텐츠/일일던전.png',
+    resetType: 'weekly'
   },
   {
     id: 'awakening_battle',
     name: '각성전',
     icon: '',
-    maxCount: 3,  // 수요일 리셋, 주 3회
+    maxCount: 3,  // 수요일 5시 리셋, 주 3회
     baseReward: 40000,
     color: '#3b82f6',
     colorLight: '#60a5fa',
     colorDark: '#2563eb',
     colorGlow: 'rgba(59, 130, 246, 0.5)',
-    imageUrl: '/메달/주간컨텐츠/각성전.png'
+    imageUrl: '/메달/주간컨텐츠/각성전.png',
+    resetType: 'weekly'
   },
   {
     id: 'subjugation',
     name: '토벌전',
     icon: '',
-    maxCount: 3,  // 수요일 리셋, 주 3회
+    maxCount: 3,  // 수요일 5시 리셋, 주 3회
     baseReward: 80000,
     color: '#10b981',
     colorLight: '#34d399',
     colorDark: '#059669',
     colorGlow: 'rgba(16, 185, 129, 0.5)',
-    imageUrl: '/메달/주간컨텐츠/토벌전.png'
+    imageUrl: '/메달/주간컨텐츠/토벌전.png',
+    resetType: 'weekly'
   },
   {
     id: 'nightmare',
     name: '악몽',
     icon: '',
-    maxCount: 3,
+    maxCount: 14,  // 02시 기준 3시간마다 1회 충전, 최대 14
     baseReward: 50000,
     color: '#9333ea',
     colorLight: '#a855f7',
     colorDark: '#7e22ce',
     colorGlow: 'rgba(147, 51, 234, 0.5)',
-    imageUrl: '/메달/주간컨텐츠/악몽.png'
+    imageUrl: '/메달/주간컨텐츠/악몽.png',
+    resetType: 'charge3h'
   },
   {
     id: 'dimension_invasion',
     name: '차원침공',
     icon: '',
-    maxCount: 5,
+    maxCount: 14,  // 02시 기준 3시간마다 1회 충전, 최대 14
     baseReward: 30000,
     color: '#ef4444',
     colorLight: '#f87171',
     colorDark: '#dc2626',
     colorGlow: 'rgba(239, 68, 68, 0.5)',
-    imageUrl: TEMP_IMAGE_URL
+    imageUrl: TEMP_IMAGE_URL,
+    resetType: 'charge3h'
   }
 ]
 
@@ -177,6 +182,28 @@ export function useDailyContent(
     })
   }, [saveContent])
 
+  // Update remaining counts from props (초기설정 동기화)
+  // 잔여 횟수를 받아서 completionCount = maxCount - 잔여횟수 로 계산
+  const updateRemainingCounts = useCallback((remainingCounts: Record<string, number>) => {
+    setContents(prev => {
+      return prev.map(content => {
+        const remaining = remainingCounts[content.id]
+        if (remaining !== undefined) {
+          const newCompletionCount = content.maxCount - remaining
+          // localStorage에도 저장
+          if (characterId) {
+            const storageKey = WEEKLY_RESET_CONTENTS.includes(content.id)
+              ? `weeklyContent_${characterId}_${weekKey}_${content.id}`
+              : `dailyContent_${characterId}_${date}_${content.id}`
+            localStorage.setItem(storageKey, newCompletionCount.toString())
+          }
+          return { ...content, completionCount: Math.max(0, Math.min(newCompletionCount, content.maxCount)) }
+        }
+        return content
+      })
+    })
+  }, [characterId, date, weekKey])
+
   // Load data when character or date changes
   useEffect(() => {
     loadData()
@@ -188,6 +215,7 @@ export function useDailyContent(
     error,
     handleIncrement,
     handleDecrement,
-    refresh: loadData
+    refresh: loadData,
+    updateRemainingCounts
   }
 }

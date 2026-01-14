@@ -1,130 +1,177 @@
 'use client'
 
-import { useState } from 'react'
-import styles from './DebugPanel.module.css'
-
-interface DebugLog {
-  timestamp: string
-  type: 'load' | 'save' | 'error' | 'info'
-  message: string
-  data?: any
-}
+import { useState, useEffect, useRef } from 'react'
 
 interface DebugPanelProps {
-  logs: DebugLog[]
-  currentState: {
-    characterId: string | null
-    baseTickets: Record<string, number>
-    bonusTickets: Record<string, number>
-    odEnergy: {
-      timeEnergy: number
-      ticketEnergy: number
-    }
+  baseTickets: Record<string, number>
+  bonusTickets: Record<string, number>
+  odEnergy: {
+    timeEnergy: number
+    ticketEnergy: number
   }
+  characterId: string | null
 }
 
-export default function DebugPanel({ logs, currentState }: DebugPanelProps) {
+export default function DebugPanel({
+  baseTickets,
+  bonusTickets,
+  odEnergy,
+  characterId
+}: DebugPanelProps) {
+  const [logs, setLogs] = useState<string[]>([])
   const [isOpen, setIsOpen] = useState(false)
+  const logRef = useRef<string[]>([])
 
-  const copyToClipboard = () => {
-    const debugInfo = {
-      timestamp: new Date().toISOString(),
-      characterId: currentState.characterId,
-      baseTickets: currentState.baseTickets,
-      bonusTickets: currentState.bonusTickets,
-      odEnergy: currentState.odEnergy,
-      logs: logs.slice(-20) // 최근 20개 로그
-    }
-
-    const text = JSON.stringify(debugInfo, null, 2)
-    navigator.clipboard.writeText(text)
-    alert('디버그 정보가 클립보드에 복사되었습니다!')
+  // 로그 추가 함수
+  const addLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString()
+    const logMessage = `[${timestamp}] ${message}`
+    logRef.current = [...logRef.current.slice(-50), logMessage]
+    setLogs([...logRef.current])
   }
 
-  const clearLogs = () => {
-    // 부모 컴포넌트에서 로그를 관리해야 하므로, 여기서는 표시만
+  // props 변경 감지
+  useEffect(() => {
+    addLog(`baseTickets: ${JSON.stringify(baseTickets)}`)
+  }, [JSON.stringify(baseTickets)])
+
+  useEffect(() => {
+    addLog(`bonusTickets: ${JSON.stringify(bonusTickets)}`)
+  }, [JSON.stringify(bonusTickets)])
+
+  useEffect(() => {
+    addLog(`odEnergy: time=${odEnergy.timeEnergy}, ticket=${odEnergy.ticketEnergy}`)
+  }, [odEnergy.timeEnergy, odEnergy.ticketEnergy])
+
+  useEffect(() => {
+    addLog(`characterId: ${characterId}`)
+  }, [characterId])
+
+  // 복사 함수
+  const handleCopy = async () => {
+    const debugInfo = {
+      timestamp: new Date().toISOString(),
+      characterId,
+      baseTickets,
+      bonusTickets,
+      odEnergy,
+      logs: logRef.current
+    }
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2))
+      alert('Copied!')
+    } catch (err) {
+      console.error('Copy failed:', err)
+    }
   }
 
   if (!isOpen) {
     return (
-      <button className={styles.toggleBtn} onClick={() => setIsOpen(true)}>
-        🐛 디버그
+      <button
+        onClick={() => setIsOpen(true)}
+        style={{
+          position: 'fixed',
+          bottom: '100px',
+          right: '10px',
+          padding: '8px 12px',
+          background: '#333',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          zIndex: 9999,
+          fontSize: '12px'
+        }}
+      >
+        Debug
       </button>
     )
   }
 
   return (
-    <div className={styles.panel}>
-      <div className={styles.header}>
-        <h3>🐛 디버그 패널</h3>
-        <div className={styles.actions}>
-          <button className={styles.copyBtn} onClick={copyToClipboard}>
-            📋 복사
+    <div
+      style={{
+        position: 'fixed',
+        bottom: '100px',
+        right: '10px',
+        width: '350px',
+        maxHeight: '400px',
+        background: '#1a1a1a',
+        border: '1px solid #333',
+        borderRadius: '8px',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+        fontSize: '11px'
+      }}
+    >
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '8px 12px',
+        borderBottom: '1px solid #333',
+        background: '#222'
+      }}>
+        <span style={{ color: '#facc15', fontWeight: 'bold' }}>Debug Panel</span>
+        <div>
+          <button
+            onClick={handleCopy}
+            style={{
+              padding: '4px 8px',
+              background: '#facc15',
+              color: '#000',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              marginRight: '8px',
+              fontSize: '11px'
+            }}
+          >
+            Copy
           </button>
-          <button className={styles.closeBtn} onClick={() => setIsOpen(false)}>
-            ✕
+          <button
+            onClick={() => setIsOpen(false)}
+            style={{
+              padding: '4px 8px',
+              background: '#666',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '11px'
+            }}
+          >
+            X
           </button>
         </div>
       </div>
 
-      <div className={styles.content}>
-        {/* 현재 상태 */}
-        <div className={styles.section}>
-          <h4>현재 상태</h4>
-          <div className={styles.info}>
-            <div><strong>캐릭터 ID:</strong> {currentState.characterId || 'null'}</div>
-            <div><strong>오드 에너지:</strong> {currentState.odEnergy.timeEnergy} + {currentState.odEnergy.ticketEnergy}</div>
-          </div>
-
-          <div className={styles.tickets}>
-            <div className={styles.ticketGroup}>
-              <strong>기본 이용권:</strong>
-              <pre>{JSON.stringify(currentState.baseTickets, null, 2)}</pre>
-            </div>
-            <div className={styles.ticketGroup}>
-              <strong>보너스 이용권:</strong>
-              <pre>{JSON.stringify(currentState.bonusTickets, null, 2)}</pre>
-            </div>
-          </div>
+      <div style={{ padding: '8px 12px', borderBottom: '1px solid #333' }}>
+        <div style={{ color: '#888', marginBottom: '4px' }}>State:</div>
+        <div style={{ color: '#4ade80' }}>charId: {characterId || 'null'}</div>
+        <div style={{ color: '#60a5fa' }}>
+          od: {odEnergy.timeEnergy}/{odEnergy.ticketEnergy}
         </div>
-
-        {/* 로그 */}
-        <div className={styles.section}>
-          <h4>로그 ({logs.length})</h4>
-          <div className={styles.logs}>
-            {logs.length === 0 ? (
-              <div className={styles.noLogs}>로그가 없습니다.</div>
-            ) : (
-              logs.slice(-30).reverse().map((log, idx) => (
-                <div key={idx} className={`${styles.log} ${styles[log.type]}`}>
-                  <div className={styles.logHeader}>
-                    <span className={styles.timestamp}>{log.timestamp}</span>
-                    <span className={styles.type}>{log.type.toUpperCase()}</span>
-                  </div>
-                  <div className={styles.message}>{log.message}</div>
-                  {log.data && (
-                    <pre className={styles.data}>{JSON.stringify(log.data, null, 2)}</pre>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
+        <div style={{ color: '#f472b6', fontSize: '10px', wordBreak: 'break-all' }}>
+          base: {JSON.stringify(baseTickets)}
         </div>
+      </div>
+
+      <div style={{
+        flex: 1,
+        overflow: 'auto',
+        padding: '8px 12px',
+        maxHeight: '200px'
+      }}>
+        <div style={{ color: '#888', marginBottom: '4px' }}>Logs:</div>
+        {logs.map((log, i) => (
+          <div key={i} style={{ color: '#ccc', marginBottom: '2px', fontSize: '10px' }}>
+            {log}
+          </div>
+        ))}
       </div>
     </div>
   )
-}
-
-// 로그 생성 헬퍼
-export function createDebugLog(
-  type: 'load' | 'save' | 'error' | 'info',
-  message: string,
-  data?: any
-): DebugLog {
-  return {
-    timestamp: new Date().toLocaleTimeString('ko-KR'),
-    type,
-    message,
-    data
-  }
 }

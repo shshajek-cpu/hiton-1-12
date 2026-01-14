@@ -9,9 +9,58 @@ interface ProgressBarProps {
   icon: string
   currentCount: number
   maxCount: number
+  resetType: 'daily' | 'weekly'  // daily: 매일 5시, weekly: 수요일 5시
   onIncrement: () => void
   onDecrement: () => void
   onComplete: () => void
+}
+
+// 다음 리셋 시간 계산
+function getNextResetTime(resetType: 'daily' | 'weekly'): Date {
+  const now = new Date()
+  const reset = new Date(now)
+
+  if (resetType === 'daily') {
+    // 매일 새벽 5시
+    reset.setHours(5, 0, 0, 0)
+    if (now >= reset) {
+      // 이미 5시가 지났으면 내일 5시
+      reset.setDate(reset.getDate() + 1)
+    }
+  } else {
+    // 수요일 새벽 5시
+    reset.setHours(5, 0, 0, 0)
+    const dayOfWeek = reset.getDay()  // 0=일, 3=수
+    let daysUntilWed = (3 - dayOfWeek + 7) % 7
+
+    // 오늘이 수요일이고 5시 이전이면 오늘
+    // 오늘이 수요일이고 5시 이후면 다음주 수요일
+    if (daysUntilWed === 0 && now >= reset) {
+      daysUntilWed = 7
+    }
+
+    reset.setDate(reset.getDate() + daysUntilWed)
+  }
+
+  return reset
+}
+
+// 남은 시간 포맷팅
+function formatTimeRemaining(ms: number): string {
+  if (ms <= 0) return '00:00:00'
+
+  const totalSeconds = Math.floor(ms / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  if (hours >= 24) {
+    const days = Math.floor(hours / 24)
+    const remainingHours = hours % 24
+    return `${days}일 ${remainingHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+  }
+
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }
 
 export default function ProgressBar({
@@ -20,6 +69,7 @@ export default function ProgressBar({
   icon,
   currentCount,
   maxCount,
+  resetType,
   onIncrement,
   onDecrement,
   onComplete
@@ -30,23 +80,19 @@ export default function ProgressBar({
   const percentage = (currentCount / maxCount) * 100
   const isCompleted = currentCount >= maxCount
 
-  // 타이머 (30초마다 리셋 - 테스트용)
+  // 리셋까지 남은 시간 타이머
   useEffect(() => {
     const updateTimer = () => {
-      const now = new Date()
-      const seconds = now.getSeconds()
-
-      // 30초 주기로 계산
-      const secondsUntilReset = 30 - (seconds % 30)
-
-      setTimeUntilReset(`00:00:${secondsUntilReset.toString().padStart(2, '0')}`)
+      const nextReset = getNextResetTime(resetType)
+      const remaining = nextReset.getTime() - Date.now()
+      setTimeUntilReset(formatTimeRemaining(remaining))
     }
 
     updateTimer()
     const interval = setInterval(updateTimer, 1000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [resetType])
 
   return (
     <div className={`${styles.progressBar} ${isCompleted ? styles.completed : ''}`}>

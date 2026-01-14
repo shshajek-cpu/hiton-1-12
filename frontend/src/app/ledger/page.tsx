@@ -26,6 +26,7 @@ import AddItemModal from './components/AddItemModal'
 import CalendarModal from './components/CalendarModal'
 import NicknameModal from '@/components/NicknameModal'
 import MainCharacterModal from '@/components/MainCharacterModal'
+import DebugPanel from './components/DebugPanel'
 import { useAuth } from '@/context/AuthContext'
 import { getGameDate, getWeekKey } from './utils/dateUtils'
 import styles from './ledger.module.css'
@@ -61,11 +62,11 @@ export default function LedgerPage() {
     transcend: 14,
     expedition: 21,
     sanctuary: 4,
-    daily_dungeon: 6,
-    awakening: 6,
-    nightmare: 6,
-    dimension: 6,
-    subjugation: 6
+    daily_dungeon: 7,
+    awakening: 3,
+    nightmare: 14,
+    dimension: 14,
+    subjugation: 3
   })
 
   // 티켓 보너스 횟수 (수동 충전)
@@ -401,11 +402,11 @@ export default function LedgerPage() {
           transcend: 14,
           expedition: 21,
           sanctuary: 4,
-          daily_dungeon: 6,
-          awakening: 6,
-          nightmare: 6,
-          dimension: 6,
-          subjugation: 6
+          daily_dungeon: 7,
+          awakening: 3,
+          nightmare: 14,
+          dimension: 14,
+          subjugation: 3
         })
         setTicketBonuses({
           transcend: 0,
@@ -811,27 +812,28 @@ export default function LedgerPage() {
   }
 
   // 초기설정 동기화 핸들러
-  const handleInitialSync = (settings: {
+  const handleInitialSync = async (settings: {
     odTimeEnergy: number
     odTicketEnergy: number
     tickets: Record<string, number>
   }) => {
-    // 오드 에너지 동기화
-    setOdEnergy(prev => ({
-      ...prev,
+    if (!selectedCharacterId) {
+      console.error('[초기설정] 캐릭터가 선택되지 않음')
+      return
+    }
+
+    const newOdEnergy = {
       timeEnergy: settings.odTimeEnergy,
       ticketEnergy: settings.odTicketEnergy,
       lastChargeTime: new Date()
-    }))
+    }
 
-    // 티켓 동기화
-    setBaseTickets(prev => ({
-      ...prev,
+    const newBaseTickets = {
+      ...baseTickets,
       ...settings.tickets
-    }))
+    }
 
-    // 보너스 티켓 초기화
-    setTicketBonuses({
+    const newBonusTickets = {
       transcend: 0,
       expedition: 0,
       sanctuary: 0,
@@ -840,7 +842,56 @@ export default function LedgerPage() {
       nightmare: 0,
       dimension: 0,
       subjugation: 0
-    })
+    }
+
+    // 먼저 API로 저장
+    try {
+      addDebugLog('save', `초기설정 저장 시작: ${selectedCharacterId}`, {
+        baseTickets: newBaseTickets,
+        bonusTickets: newBonusTickets,
+        odEnergy: newOdEnergy
+      })
+
+      const authHeaders = getAuthHeader()
+      const res = await fetch('/api/ledger/character-state', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders
+        },
+        body: JSON.stringify({
+          characterId: selectedCharacterId,
+          baseTickets: newBaseTickets,
+          bonusTickets: newBonusTickets,
+          odEnergy: {
+            timeEnergy: newOdEnergy.timeEnergy,
+            ticketEnergy: newOdEnergy.ticketEnergy,
+            lastChargeTime: newOdEnergy.lastChargeTime.toISOString()
+          },
+          lastChargeTime: lastChargeTime.toISOString(),
+          lastSanctuaryChargeTime: lastSanctuaryChargeTime.toISOString()
+        })
+      })
+
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`)
+      }
+
+      addDebugLog('save', `초기설정 저장 성공: ${selectedCharacterId}`)
+
+      // API 저장 성공 후 state 업데이트
+      setOdEnergy(prev => ({
+        ...prev,
+        ...newOdEnergy
+      }))
+      setBaseTickets(newBaseTickets)
+      setTicketBonuses(newBonusTickets)
+
+    } catch (error: any) {
+      addDebugLog('error', `초기설정 저장 실패: ${selectedCharacterId}`, { error: error.message })
+      console.error('[초기설정] 저장 실패:', error)
+      alert('초기설정 저장에 실패했습니다. 다시 시도해주세요.')
+    }
   }
 
   // 로딩 상태
@@ -1086,6 +1137,14 @@ export default function LedgerPage() {
           onChargeClick={() => setShowChargePopup(true)}
         />
       )}
+
+      {/* 디버그 패널 */}
+      <DebugPanel
+        baseTickets={baseTickets}
+        bonusTickets={ticketBonuses}
+        odEnergy={odEnergy}
+        characterId={selectedCharacterId}
+      />
     </div>
   )
 }

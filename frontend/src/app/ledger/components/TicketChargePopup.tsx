@@ -15,11 +15,11 @@ const TICKET_TYPES: TicketType[] = [
   { id: 'transcend', name: '초월', icon: '🔥', maxBase: 14 },
   { id: 'expedition', name: '원정', icon: '⚔️', maxBase: 21 },
   { id: 'sanctuary', name: '성역', icon: '🏛️', maxBase: 4 },
-  { id: 'daily_dungeon', name: '일일던전', icon: '🏰', maxBase: 6 },
-  { id: 'awakening', name: '각성전', icon: '⭐', maxBase: 6 },
-  { id: 'nightmare', name: '악몽', icon: '👻', maxBase: 6 },
-  { id: 'dimension', name: '차원침공', icon: '🌀', maxBase: 6 },
-  { id: 'subjugation', name: '토벌전', icon: '⚡', maxBase: 6 }
+  { id: 'daily_dungeon', name: '일일던전', icon: '🏰', maxBase: 7 },
+  { id: 'awakening', name: '각성전', icon: '⭐', maxBase: 3 },
+  { id: 'nightmare', name: '악몽', icon: '👻', maxBase: 14 },
+  { id: 'dimension', name: '차원침공', icon: '🌀', maxBase: 14 },
+  { id: 'subjugation', name: '토벌전', icon: '⚡', maxBase: 3 }
 ]
 
 interface TicketChargePopupProps {
@@ -36,7 +36,7 @@ interface TicketChargePopupProps {
     odTimeEnergy: number
     odTicketEnergy: number
     tickets: Record<string, number>
-  }) => void
+  }) => void | Promise<void>
 }
 
 export default function TicketChargePopup({
@@ -59,11 +59,11 @@ export default function TicketChargePopup({
     transcend: 14,
     expedition: 21,
     sanctuary: 4,
-    daily_dungeon: 6,
-    awakening: 6,
-    nightmare: 6,
-    dimension: 6,
-    subjugation: 6
+    daily_dungeon: 7,
+    awakening: 3,
+    nightmare: 14,
+    dimension: 14,
+    subjugation: 3
   })
 
   if (!isOpen) return null
@@ -164,7 +164,7 @@ export default function TicketChargePopup({
   }
 
   // 초기설정 적용
-  const handleApplyInitialSettings = () => {
+  const handleApplyInitialSettings = async () => {
     const confirmed = window.confirm(
       '현재 입력한 이용권 상태로 가계부를 동기화하시겠습니까?\n\n이 작업은 취소할 수 없습니다.'
     )
@@ -176,16 +176,21 @@ export default function TicketChargePopup({
         tickets[ticket.id] = initialSettings[ticket.id as keyof typeof initialSettings] as number
       })
 
-      // 초기설정 동기화
-      onInitialSync({
-        odTimeEnergy: initialSettings.odTimeEnergy,
-        odTicketEnergy: initialSettings.odTicketEnergy,
-        tickets
-      })
+      try {
+        // 초기설정 동기화 (await로 완료 대기)
+        await onInitialSync({
+          odTimeEnergy: initialSettings.odTimeEnergy,
+          odTicketEnergy: initialSettings.odTicketEnergy,
+          tickets
+        })
 
-      alert('가계부가 인게임 상태로 동기화되었습니다!')
-      setActiveTab('charge')
-      onClose()
+        alert('가계부가 인게임 상태로 동기화되었습니다!')
+        setActiveTab('charge')
+        onClose()
+      } catch (error) {
+        // 에러는 onInitialSync 내부에서 처리됨
+        console.error('초기설정 적용 실패:', error)
+      }
     }
   }
 

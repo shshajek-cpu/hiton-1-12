@@ -16,6 +16,71 @@ export interface DailyContent {
   colorDark: string
   colorGlow: string
   imageUrl?: string
+  resetType?: 'daily' | 'weekly' | 'charge3h'  // daily: 매일 5시, weekly: 수요일 5시, charge3h: 3시간마다 충전
+}
+
+// 다음 리셋/충전 시간 계산
+function getNextResetTime(resetType: 'daily' | 'weekly' | 'charge3h'): Date {
+  const now = new Date()
+  const reset = new Date(now)
+
+  if (resetType === 'charge3h') {
+    // 02:00 기준 3시간마다 충전 (02, 05, 08, 11, 14, 17, 20, 23)
+    const currentHour = now.getHours()
+    const currentMinutes = now.getMinutes()
+
+    // 02시 기준으로 다음 충전 시간 계산
+    // 충전 시간: 2, 5, 8, 11, 14, 17, 20, 23
+    const chargeHours = [2, 5, 8, 11, 14, 17, 20, 23]
+
+    // 다음 충전 시간 찾기
+    let nextChargeHour = chargeHours.find(h => h > currentHour || (h === currentHour && currentMinutes === 0 && now.getSeconds() === 0))
+
+    if (nextChargeHour === undefined) {
+      // 오늘 남은 충전 시간 없음 -> 내일 02시
+      reset.setDate(reset.getDate() + 1)
+      nextChargeHour = 2
+    }
+
+    reset.setHours(nextChargeHour, 0, 0, 0)
+  } else if (resetType === 'daily') {
+    // 매일 새벽 5시
+    reset.setHours(5, 0, 0, 0)
+    if (now >= reset) {
+      reset.setDate(reset.getDate() + 1)
+    }
+  } else {
+    // 수요일 새벽 5시
+    reset.setHours(5, 0, 0, 0)
+    const dayOfWeek = reset.getDay()
+    let daysUntilWed = (3 - dayOfWeek + 7) % 7
+
+    if (daysUntilWed === 0 && now >= reset) {
+      daysUntilWed = 7
+    }
+
+    reset.setDate(reset.getDate() + daysUntilWed)
+  }
+
+  return reset
+}
+
+// 남은 시간 포맷팅
+function formatTimeRemaining(ms: number): string {
+  if (ms <= 0) return '00:00:00'
+
+  const totalSeconds = Math.floor(ms / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  if (hours >= 24) {
+    const days = Math.floor(hours / 24)
+    const remainingHours = hours % 24
+    return `${days}일 ${remainingHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+  }
+
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }
 
 interface DailyContentCardProps {
@@ -28,38 +93,25 @@ export default function DailyContentCard({ content, onIncrement, onDecrement }: 
   const cardRef = useRef<HTMLDivElement>(null)
   const [timeUntilCharge, setTimeUntilCharge] = useState('')
 
-  // 다음 충전까지 시간 계산 (항상 작동, 티켓 개수와 무관)
+  // 리셋 타입 결정
+  // weekly: 일일던전, 각성전, 토벌전 (수요일 5시 리셋)
+  // charge3h: 악몽, 차원침공 (02시 기준 3시간마다 1회 충전)
+  const resetType: 'daily' | 'weekly' | 'charge3h' = content.resetType ||
+    (['daily_dungeon', 'awakening_battle', 'subjugation'].includes(content.id) ? 'weekly' : 'charge3h')
+
+  // 다음 리셋/충전까지 시간 계산
   useEffect(() => {
     const updateTimer = () => {
-      const now = new Date()
-      const currentHour = now.getHours()
-
-      // 다음 3시간 단위 계산 (0, 3, 6, 9, 12, 15, 18, 21)
-      const nextChargeHour = Math.ceil((currentHour + 1) / 3) * 3
-      const nextCharge = new Date(now)
-
-      if (nextChargeHour >= 24) {
-        nextCharge.setDate(nextCharge.getDate() + 1)
-        nextCharge.setHours(0, 0, 0, 0)
-      } else {
-        nextCharge.setHours(nextChargeHour, 0, 0, 0)
-      }
-
-      const diff = nextCharge.getTime() - now.getTime()
-      const hours = Math.floor(diff / 3600000)
-      const minutes = Math.floor((diff % 3600000) / 60000)
-      const seconds = Math.floor((diff % 60000) / 1000)
-
-      setTimeUntilCharge(
-        `${hours.toString().padStart(1, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-      )
+      const nextReset = getNextResetTime(resetType)
+      const remaining = nextReset.getTime() - Date.now()
+      setTimeUntilCharge(formatTimeRemaining(remaining))
     }
 
     updateTimer()
     const interval = setInterval(updateTimer, 1000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [resetType])
 
   const handleIncrement = () => {
     // 기본 잔여 + 보너스 잔여
@@ -170,7 +222,9 @@ export default function DailyContentCard({ content, onIncrement, onDecrement }: 
 
         {/* Timer (Bottom Left) */}
         <div className={styles.timerInfo}>
-          <div className={styles.timerLabel}>이용권 충전</div>
+          <div className={styles.timerLabel}>
+            {resetType === 'weekly' ? '주간 리셋' : '다음 충전'}
+          </div>
           <div className={styles.timerLabel}>남은시간</div>
           <div className={styles.timerText}>{timeUntilCharge}</div>
         </div>

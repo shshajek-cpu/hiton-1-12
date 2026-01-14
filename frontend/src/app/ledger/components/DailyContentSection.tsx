@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import DailyContentCard from './DailyContentCard'
 import { useDailyContent } from '../hooks/useDailyContent'
 import styles from './DailyContentSection.module.css'
@@ -31,11 +32,11 @@ export default function DailyContentSection({
   selectedDate,
   getAuthHeader,
   baseTickets = {
-    daily_dungeon: 6,
-    awakening: 6,
-    nightmare: 6,
-    dimension: 6,
-    subjugation: 6
+    daily_dungeon: 7,
+    awakening: 3,
+    nightmare: 14,
+    dimension: 14,
+    subjugation: 3
   },
   bonusTickets = {
     daily_dungeon: 0,
@@ -47,7 +48,18 @@ export default function DailyContentSection({
   onBaseTicketsChange,
   onBonusTicketsChange
 }: DailyContentSectionProps) {
-  const { contents, loading, error, handleIncrement, handleDecrement } = useDailyContent(characterId, selectedDate, getAuthHeader)
+  const { contents, loading, error, handleIncrement, handleDecrement, updateRemainingCounts } = useDailyContent(characterId, selectedDate, getAuthHeader)
+
+  // baseTickets = 잔여 횟수, 초기설정에서 받은 값으로 completionCount 동기화
+  useEffect(() => {
+    updateRemainingCounts({
+      daily_dungeon: baseTickets.daily_dungeon,
+      awakening_battle: baseTickets.awakening,
+      nightmare: baseTickets.nightmare,
+      dimension_invasion: baseTickets.dimension,
+      subjugation: baseTickets.subjugation
+    })
+  }, [baseTickets, updateRemainingCounts])
 
   // 보너스 티켓이 적용된 컨텐츠 목록
   const contentsWithBonus = contents.map(content => {

@@ -1,20 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseKey)
+let supabase: SupabaseClient | null = null
+
+function getSupabase(): SupabaseClient {
+  if (!supabase) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!url || !key) {
+      throw new Error('Supabase configuration missing')
+    }
+    supabase = createClient(url, key)
+  }
+  return supabase
+}
 
 // 사용자 인증 헬퍼 함수
 async function getUserFromRequest(request: Request) {
+  const db = getSupabase()
   const authHeader = request.headers.get('authorization')
   const deviceIdHeader = request.headers.get('x-device-id')
 
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7)
-    const { data: { user }, error } = await supabase.auth.getUser(token)
+    const { data: { user }, error } = await db.auth.getUser(token)
     if (user && !error) {
-      const { data } = await supabase
+      const { data } = await db
         .from('ledger_users')
         .select('id')
         .eq('auth_user_id', user.id)
@@ -24,7 +36,7 @@ async function getUserFromRequest(request: Request) {
   }
 
   if (deviceIdHeader) {
-    const { data } = await supabase
+    const { data } = await db
       .from('ledger_users')
       .select('id')
       .eq('device_id', deviceIdHeader)
@@ -38,6 +50,7 @@ async function getUserFromRequest(request: Request) {
 // GET: 캐릭터의 현재 상태 조회
 export async function GET(request: NextRequest) {
   try {
+    const db = getSupabase()
     const { searchParams } = new URL(request.url)
     const characterId = searchParams.get('characterId')
 
@@ -50,7 +63,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Character ID is required' }, { status: 400 })
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('ledger_character_state')
       .select('*')
       .eq('user_id', userData.id)
@@ -69,11 +82,11 @@ export async function GET(request: NextRequest) {
           transcend: 14,
           expedition: 21,
           sanctuary: 4,
-          daily_dungeon: 6,
-          awakening: 6,
-          nightmare: 6,
-          dimension: 6,
-          subjugation: 6
+          daily_dungeon: 7,
+          awakening: 3,
+          nightmare: 14,
+          dimension: 14,
+          subjugation: 3
         },
         bonusTickets: {
           transcend: 0,
@@ -116,6 +129,7 @@ export async function GET(request: NextRequest) {
 // POST: 캐릭터 상태 업데이트
 export async function POST(request: NextRequest) {
   try {
+    const db = getSupabase()
     const userData = await getUserFromRequest(request)
     if (!userData?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -136,7 +150,7 @@ export async function POST(request: NextRequest) {
     }
 
     // UPSERT (있으면 업데이트, 없으면 생성)
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('ledger_character_state')
       .upsert({
         user_id: userData.id,

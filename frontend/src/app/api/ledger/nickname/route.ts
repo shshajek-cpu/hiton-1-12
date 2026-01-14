@@ -1,19 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+let supabase: SupabaseClient | null = null
+
+function getSupabase(): SupabaseClient {
+  if (!supabase) {
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase configuration missing')
+    }
+    supabase = createClient(supabaseUrl, supabaseKey)
+  }
+  return supabase
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const db = getSupabase()
     const authHeader = request.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const { data: { user }, error: authError } = await db.auth.getUser(token)
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -32,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const { data: existingUser } = await supabase
+    const { data: existingUser } = await db
       .from('ledger_users')
       .select('id, nickname')
       .eq('auth_user_id', user.id)
@@ -40,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       // Update existing user's nickname
-      const { error: updateError } = await supabase
+      const { error: updateError } = await db
         .from('ledger_users')
         .update({
           nickname: trimmedNickname,
@@ -60,7 +72,7 @@ export async function POST(request: NextRequest) {
       })
     } else {
       // Create new user with nickname
-      const { data: newUser, error: insertError } = await supabase
+      const { data: newUser, error: insertError } = await db
         .from('ledger_users')
         .insert({
           auth_user_id: user.id,
@@ -89,20 +101,21 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const db = getSupabase()
     const authHeader = request.headers.get('Authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const { data: { user }, error: authError } = await db.auth.getUser(token)
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get user's nickname
-    const { data: ledgerUser } = await supabase
+    const { data: ledgerUser } = await db
       .from('ledger_users')
       .select('nickname')
       .eq('auth_user_id', user.id)

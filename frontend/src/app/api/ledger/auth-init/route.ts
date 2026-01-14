@@ -1,11 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
+let supabaseAdmin: SupabaseClient | null = null
+
+function getSupabaseAdmin(): SupabaseClient {
+  if (!supabaseAdmin) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!url || !serviceKey) {
+      throw new Error('Supabase configuration missing')
+    }
+    supabaseAdmin = createClient(url, serviceKey)
+  }
+  return supabaseAdmin
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseAdmin()
+
     // Get auth token from header
     const authHeader = request.headers.get('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
@@ -15,7 +29,6 @@ export async function POST(request: NextRequest) {
     const token = authHeader.slice(7)
 
     // Verify the user with Supabase
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user) {

@@ -164,6 +164,7 @@ export default function WeeklyContentSection({ characterId, selectedDate, onDebu
             icon="📜"
             currentCount={missionCount}
             maxCount={5}
+            resetType="daily"
             onIncrement={() => setMissionCount(prev => Math.min(5, prev + 1))}
             onDecrement={() => setMissionCount(prev => Math.max(0, prev - 1))}
             onComplete={() => setMissionCount(5)}
@@ -175,6 +176,7 @@ export default function WeeklyContentSection({ characterId, selectedDate, onDebu
             icon="📋"
             currentCount={weeklyOrderCount}
             maxCount={12}
+            resetType="weekly"
             onIncrement={() => setWeeklyOrderCount(prev => Math.min(12, prev + 1))}
             onDecrement={() => setWeeklyOrderCount(prev => Math.max(0, prev - 1))}
             onComplete={() => setWeeklyOrderCount(12)}
@@ -186,6 +188,7 @@ export default function WeeklyContentSection({ characterId, selectedDate, onDebu
             icon="🔥"
             currentCount={abyssOrderCount}
             maxCount={20}
+            resetType="weekly"
             onIncrement={() => setAbyssOrderCount(prev => Math.min(20, prev + 1))}
             onDecrement={() => setAbyssOrderCount(prev => Math.max(0, prev - 1))}
             onComplete={() => setAbyssOrderCount(20)}
