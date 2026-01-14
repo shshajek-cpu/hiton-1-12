@@ -13,7 +13,6 @@ import {
 import LedgerTabs from './components/LedgerTabs'
 import LedgerSubTabs, { SubTabType } from './components/LedgerSubTabs'
 import DashboardSummary from './components/DashboardSummary'
-import FloatingDateButton from './components/FloatingDateButton'
 import BottomNavBar from './components/BottomNavBar'
 import TicketChargePopup from './components/TicketChargePopup'
 import DungeonContentSection from './components/DungeonContentSection'
@@ -28,7 +27,6 @@ import CalendarModal from './components/CalendarModal'
 import NicknameModal from '@/components/NicknameModal'
 import MainCharacterModal from '@/components/MainCharacterModal'
 import { useAuth } from '@/context/AuthContext'
-import DebugPanel, { createDebugLog } from './components/DebugPanel'
 import { getGameDate, getWeekKey } from './utils/dateUtils'
 import styles from './ledger.module.css'
 
@@ -348,12 +346,8 @@ export default function LedgerPage() {
   // 데이터 로딩 중 플래그
   const [isLoadingCharacterData, setIsLoadingCharacterData] = useState(false)
 
-  // 디버그 로그
-  const [debugLogs, setDebugLogs] = useState<any[]>([])
-
+  // 디버그 로그 (콘솔 출력만)
   const addDebugLog = useCallback((type: 'load' | 'save' | 'error' | 'info', message: string, data?: any) => {
-    const log = createDebugLog(type, message, data)
-    setDebugLogs(prev => [...prev, log])
     console.log(`[DEBUG ${type.toUpperCase()}]`, message, data || '')
   }, [])
 
@@ -895,12 +889,6 @@ export default function LedgerPage() {
         }}
       />
 
-      {/* 플로팅 날짜 버튼 */}
-      <FloatingDateButton
-        selectedDate={selectedDate}
-        onClick={() => setShowDateModal(true)}
-      />
-
       {/* 대시보드 뷰 */}
       {activeTab === 'dashboard' && (
         <DashboardSummary
@@ -1098,20 +1086,6 @@ export default function LedgerPage() {
           onChargeClick={() => setShowChargePopup(true)}
         />
       )}
-
-      {/* 디버그 패널 */}
-      <DebugPanel
-        logs={debugLogs}
-        currentState={{
-          characterId: selectedCharacterId,
-          baseTickets,
-          bonusTickets: ticketBonuses,
-          odEnergy: {
-            timeEnergy: odEnergy.timeEnergy,
-            ticketEnergy: odEnergy.ticketEnergy
-          }
-        }}
-      />
     </div>
   )
 }
