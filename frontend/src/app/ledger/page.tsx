@@ -24,7 +24,6 @@ import WeeklyChart from './components/WeeklyChart'
 import AddCharacterModal from './components/AddCharacterModal'
 import AddItemModal from './components/AddItemModal'
 import CalendarModal from './components/CalendarModal'
-import NicknameModal from '@/components/NicknameModal'
 import MainCharacterModal from '@/components/MainCharacterModal'
 import DebugPanel from './components/DebugPanel'
 import ConsoleDebugPanel from './components/ConsoleDebugPanel'
@@ -45,7 +44,6 @@ export default function LedgerPage() {
   const [showAddCharacterModal, setShowAddCharacterModal] = useState(false)
   const [showAddItemModal, setShowAddItemModal] = useState(false)
   const [showDateModal, setShowDateModal] = useState(false)
-  const [showNicknameModal, setShowNicknameModal] = useState(false)
   const [showMainCharacterModal, setShowMainCharacterModal] = useState(false)
   const [showChargePopup, setShowChargePopup] = useState(false)
 
@@ -306,15 +304,6 @@ export default function LedgerPage() {
 
     return () => clearInterval(interval)
   }, [])
-
-  // Google 로그인 후 닉네임이 없으면 모달 표시
-  useEffect(() => {
-    if (isGoogleAuth && !nickname && !isAuthLoading) {
-      setShowNicknameModal(true)
-    }
-  }, [isGoogleAuth, nickname, isAuthLoading])
-
-  // 닉네임 설정 후 대표 캐릭터 모달은 자동으로 표시하지 않음 (네비게이션바에서 수동 설정)
 
   // 오늘 날짜
   const today = new Date().toISOString().split('T')[0]
@@ -728,16 +717,6 @@ export default function LedgerPage() {
     })
   }
 
-  // 닉네임 설정 핸들러
-  const handleSetNickname = async (newNickname: string) => {
-    await setNickname(newNickname)
-    setShowNicknameModal(false)
-    // 닉네임 설정 후 대표 캐릭터 모달 표시
-    if (!mainCharacter) {
-      setShowMainCharacterModal(true)
-    }
-  }
-
   // 대표 캐릭터 설정 핸들러
   const handleSetMainCharacter = async (character: { server: string; name: string; className: string; level: number }) => {
     await setMainCharacter(character)
@@ -1086,14 +1065,6 @@ export default function LedgerPage() {
         characterId={selectedCharacterId}
         onClose={() => setShowDateModal(false)}
         onSelectDate={setSelectedDate}
-      />
-
-      {/* 닉네임 설정 모달 */}
-      <NicknameModal
-        isOpen={showNicknameModal}
-        onClose={() => setShowNicknameModal(false)}
-        onSubmit={handleSetNickname}
-        currentNickname={nickname}
       />
 
       {/* 대표 캐릭터 설정 모달 */}

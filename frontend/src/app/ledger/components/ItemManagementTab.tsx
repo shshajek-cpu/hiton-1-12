@@ -200,6 +200,7 @@ export default function ItemManagementTab({
     loadAllItems()
   }, [])
 
+
   // 아이템 검색 (로컬 필터링)
   const handleSearch = useCallback(() => {
     if (!searchQuery.trim()) {
@@ -222,10 +223,12 @@ export default function ItemManagementTab({
 
   // 검색 결과 아이템 클릭
   const handleSearchItemClick = (item: SearchResultItem) => {
+    console.log('[DEBUG] handleSearchItemClick called:', item)
     setSelectedSearchItem(item)
     setShowRegisterModal(true)
     setShowSearchResults(false)
     setSearchQuery('')
+    console.log('[DEBUG] showRegisterModal set to true')
   }
 
   // 아이템 등록
@@ -248,7 +251,8 @@ export default function ItemManagementTab({
       item_category: localCategory,
       quantity: data.quantity,
       unit_price: data.unitPrice,
-      total_price: data.quantity * data.unitPrice
+      total_price: data.quantity * data.unitPrice,
+      icon_url: selectedSearchItem.icon_url
     }
     console.log('[ItemManagementTab] Calling onAddItem with:', itemData)
 
@@ -415,30 +419,23 @@ export default function ItemManagementTab({
             {showSearchResults && searchResults.length > 0 && (
               <div className={styles.searchResults}>
                 {searchResults.slice(0, 15).map((item) => (
-                  <div key={item.id} className={styles.searchResultItem}>
-                    <div
-                      className={styles.searchResultInfo}
-                      onClick={() => handleSearchItemClick(item)}
-                    >
+                  <div
+                    key={item.id}
+                    className={styles.searchResultItem}
+                    onClick={() => handleSearchItemClick(item)}
+                  >
+                    <div className={styles.searchResultInfo}>
                       {item.icon_url ? (
                         <img
                           src={item.icon_url}
                           alt={item.name}
                           className={styles.searchResultIcon}
+                          style={{ borderColor: GRADE_COLORS[item.grade] || '#9CA3AF' }}
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                         />
                       ) : (
                         <span className={styles.searchResultIconPlaceholder}>💎</span>
                       )}
-                      <span
-                        className={styles.gradeTag}
-                        style={{
-                          backgroundColor: `${GRADE_COLORS[item.grade] || '#9CA3AF'}20`,
-                          color: GRADE_COLORS[item.grade] || '#9CA3AF'
-                        }}
-                      >
-                        {item.grade}
-                      </span>
                       <span className={styles.searchResultCategory}>{item.category}</span>
                       <span
                         className={styles.searchResultName}
@@ -549,6 +546,7 @@ export default function ItemManagementTab({
           onRegister={handleRegisterItem}
         />
       )}
+
     </div>
   )
 }

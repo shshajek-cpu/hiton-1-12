@@ -178,7 +178,8 @@ export async function POST(request: NextRequest) {
       unit_price,
       total_price,
       source_content,
-      item_id
+      item_id,
+      icon_url
     } = body
 
     if (!characterId || !item_name || !item_category || !item_grade) {
@@ -208,7 +209,8 @@ export async function POST(request: NextRequest) {
         unit_price: finalUnitPrice,
         total_price: finalTotalPrice,
         obtained_date: new Date().toISOString().split('T')[0],
-        source_content
+        source_content,
+        icon_url
       })
       .select()
       .single()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import styles from './EnhancedItemCard.module.css'
 
 export interface EnhancedLedgerItem {
@@ -15,6 +15,7 @@ export interface EnhancedLedgerItem {
   is_sold: boolean
   sold_date?: string
   is_favorite?: boolean
+  icon_url?: string
 }
 
 interface EnhancedItemCardProps {
@@ -27,29 +28,12 @@ interface EnhancedItemCardProps {
   onToggleFavorite: (itemId: string, itemName: string, itemGrade: string, itemCategory: string) => Promise<void>
 }
 
-const GRADE_LABELS: Record<string, string> = {
-  // 로컬 형식
-  common: '일반',
-  rare: '희귀',
-  heroic: '영웅',
-  legendary: '전설',
-  ultimate: '궁극',
-  // 공식 API 형식 (레거시 데이터 호환)
-  Common: '일반',
-  Rare: '희귀',
-  Epic: '영웅',
-  Unique: '전설',
-  Legend: '전승'
-}
-
 const GRADE_COLORS: Record<string, string> = {
-  // 로컬 형식
   common: '#9CA3AF',
   rare: '#60A5FA',
   heroic: '#7E3DCF',
   legendary: '#FBBF24',
   ultimate: '#FB9800',
-  // 공식 API 형식 (레거시 데이터 호환)
   Common: '#9CA3AF',
   Rare: '#60A5FA',
   Epic: '#7E3DCF',
@@ -67,8 +51,63 @@ export default function EnhancedItemCard({
   onToggleFavorite
 }: EnhancedItemCardProps) {
   const [isUpdating, setIsUpdating] = useState(false)
+  const [showTooltip, setShowTooltip] = useState(false)
+  const [editQuantity, setEditQuantity] = useState(item.quantity)
+  const [editUnitPrice, setEditUnitPrice] = useState(item.unit_price)
+  const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 })
+  const tooltipRef = useRef<HTMLDivElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
 
-  const handleSell = async () => {
+  // 클릭 외부 감지
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
+        setShowTooltip(false)
+      }
+    }
+    if (showTooltip) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showTooltip])
+
+  // 아이템 데이터 변경 시 편집 상태 동기화
+  useEffect(() => {
+    setEditQuantity(item.quantity)
+    setEditUnitPrice(item.unit_price)
+  }, [item.quantity, item.unit_price])
+
+  const getGradeColor = (grade: string) => {
+    return GRADE_COLORS[grade] || GRADE_COLORS[grade.toLowerCase()] || '#9CA3AF'
+  }
+
+  const handleCardClick = () => {
+    if (!item.is_sold && cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect()
+      setTooltipPos({
+        top: rect.bottom + 8,
+        left: rect.left + rect.width / 2
+      })
+      setShowTooltip(true)
+    }
+  }
+
+  const handleSave = async () => {
+    setIsUpdating(true)
+    try {
+      await onUpdate(item.id, {
+        quantity: editQuantity,
+        unit_price: editUnitPrice,
+        total_price: editQuantity * editUnitPrice
+      })
+      setShowTooltip(false)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleSell = async (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (item.is_sold) return
     setIsUpdating(true)
     try {
@@ -78,7 +117,8 @@ export default function EnhancedItemCard({
     }
   }
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (confirm(`"${item.item_name}"을(를) 삭제하시겠습니까?`)) {
       setIsUpdating(true)
       try {
@@ -89,40 +129,20 @@ export default function EnhancedItemCard({
     }
   }
 
-  const handleToggleFavorite = async () => {
-    setIsUpdating(true)
-    try {
-      await onToggleFavorite(item.item_id, item.item_name, item.item_grade, item.item_category)
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
-  const getGradeClass = (grade: string) => {
-    // 등급 문자열을 소문자로 변환하여 매핑
-    const normalizedGrade = grade.toLowerCase()
-    const gradeMap: Record<string, string> = {
-      'common': styles.gradeCommon,
-      'rare': styles.gradeRare,
-      'heroic': styles.gradeHeroic,
-      'epic': styles.gradeHeroic,      // 공식 API Epic = 영웅
-      'legendary': styles.gradeLegendary,
-      'unique': styles.gradeLegendary,  // 공식 API Unique = 전설
-      'ultimate': styles.gradeUltimate,
-      'legend': styles.gradeUltimate    // 공식 API Legend = 전승
-    }
-    return gradeMap[normalizedGrade] || styles.gradeCommon
-  }
-
-  const getGradeColor = (grade: string) => {
-    return GRADE_COLORS[grade] || GRADE_COLORS[grade.toLowerCase()] || '#9CA3AF'
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onSelect?.()
   }
 
   return (
-    <div className={`${styles.card} ${item.is_sold ? styles.cardSold : ''} ${isSelected ? styles.cardSelected : ''}`}>
+    <div
+      ref={cardRef}
+      className={`${styles.card} ${item.is_sold ? styles.cardSold : ''} ${isSelected ? styles.cardSelected : ''}`}
+      onClick={handleCardClick}
+    >
       {/* 선택 체크박스 (미판매만) */}
-      {!item.is_sold && onSelect && (
-        <div className={styles.selectCheckbox} onClick={onSelect}>
+      {!item.is_sold && onSelect ? (
+        <div className={styles.selectCheckbox} onClick={handleCheckboxClick}>
           <input
             type="checkbox"
             checked={isSelected}
@@ -130,77 +150,120 @@ export default function EnhancedItemCard({
             className={styles.checkbox}
           />
         </div>
-      )}
+      ) : null}
 
-      {item.is_sold && (
-        <div className={styles.soldBadge}>✓ 판매완료</div>
-      )}
-
-      {/* 헤더: 아이템 정보 */}
-      <div className={styles.header}>
-        <div className={styles.itemIcon}>💎</div>
-        <div className={styles.itemInfo}>
-          <div
-            className={styles.itemName}
-            title={item.item_name}
-            style={{ color: getGradeColor(item.item_grade) }}
-          >
-            {item.item_name}
-          </div>
-          <div className={styles.itemMeta}>
-            <span
-              className={`${styles.grade} ${getGradeClass(item.item_grade)}`}
-              style={{ color: getGradeColor(item.item_grade) }}
-            >
-              {GRADE_LABELS[item.item_grade] || item.item_grade}
-            </span>
-          </div>
-        </div>
-        <button
-          className={`${styles.favoriteBtn} ${item.is_favorite ? styles.favoriteActive : ''}`}
-          onClick={handleToggleFavorite}
-          disabled={isUpdating}
-          title={item.is_favorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
-        >
-          {item.is_favorite ? '⭐' : '☆'}
-        </button>
-      </div>
-
-      {/* 수량 및 가격 */}
-      <div className={styles.priceInfo}>
-        <div className={styles.priceRow}>
-          <span className={styles.priceLabel}>수량</span>
-          <span className={styles.priceValue}>{item.quantity}개</span>
-        </div>
-        <div className={styles.priceRow}>
-          <span className={styles.priceLabel}>단가</span>
-          <span className={styles.priceValue}>{item.unit_price.toLocaleString()}</span>
-        </div>
-        <div className={`${styles.priceRow} ${styles.totalRow}`}>
-          <span className={styles.priceLabel}>총액</span>
-          <span className={styles.totalValue}>{item.total_price.toLocaleString()} 키나</span>
-        </div>
-      </div>
-
-      {/* 액션 버튼 */}
-      <div className={styles.actions}>
-        {!item.is_sold && (
-          <button
-            className={styles.sellBtn}
-            onClick={handleSell}
-            disabled={isUpdating}
-          >
-            💰 판매완료
-          </button>
+      {/* 아이템 이미지 */}
+      <div
+        className={styles.itemIcon}
+        style={{ borderColor: getGradeColor(item.item_grade) }}
+      >
+        {item.icon_url ? (
+          <img
+            src={item.icon_url}
+            alt={item.item_name}
+            className={styles.iconImage}
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none'
+            }}
+          />
+        ) : (
+          <span className={styles.iconPlaceholder}>📦</span>
         )}
-        <button
-          className={styles.deleteBtn}
-          onClick={handleDelete}
-          disabled={isUpdating}
-        >
-          🗑️
-        </button>
       </div>
+
+      {/* 아이템 정보 */}
+      <div className={styles.itemInfo}>
+        <div
+          className={styles.itemName}
+          style={{ color: getGradeColor(item.item_grade) }}
+          title={item.item_name}
+        >
+          {item.item_name}
+        </div>
+        <div className={styles.itemPrice}>
+          {item.total_price.toLocaleString()} 키나
+        </div>
+      </div>
+
+      {/* 우측 하단 버튼들 */}
+      <div className={styles.actions}>
+        {!item.is_sold ? (
+          <>
+            <button
+              className={styles.sellBtn}
+              onClick={handleSell}
+              disabled={isUpdating}
+              title="판매완료"
+            >
+              ✓
+            </button>
+            <button
+              className={styles.deleteBtn}
+              onClick={handleDelete}
+              disabled={isUpdating}
+              title="삭제"
+            >
+              ×
+            </button>
+          </>
+        ) : (
+          <span className={styles.soldBadge}>판매</span>
+        )}
+      </div>
+
+      {/* 툴팁 팝업 (fixed position) */}
+      {showTooltip && (
+        <div
+          className={styles.tooltip}
+          ref={tooltipRef}
+          style={{ top: tooltipPos.top, left: tooltipPos.left }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className={styles.tooltipHeader}>
+            <span style={{ color: getGradeColor(item.item_grade) }}>{item.item_name}</span>
+          </div>
+          <div className={styles.tooltipBody}>
+            <div className={styles.tooltipRow}>
+              <label>수량</label>
+              <input
+                type="number"
+                value={editQuantity}
+                onChange={(e) => setEditQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                min={1}
+                className={styles.tooltipInput}
+              />
+            </div>
+            <div className={styles.tooltipRow}>
+              <label>단가</label>
+              <input
+                type="number"
+                value={editUnitPrice}
+                onChange={(e) => setEditUnitPrice(Math.max(0, parseInt(e.target.value) || 0))}
+                min={0}
+                className={styles.tooltipInput}
+              />
+            </div>
+            <div className={styles.tooltipTotal}>
+              총액: {(editQuantity * editUnitPrice).toLocaleString()} 키나
+            </div>
+          </div>
+          <div className={styles.tooltipActions}>
+            <button
+              className={styles.tooltipSaveBtn}
+              onClick={handleSave}
+              disabled={isUpdating}
+            >
+              저장
+            </button>
+            <button
+              className={styles.tooltipCancelBtn}
+              onClick={() => setShowTooltip(false)}
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

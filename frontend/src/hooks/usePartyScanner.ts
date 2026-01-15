@@ -84,18 +84,19 @@ export const usePartyScanner = () => {
     const browserOcrResolveRef = useRef<((text: string) => void) | null>(null);
 
     // OCR 크롭 설정 - 다중 영역 지원 (1920x1080 기준 픽셀값)
+    // 유저 제공 좌표: 420, 681, 936, 1199 (X축 오름차순 정렬)
     const [cropRegions, setCropRegions] = useState<CropRegion[]>([
-        { id: 'region-1', name: '영역 1', startX: 170, startY: 950, width: 350, height: 80, enabled: true },
-        { id: 'region-2', name: '영역 2', startX: 570, startY: 950, width: 350, height: 80, enabled: true },
-        { id: 'region-3', name: '영역 3', startX: 970, startY: 950, width: 350, height: 80, enabled: true },
-        { id: 'region-4', name: '영역 4', startX: 1370, startY: 950, width: 350, height: 80, enabled: true },
+        { id: 'region-1', name: '영역 1', startX: 420, startY: 966, width: 160, height: 32, enabled: true },
+        { id: 'region-2', name: '영역 2', startX: 681, startY: 966, width: 160, height: 32, enabled: true },
+        { id: 'region-3', name: '영역 3', startX: 936, startY: 966, width: 160, height: 32, enabled: true },
+        { id: 'region-4', name: '영역 4', startX: 1199, startY: 966, width: 160, height: 32, enabled: true },
     ]);
 
-    // 제외 영역 (Masking) - 이 영역을 검은색으로 칠해서 OCR이 읽지 못하게 함
+    // 제외 영역 (Masking) - 정밀 크롭 좌표를 사용하므로 마스킹은 잠시 비활성화
     const [blockedRegions, setBlockedRegions] = useState<CropRegion[]>([
-        { id: 'mask-1', name: '마스크 1', startX: 604, startY: 950, width: 76, height: 69, enabled: true },
-        { id: 'mask-2', name: '마스크 2', startX: 864, startY: 952, width: 76, height: 69, enabled: true },
-        { id: 'mask-3', name: '마스크 3', startX: 1121, startY: 952, width: 76, height: 69, enabled: true },
+        { id: 'mask-1', name: '마스크 1', startX: 604, startY: 950, width: 76, height: 69, enabled: false },
+        { id: 'mask-2', name: '마스크 2', startX: 864, startY: 952, width: 76, height: 69, enabled: false },
+        { id: 'mask-3', name: '마스크 3', startX: 1121, startY: 952, width: 76, height: 69, enabled: false },
     ]);
 
     // 단일 영역 모드용 (기존 호환성) - false로 변경하여 다중 영역 크롭 사용
@@ -189,10 +190,10 @@ export const usePartyScanner = () => {
     // 기본 전처리 설정 (AION2 파티창 최적화)
     const defaultPreprocessOptions: PreprocessOptions = {
         grayscale: true,
-        threshold: 150,      // 더 얇고 날카롭게 (135 -> 150)
+        threshold: 160,      // 더 얇게 만들기 위해 임계값 상향 (150 -> 160)
         invert: true,           // 어두운 배경 → 흰 배경
-        contrast: 2.2,          // 선명도 강화 (1.8 -> 2.2)
-        denoise: false          // 노이즈 제거 Off (글자 뭉개짐 방지)
+        contrast: 1.5,          // 대비를 낮춰서 부드럽게 (2.2 -> 1.5)
+        denoise: false          // 노이즈 제거 Off
     };
 
     // 이미지 전처리 함수 (노이즈 제거 + 흑백 + 대비 강화 + 이진화 + 반전)
@@ -658,7 +659,17 @@ export const usePartyScanner = () => {
         // 1. 대표 캐릭터를 먼저 슬롯 1에 추가 (항상 첫 번째)
         if (mainChar) {
             addLog(`[대표캐릭터] ${mainChar.name} [${mainChar.server}] - 슬롯 1 고정`);
-            addMember(mainChar.name, mainChar.server, [mainChar.server], true);
+            // 대표 캐릭터는 이미 DB 정보를 알고 있다고 가정할 수도 있지만, 일단 OCR 결과와 합치기 위해 추가
+            // 단, OCR에서 중복으로 나오지 않도록 seenNames에 추가
+            matches.push({
+                name: mainChar.name,
+                rawServer: mainChar.server,
+                possibleServers: [mainChar.server],
+                isMainCharacter: true
+            });
+            seenNames.add(mainChar.name);
+        } else {
+            addLog(`[안내] 대표 캐릭터가 설정되지 않았습니다.`);
         }
 
         // 서버명 있는 패턴: 이름 [서버]
@@ -736,6 +747,7 @@ export const usePartyScanner = () => {
         addLog(`[패턴 결과] ${serverMatchCount}개 매칭됨 (서버명 있는 캐릭터)`);
 
         // 3. 서버명 없는 캐릭터도 찾기 (대표 캐릭터 서버로 검색)
+        // 대표 캐릭터가 없으면 이 로직은 동작하지 않음 (서버를 알 수 없으므로)
         if (mainChar && matches.length < 4) {
             addLog(`[패턴 검색] 서버명 없는 캐릭터 찾는 중 (대표 서버: ${mainChar.server})...`);
 

@@ -6,6 +6,7 @@
 
 .leftPanel {
   flex: 7;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -57,6 +58,7 @@
 
 /* 검색 영역 */
 .searchContainer {
+  position: relative;
   display: flex;
   gap: 8px;
 }
@@ -151,6 +153,7 @@
   border-radius: 4px;
   object-fit: contain;
   background: rgba(0, 0, 0, 0.3);
+  border: 2px solid #666;
   flex-shrink: 0;
 }
 
@@ -273,14 +276,11 @@
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
 }
 
-/* 4열 그리드 레이아웃 */
+/* 3열 그리드 레이아웃 */
 .itemGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  max-height: calc(100vh - 420px);
-  overflow-y: auto;
-  padding-right: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 
 .itemGrid::-webkit-scrollbar {
@@ -365,12 +365,6 @@
 }
 
 /* 반응형 */
-@media (max-width: 1400px) {
-  .itemGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
 @media (max-width: 1100px) {
   .itemGrid {
     grid-template-columns: repeat(2, 1fr);

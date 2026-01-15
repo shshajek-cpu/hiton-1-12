@@ -1,199 +1,125 @@
+/* 가로형 컴팩트 카드 */
 .card {
   background: linear-gradient(135deg, rgba(26, 29, 36, 0.95) 0%, rgba(15, 17, 21, 0.95) 100%);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  min-height: 48px;
 }
 
 .card:hover {
-  border-color: rgba(250, 204, 21, 0.3);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  border-color: rgba(250, 204, 21, 0.4);
+  background: linear-gradient(135deg, rgba(30, 33, 42, 0.95) 0%, rgba(20, 22, 28, 0.95) 100%);
 }
 
 .cardSold {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
-  border-color: rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%);
+  border-color: rgba(16, 185, 129, 0.2);
   opacity: 0.7;
+  cursor: default;
 }
 
 .cardSelected {
   border-color: #facc15;
-  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3);
+  box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.3);
 }
 
 /* 선택 체크박스 */
 .selectCheckbox {
-  position: absolute;
-  top: 8px;
-  left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  z-index: 1;
+  flex-shrink: 0;
 }
 
 .checkbox {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   accent-color: #facc15;
   cursor: pointer;
 }
 
-/* 판매완료 뱃지 */
-.soldBadge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 4px 10px;
-  background: linear-gradient(135deg, #10b981, #059669);
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #fff;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
-}
-
-/* 헤더: 아이템 정보 */
-.header {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  min-height: 50px;
-}
-
+/* 아이템 아이콘 */
 .itemIcon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: rgba(250, 204, 21, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid #666;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
+.iconImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.iconPlaceholder {
+  font-size: 18px;
+  opacity: 0.5;
+}
+
+/* 아이템 정보 */
 .itemInfo {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .itemName {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: #E5E7EB;
-  margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-right: 24px;
+  line-height: 1.3;
 }
 
-.itemMeta {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.grade {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-}
-
-.gradeCommon { background: rgba(156, 163, 175, 0.2); color: #9CA3AF; }
-.gradeRare { background: rgba(96, 165, 250, 0.2); color: #60A5FA; }
-.gradeHeroic { background: rgba(167, 139, 250, 0.2); color: #A78BFA; }
-.gradeLegendary { background: rgba(251, 191, 36, 0.2); color: #FBBF24; }
-.gradeUltimate { background: rgba(244, 114, 182, 0.2); color: #F472B6; }
-
-/* 즐겨찾기 버튼 */
-.favoriteBtn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: none;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 2px;
-  opacity: 0.6;
-  transition: all 0.2s;
-}
-
-.favoriteBtn:hover {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-.favoriteActive {
-  opacity: 1;
-  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.8));
-}
-
-/* 가격 정보 */
-.priceInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-}
-
-.priceRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-}
-
-.priceLabel {
-  color: #888;
-}
-
-.priceValue {
-  color: #ccc;
+.itemPrice {
+  font-size: 11px;
+  color: #facc15;
   font-weight: 500;
 }
 
-.totalRow {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 6px;
-  margin-top: 4px;
-}
-
-.totalValue {
-  color: #facc15;
-  font-weight: 700;
-  font-size: 14px;
-}
-
-/* 액션 버튼 */
+/* 우측 액션 버튼 */
 .actions {
   display: flex;
-  gap: 6px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .sellBtn {
-  flex: 1;
-  padding: 8px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #10b981, #059669);
-  border: none;
-  color: #fff;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #10b981;
   font-size: 12px;
-  font-weight: 600;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s;
 }
 
 .sellBtn:hover:not(:disabled) {
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.3);
+  border-color: #10b981;
 }
 
 .sellBtn:disabled {
@@ -202,14 +128,17 @@
 }
 
 .deleteBtn {
-  width: 36px;
-  padding: 8px;
-  border-radius: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #ef4444;
   font-size: 14px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s;
 }
 
@@ -221,4 +150,135 @@
 .deleteBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 판매완료 뱃지 */
+.soldBadge {
+  padding: 2px 6px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* 툴팁 팝업 (fixed position) */
+.tooltip {
+  position: fixed;
+  transform: translateX(-50%);
+  background: #1a1d24;
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  min-width: 200px;
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.tooltip::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid rgba(250, 204, 21, 0.3);
+}
+
+.tooltipHeader {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tooltipBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tooltipRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tooltipRow label {
+  font-size: 12px;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.tooltipInput {
+  width: 100px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  text-align: right;
+}
+
+.tooltipInput:focus {
+  outline: none;
+  border-color: rgba(250, 204, 21, 0.5);
+}
+
+.tooltipTotal {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  font-weight: 600;
+  color: #facc15;
+  text-align: right;
+}
+
+.tooltipActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.tooltipSaveBtn {
+  flex: 1;
+  padding: 8px;
+  background: linear-gradient(135deg, #facc15, #eab308);
+  border: none;
+  border-radius: 4px;
+  color: #000;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tooltipSaveBtn:hover:not(:disabled) {
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+}
+
+.tooltipSaveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tooltipCancelBtn {
+  flex: 1;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tooltipCancelBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
