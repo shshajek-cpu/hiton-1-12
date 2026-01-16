@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     console.log('[Link Device] Linking device_id to Google account:', {
       deviceId: deviceId.substring(0, 8) + '...',
       googleUserId: google_user_id.substring(0, 8) + '...',
-      googleEmail
+      google_email
     })
 
     // 1. 현재 device_id로 유저 조회
