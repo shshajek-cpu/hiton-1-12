@@ -17,6 +17,52 @@ import { MainCharacter, MAIN_CHARACTER_KEY } from '@/app/components/SearchBar'
 import { aggregateStats } from '@/lib/statsAggregator'
 import { calculateCombatPowerFromStats } from '@/lib/combatPower'
 
+// 임시 비활성화 플래그
+const DISABLED = true;
+
+function DisabledPage() {
+    return (
+        <div style={{
+            minHeight: '80vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '40px 20px',
+            textAlign: 'center',
+            background: 'linear-gradient(180deg, #0B0D12 0%, #1a1d24 100%)'
+        }}>
+            <div style={{
+                fontSize: '64px',
+                marginBottom: '24px'
+            }}>🔧</div>
+            <h1 style={{
+                fontSize: '1.8rem',
+                fontWeight: 700,
+                color: '#E5E7EB',
+                marginBottom: '12px'
+            }}>캐릭터 비교 페이지 준비 중</h1>
+            <p style={{
+                fontSize: '1rem',
+                color: '#9CA3AF',
+                marginBottom: '32px',
+                lineHeight: 1.6
+            }}>
+                더 나은 서비스를 위해 페이지를 개선하고 있습니다.<br />
+                빠른 시일 내에 다시 찾아뵙겠습니다.
+            </p>
+            <a href="/" style={{
+                padding: '12px 24px',
+                background: '#FACC15',
+                color: '#0B0D12',
+                borderRadius: '8px',
+                fontWeight: 600,
+                textDecoration: 'none'
+            }}>메인으로 돌아가기</a>
+        </div>
+    );
+}
+
 // 장비 데이터 매핑 함수
 const mapEquipmentForComparison = (rawEquipment: any): ComparisonEquipmentItem[] => {
     if (!rawEquipment?.equipmentList) return []
@@ -587,6 +633,10 @@ function ComparePageContent() {
 }
 
 export default function ComparePage() {
+    if (DISABLED) {
+        return <DisabledPage />;
+    }
+
     return (
         <Suspense fallback={<div>Loading comparison...</div>}>
             <div style={{ paddingTop: '80px', paddingLeft: '1rem', paddingRight: '1rem' }}>
