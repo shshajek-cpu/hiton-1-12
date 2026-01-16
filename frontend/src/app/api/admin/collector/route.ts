@@ -36,21 +36,39 @@ export async function GET(request: NextRequest) {
         // 랜덤 서버 선택
         const randomServer = SERVERS[Math.floor(Math.random() * SERVERS.length)]
 
-        // 의미 없는 문자 대신 자주 쓰이는 한글 음절 사용 (약 500자)
-        const COMMON_SYLLABLES = "가각간갈감갑강개객거건걸검겁게격견결겸경계고곡곤골곰공곶과곽관광괘괴교구국군굴궁권귀규균그극근글금급기긴길김까깨꼬꽃꾸꿈끝나낙난날남납낭내냉너널네녀년념녕노논놀농뇌누눈뉴느늑니닉다단달담답당대댁덕도독돈돌동둑둔뒤드득들등디따땅때또뚜뛰라락란랄람랍랑래랭량러럭런럼레력련렬렴령례로록론롱뢰루류륙률륭르리린림마막만많말망매맥맨맹머먹메며면명모목몰몸몽묘무묵문물미민밀박반발방배백뱀버번벌범법벽변별병보복본볼봄봉부북분불붕비빈빌빙사삭산살삼상새색생서석선설섬섭성세소속손솔송쇼수숙순술숨숭쉐슈스슬승시식신실심십쌍씨아악안알암압앙애액야약양어억언얼엄업에엔여역연열염엽영예오옥온올옴옹와완왕왜외요욕용우욱운울움웅원월위유육윤율융은을음응의이익인일임입잇있자작잔잠잡장재쟁저적전절점접정제조족존졸종좋좌죄주죽준줄중즉즐증지직진질짐집징차착찬찰참창채책처척천철첩청체초촉촌총최추축춘출춤충취츠측층치칙친칠침카칸캄캐커컨컬컴컵케코콜콤콩쾌쿠쿵크큰클키타탁탄탈탐탑탕태택탱터테토통투퉁특튼티틀트파팍판팔패팽퍼페펴편평포폭표푸품풍프피필핏하학한할함합항해핵행향허헌험헤헬혀현혈협형혜호혹혼홀홍화확환활황회획횟효후훈훌훔훤훼휘휴흉흐흑흔흘흠흡희흰히힘"
+        // 의미 없는 조합 대신 실존 확률이 높은 키워드 사용
+        const KEYWORDS = [
+            // 직업 (가장 많음)
+            '검성', '수호', '살성', '궁성', '마도', '정령', '치유', '호법',
+            '기사', '전사', '도적', '법사', '사제', '힐러', '탱커', '딜러',
+            // 게임 용어
+            '지존', '초보', '고수', '신', '악마', '천사', '영웅', '전설', '신화',
+            '군주', '대장', '왕', '황제', '장군', '대박', '축복', '저주',
+            // 자연
+            '하늘', '바다', '구름', '바람', '태양', '달', '별', '우주', '지구', '자연',
+            '노을', '새벽', '아침', '점심', '저녁', '밤', '봄', '여름', '가을', '겨울',
+            // 동물
+            '사자', '호랑', '늑대', '여우', '곰', '용', '드래곤', '피닉스', '독수리',
+            // 색상
+            '블랙', '화이트', '레드', '블루', '골드', '실버', '그린', '핑크',
+            // 감정/상태
+            '사랑', '행복', '희망', '기쁨', '슬픔', '분노', '자유', '평화', '승리',
+            // 한 글자 (성씨 - 의외로 많음)
+            '김', '이', '박', '최', '정', '강', '조', '윤', '장', '임',
+            '한', '오', '서', '신', '권', '황', '안', '송', '류', '홍'
+        ]
 
-        const COMMON_LAST_NAMES = "김이박최정강조윤장임한오서신권황안송류홍전고문양손배조백허유남심노하곽성차주우구신임나전민유진지엄채원천방공강현함변염양변여추노소현범왕반양부성편조임"
+        const randomKeyword = KEYWORDS[Math.floor(Math.random() * KEYWORDS.length)]
 
-        const lastName = COMMON_LAST_NAMES[Math.floor(Math.random() * COMMON_LAST_NAMES.length)]
-        const firstName = COMMON_SYLLABLES[Math.floor(Math.random() * COMMON_SYLLABLES.length)]
-        const randomKeyword = lastName + firstName
+        // 검색 결과 다양화를 위해 페이지도 랜덤 (1~5)
+        const randomPage = Math.floor(Math.random() * 5) + 1
 
-        console.log(`[Collector] Searching "${randomKeyword}" on ${randomServer.name}...`)
+        console.log(`[Collector] Searching "${randomKeyword}" on ${randomServer.name} (Page ${randomPage})...`)
 
         const searchUrl = new URL('https://aion2.plaync.com/ko-kr/api/search/aion2/search/v2/character')
         searchUrl.searchParams.append('keyword', randomKeyword)
         searchUrl.searchParams.append('serverId', randomServer.id.toString())
-        searchUrl.searchParams.append('page', '1')
+        searchUrl.searchParams.append('page', randomPage.toString())
         searchUrl.searchParams.append('size', '50')
 
         const response = await fetch(searchUrl.toString(), {
@@ -95,19 +113,21 @@ export async function GET(request: NextRequest) {
         }
 
         // DB에 저장할 데이터 준비
-        const charactersToUpsert = characters.map((item: any) => ({
-            character_id: item.characterId,
-            name: item.characterName?.replace(/<[^>]*>/g, '') || item.characterName,
-            server_id: item.serverId,
-            // server_name: 컬럼이 없어서 에러 발생으로 제거
-            class_name: pcIdToClassName[item.pcId] || null,
-            race_name: item.race === 1 ? 'Elyos' : 'Asmodian',
-            level: item.level,
-            profile_image: item.profileImageUrl?.startsWith('http')
-                ? item.profileImageUrl
-                : item.profileImageUrl ? `https://profileimg.plaync.com${item.profileImageUrl}` : null,
-            scraped_at: new Date().toISOString()
-        }))
+        const charactersToUpsert = characters
+            .filter((item: any) => item.characterName) // 이름 없는 데이터 필터링
+            .map((item: any) => ({
+                character_id: item.characterId,
+                name: item.characterName?.replace(/<[^>]*>/g, '') || item.characterName,
+                server_id: item.serverId,
+                // server_name: 컬럼이 없어서 에러 발생으로 제거
+                class_name: pcIdToClassName[item.pcId] || null,
+                race_name: item.race === 1 ? 'Elyos' : 'Asmodian',
+                level: item.level,
+                profile_image: item.profileImageUrl?.startsWith('http')
+                    ? item.profileImageUrl
+                    : item.profileImageUrl ? `https://profileimg.plaync.com${item.profileImageUrl}` : null,
+                scraped_at: new Date().toISOString()
+            }))
 
         // DB에 upsert
         const { error, count } = await supabase

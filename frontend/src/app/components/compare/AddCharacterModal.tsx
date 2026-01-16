@@ -79,7 +79,7 @@ export default function AddCharacterModal({ onClose, onSelect, slot }: AddCharac
             }
 
             if (localRes.status === 'fulfilled') addResult(localRes.value)
-            if (liveRes.status === 'fulfilled') addResult(liveRes.value)
+            if (liveRes.status === 'fulfilled') addResult(liveRes.value.list)
 
             setResults(combined)
         } catch (e) {

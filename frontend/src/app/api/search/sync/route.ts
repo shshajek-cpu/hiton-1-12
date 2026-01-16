@@ -131,7 +131,8 @@ export async function POST(request: NextRequest) {
                     .single()
 
                 // 이미 데이터가 있고 1시간 이내에 업데이트됐으면 스킵
-                if (existing?.item_level && existing?.noa_score) {
+                // item_level=0도 유효한 값이므로 !== null/undefined로 체크
+                if (existing?.item_level !== null && existing?.item_level !== undefined && existing?.noa_score) {
                     const lastUpdate = new Date(existing.updated_at).getTime()
                     const oneHourAgo = Date.now() - (60 * 60 * 1000)
                     if (lastUpdate > oneHourAgo) {
@@ -164,8 +165,8 @@ export async function POST(request: NextRequest) {
                     class_name: char.job,
                     race_name: char.race,
                     profile_image: char.imageUrl,
-                    item_level: itemLevel || null,
-                    noa_score: noaScore || null,
+                    item_level: itemLevel ?? null,  // nullish coalescing으로 0 보존
+                    noa_score: noaScore ?? null,   // nullish coalescing으로 0 보존
                     equipment: equipment ? JSON.stringify(equipment) : null,
                     stats: stats ? JSON.stringify(stats) : null,
                     updated_at: new Date().toISOString()

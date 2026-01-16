@@ -4,12 +4,14 @@ interface EquipmentItem {
     slot: string
     name?: string
     itemLevel?: number
-    enhancement?: number
+    enhancement?: string | number  // "+15" 또는 15
     tier?: number
     breakthrough?: number
-    engraving?: { grade: string; value: number }
-    manastones?: { name: string; value: string }[]
+    soulEngraving?: { grade: string; percentage: number }  // 실제 데이터 형식
+    engraving?: { grade: string; value: number }  // 레거시 형식
+    manastones?: { type?: string; name?: string; value: string | number }[]
     grade?: string
+    image?: string
 }
 
 interface EquipmentDetailViewProps {
@@ -163,6 +165,22 @@ function ItemCard({ item }: ItemCardProps) {
         }
     }
 
+    // 강화 수치 추출 ("+15" 또는 15 형식 모두 처리)
+    const getEnhancementDisplay = () => {
+        if (item.enhancement === undefined || item.enhancement === '' || item.enhancement === 0) return null
+        const value = typeof item.enhancement === 'string'
+            ? item.enhancement.replace('+', '')
+            : item.enhancement
+        return value
+    }
+
+    // 각인 정보 추출 (soulEngraving 또는 engraving)
+    const engravingData = item.soulEngraving
+        ? { grade: item.soulEngraving.grade, value: item.soulEngraving.percentage }
+        : item.engraving
+
+    const enhancementValue = getEnhancementDisplay()
+
     return (
         <div style={{
             background: '#0B0D12',
@@ -190,7 +208,7 @@ function ItemCard({ item }: ItemCardProps) {
             {item.name && (
                 <>
                     {/* 아이템 레벨 */}
-                    {item.itemLevel && (
+                    {item.itemLevel !== undefined && item.itemLevel > 0 && (
                         <div style={{ fontSize: '0.75rem', color: '#9CA3AF', marginBottom: '0.25rem' }}>
                             아이템 레벨: <span style={{ color: '#E5E7EB', fontWeight: 'bold' }}>{item.itemLevel}</span>
                         </div>
@@ -198,13 +216,13 @@ function ItemCard({ item }: ItemCardProps) {
 
                     {/* 강화 & 티어 */}
                     <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.25rem', fontSize: '0.75rem' }}>
-                        {item.enhancement !== undefined && (
+                        {enhancementValue && (
                             <div>
                                 <span style={{ color: '#6B7280' }}>강화: </span>
-                                <span style={{ color: '#10B981', fontWeight: 'bold' }}>+{item.enhancement}</span>
+                                <span style={{ color: '#10B981', fontWeight: 'bold' }}>+{enhancementValue}</span>
                             </div>
                         )}
-                        {item.tier && (
+                        {item.tier !== undefined && item.tier > 0 && (
                             <div>
                                 <span style={{ color: '#6B7280' }}>티어: </span>
                                 <span style={{ color: '#F59E0B', fontWeight: 'bold' }}>{item.tier}</span>
@@ -221,11 +239,11 @@ function ItemCard({ item }: ItemCardProps) {
                     )}
 
                     {/* 각인 */}
-                    {item.engraving && (
+                    {engravingData && (
                         <div style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>
                             <span style={{ color: '#6B7280' }}>각인: </span>
                             <span style={{ color: '#3B82F6', fontWeight: 'bold' }}>
-                                {item.engraving.grade}급 ({item.engraving.value}%)
+                                {engravingData.grade}급 ({engravingData.value}%)
                             </span>
                         </div>
                     )}
@@ -239,7 +257,7 @@ function ItemCard({ item }: ItemCardProps) {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
                                 {item.manastones.map((stone, idx) => (
                                     <div key={idx} style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>
-                                        • {stone.name} {stone.value}
+                                        • {stone.type || stone.name} {stone.value}
                                     </div>
                                 ))}
                             </div>

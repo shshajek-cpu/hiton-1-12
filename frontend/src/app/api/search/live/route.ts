@@ -13,13 +13,16 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const { name, serverId, race, page, cacheOnly } = await request.json()
+        const { name, serverId, race, page, cacheOnly, forceFresh } = await request.json()
 
         if (!name) {
             return NextResponse.json({ error: 'Name is required' }, { status: 400 })
         }
 
         const supabase = createClient(supabaseUrl, supabaseKey)
+
+        // 에러/경고 메시지 추적
+        let apiWarning: string | undefined = undefined
 
         // race를 숫자로 정규화
         let numericRace: number | undefined = undefined
@@ -53,14 +56,17 @@ export async function POST(request: NextRequest) {
 
         console.log('[Live Search] DB results:', dbResults?.length || 0, 'items')
 
-        // 캐시만 요청한 경우
-        if (cacheOnly && dbResults && dbResults.length > 0) {
+        // 캐시만 요청한 경우 (forceFresh가 아닐 때만)
+        if (cacheOnly && !forceFresh && dbResults && dbResults.length > 0) {
             return NextResponse.json({
                 list: dbResults.map(transformCachedToApiFormat),
                 pagination: { total: dbResults.length, page: 1 },
                 source: 'db'
             })
         }
+
+        // forceFresh 요청 시 DB 결과 무시하고 외부 API 우선
+        const skipDbResults = forceFresh === true
 
         // 2. 외부 API 호출 (새로운 캐릭터 발견용)
         let apiResults: any[] = []
@@ -76,37 +82,56 @@ export async function POST(request: NextRequest) {
 
             console.log('[Live Search] Fetching API:', url.toString())
 
-            const response = await fetch(url.toString(), {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Referer': 'https://aion2.plaync.com/',
-                    'Accept': 'application/json'
+            // 5초 타임아웃 설정
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+            try {
+                const response = await fetch(url.toString(), {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Referer': 'https://aion2.plaync.com/',
+                        'Accept': 'application/json'
+                    },
+                    signal: controller.signal
+                })
+
+                clearTimeout(timeoutId)
+
+                if (response.ok) {
+                    const data = await response.json()
+                    apiResults = data.list || []
+                    apiTotal = data.pagination?.total || 0
+                    console.log('[Live Search] API results:', apiResults.length, 'items, total:', apiTotal)
+
+                    // API 결과를 DB에 캐싱 (백그라운드)
+                    if (apiResults.length > 0) {
+                        const collectionPromise = cacheSearchResults(supabase, apiResults)
+                        const logPromise = logCollection(supabase, name, serverId, apiResults.length)
+
+                        // 둘 다 기다리지 않고 백그라운드 처리
+                        Promise.all([collectionPromise, logPromise]).catch(err => {
+                            console.error('[Live Search] Background task error:', err)
+                        })
+                    }
+                } else {
+                    console.error('[Live Search] API failed:', response.status)
+                    apiWarning = `외부 검색 오류 (${response.status})`
+                    // 에러 로그 저장
+                    logCollection(supabase, name, serverId, 0, `(Error ${response.status})`).catch(e => console.error(e))
                 }
-            })
-
-            if (response.ok) {
-                const data = await response.json()
-                apiResults = data.list || []
-                apiTotal = data.pagination?.total || 0
-                console.log('[Live Search] API results:', apiResults.length, 'items, total:', apiTotal)
-
-                // API 결과를 DB에 캐싱 (백그라운드)
-                if (apiResults.length > 0) {
-                    const collectionPromise = cacheSearchResults(supabase, apiResults)
-                    const logPromise = logCollection(supabase, name, serverId, apiResults.length)
-
-                    // 둘 다 기다리지 않고 백그라운드 처리 (Promise.allSettled 등으로 에러만 로깅하면 좋으나, 여기선 catch만)
-                    Promise.all([collectionPromise, logPromise]).catch(err => {
-                        console.error('[Live Search] Background task error:', err)
-                    })
+            } catch (fetchErr: any) {
+                clearTimeout(timeoutId)
+                if (fetchErr.name === 'AbortError') {
+                    console.error('[Live Search] API timeout (5s)')
+                    apiWarning = '검색 시간 초과 (5초)'
+                } else {
+                    throw fetchErr
                 }
-            } else {
-                console.error('[Live Search] API failed:', response.status)
-                // 에러 로그 저장
-                logCollection(supabase, name, serverId, 0, `(Error ${response.status})`).catch(e => console.error(e))
             }
         } catch (apiErr) {
             console.error('[Live Search] API error:', apiErr)
+            apiWarning = '외부 검색 연결 실패'
             // API 실패해도 DB 결과는 반환
         }
 
@@ -123,35 +148,46 @@ export async function POST(request: NextRequest) {
         }
 
         // DB 결과 먼저 추가 (우선순위 높음 - 더 상세한 데이터)
-        if (dbResults) {
+        // forceFresh 모드에서는 DB 결과를 나중에 추가 (API 결과 우선)
+        if (!skipDbResults && dbResults) {
             dbResults.forEach(item => {
                 const key = normalizeKey(item.character_id)
                 mergedMap.set(key, transformCachedToApiFormat(item))
             })
         }
 
-        // API 결과 추가 (DB에 없는 것만)
+        // pcId를 직업명으로 변환하는 맵
+        const pcIdToClassName: Record<number, string> = {
+            6: '검성', 7: '검성', 8: '검성', 9: '검성',
+            10: '수호성', 11: '수호성', 12: '수호성', 13: '수호성',
+            14: '궁성', 15: '궁성', 16: '궁성', 17: '궁성',
+            18: '살성', 19: '살성', 20: '살성', 21: '살성',
+            22: '정령성', 23: '정령성', 24: '정령성', 25: '정령성',
+            26: '마도성', 27: '마도성', 28: '마도성', 29: '마도성',
+            30: '치유성', 31: '치유성', 32: '치유성', 33: '치유성',
+            34: '호법성', 35: '호법성', 36: '호법성', 37: '호법성'
+        }
+
+        // API 결과 추가 (DB에 없는 것만, forceFresh면 항상 추가)
         apiResults.forEach(item => {
             const key = normalizeKey(item.characterId)
-            if (!mergedMap.has(key)) {
-                // pcId를 직업명으로 변환
-                const pcIdToClassName: Record<number, string> = {
-                    6: '검성', 7: '검성', 8: '검성', 9: '검성',
-                    10: '수호성', 11: '수호성', 12: '수호성', 13: '수호성',
-                    14: '궁성', 15: '궁성', 16: '궁성', 17: '궁성',
-                    18: '살성', 19: '살성', 20: '살성', 21: '살성',
-                    22: '정령성', 23: '정령성', 24: '정령성', 25: '정령성',
-                    26: '마도성', 27: '마도성', 28: '마도성', 29: '마도성',
-                    30: '치유성', 31: '치유성', 32: '치유성', 33: '치유성',
-                    34: '호법성', 35: '호법성', 36: '호법성', 37: '호법성'
-                }
-
+            if (!mergedMap.has(key) || skipDbResults) {
                 mergedMap.set(key, {
                     ...item,
                     className: item.className || pcIdToClassName[item.pcId] || null
                 })
             }
         })
+
+        // forceFresh 모드: DB 결과를 API 결과 뒤에 추가 (API에 없는 것만)
+        if (skipDbResults && dbResults) {
+            dbResults.forEach(item => {
+                const key = normalizeKey(item.character_id)
+                if (!mergedMap.has(key)) {
+                    mergedMap.set(key, transformCachedToApiFormat(item))
+                }
+            })
+        }
 
         // Map을 배열로 변환하고 레벨/combatPower 기준 정렬
         const mergedList = Array.from(mergedMap.values())
@@ -164,14 +200,15 @@ export async function POST(request: NextRequest) {
 
         const totalCount = Math.max(mergedList.length, apiTotal, dbResults?.length || 0)
 
-        console.log('[Live Search] Merged results:', mergedList.length, 'items (DB:', dbResults?.length || 0, '+ API:', apiResults.length, ')')
+        console.log('[Live Search] Merged results:', mergedList.length, 'items (DB:', dbResults?.length || 0, '+ API:', apiResults.length, ')', apiWarning ? `Warning: ${apiWarning}` : '')
 
         return NextResponse.json({
             list: mergedList,
             pagination: { total: totalCount, page: page || 1 },
-            source: 'merged',
+            source: skipDbResults ? 'fresh' : 'merged',
             dbCount: dbResults?.length || 0,
-            apiCount: apiResults.length
+            apiCount: apiResults.length,
+            warning: apiWarning  // 에러/경고 메시지 포함
         })
 
     } catch (error) {

@@ -180,9 +180,10 @@ export async function GET(request: NextRequest) {
 
         if (!infoRes.ok || !equipRes.ok) {
             const infoText = await infoRes.text().catch(() => '')
-            const equipText = await equipRes.text().catch(() => '')
-            console.error(`[API] Basic fetch failed. Info: ${infoRes.status} (${infoText.slice(0, 200)}), Equip: ${equipRes.status} (${equipText.slice(0, 200)})`)
-            throw new Error(`Failed to fetch from AION API (info: ${infoRes.status}, equip: ${equipRes.status})`)
+            // const equipText = await equipRes.text().catch(() => '') // equipment 200일 수 있으나 info 실패면 의미 없음
+            console.warn(`[API] Basic fetch failed for ${encodedCharId}. Info: ${infoRes.status}, Equip: ${equipRes.status}`)
+            // 500 에러를 throw하면 터미널이 시끄러우므로 404 반환
+            return NextResponse.json({ error: 'Character data not found or API error' }, { status: 404 })
         }
 
         const infoData = await infoRes.json()
@@ -322,7 +323,8 @@ export async function GET(request: NextRequest) {
                     const itemLevelStat = itemStatList.find((s) =>
                         s.name === '아이템레벨' || s.type === 'ItemLevel'
                     )
-                    return itemLevelStat?.value || 0
+                    // nullish coalescing: 값이 없으면 null, 0이면 0 반환
+                    return itemLevelStat?.value ?? null
                 })(),
                 ranking_ap: 0, // Placeholder, need to map from infoData if available
                 ranking_gp: 0, // Placeholder

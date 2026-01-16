@@ -14,6 +14,18 @@ interface DaevanionBoardItem {
     open?: number
 }
 
+interface EquipmentItem {
+    slot: string
+    name?: string
+    itemLevel?: number
+    enhancement?: number
+    tier?: number
+    breakthrough?: number
+    engraving?: { grade: string; value: number }
+    manastones?: { name: string; value: string }[]
+    grade?: string
+}
+
 interface DetailedViewSectionProps {
     daevanion?: any
     characterId?: string
@@ -21,9 +33,12 @@ interface DetailedViewSectionProps {
     race?: string
     characterClass?: string
     boardList?: DaevanionBoardItem[]
+    equipment?: EquipmentItem[]
+    accessories?: EquipmentItem[]
+    arcana?: EquipmentItem[]
 }
 
-export default function DetailedViewSection({ daevanion, characterId, serverId, race, characterClass, boardList }: DetailedViewSectionProps) {
+export default function DetailedViewSection({ daevanion, characterId, serverId, race, characterClass, boardList, equipment, accessories, arcana }: DetailedViewSectionProps) {
     const [activeTab, setActiveTab] = useState<'growth' | 'equipment' | 'daevanion' | 'legion'>('growth')
 
     return (
@@ -60,7 +75,7 @@ export default function DetailedViewSection({ daevanion, characterId, serverId, 
             {/* 탭 콘텐츠 */}
             <div>
                 {activeTab === 'growth' && <GrowthChartView />}
-                {activeTab === 'equipment' && <EquipmentDetailView />}
+                {activeTab === 'equipment' && <EquipmentDetailView equipment={equipment} accessories={accessories} arcana={arcana} />}
                 {activeTab === 'daevanion' && <DaevanionBoard characterId={characterId} serverId={serverId} race={race} characterClass={characterClass} boardList={boardList} />}
                 {activeTab === 'legion' && <LegionView />}
             </div>

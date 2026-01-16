@@ -163,7 +163,7 @@ export function useCharacterSearch(options: UseCharacterSearchOptions = {}): Use
 
             // 라이브 결과 추가
             if (liveResults.status === 'fulfilled') {
-                addResults(liveResults.value)
+                addResults(liveResults.value.list)
             }
 
             // 정렬 (noa_score 기준)

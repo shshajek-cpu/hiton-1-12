@@ -24,8 +24,6 @@ import AddCharacterModal from './components/AddCharacterModal'
 import AddItemModal from './components/AddItemModal'
 import CalendarModal from './components/CalendarModal'
 import MainCharacterModal from '@/components/MainCharacterModal'
-import DebugPanel from './components/DebugPanel'
-import ConsoleDebugPanel from './components/ConsoleDebugPanel'
 import { useAuth } from '@/context/AuthContext'
 import { getGameDate, getWeekKey } from './utils/dateUtils'
 import styles from './ledger.module.css'
@@ -139,202 +137,12 @@ export default function LedgerPage() {
     nextChargeIn: 30          // 다음 충전까지 남은 초
   })
 
-  // 초월/원정 자동 충전 (21:00 기준 8시간마다)
-  useEffect(() => {
-    const checkTranscendExpeditionCharge = () => {
-      const now = new Date()
-      const currentHour = now.getHours()
-      const currentMinute = now.getMinutes()
+  // ============================================
+  // 자동 충전은 Supabase pg_cron으로 처리됨
+  // 프론트엔드는 UI 타이머 표시만 담당
+  // ============================================
 
-      // 충전 시간 확인 (21, 05, 13)
-      const chargeHours = [21, 5, 13]
-      const isChargeTime = chargeHours.includes(currentHour) && currentMinute === 0
-
-      // 이미 충전했는지 확인
-      const lastChargeHour = lastChargeTime.getHours()
-      const isSameHour = currentHour === lastChargeHour &&
-                         now.getDate() === lastChargeTime.getDate()
-
-      if (isChargeTime && !isSameHour) {
-        console.log('[자동 충전] 초월/원정 충전:', now.toLocaleString())
-
-        setBaseTickets(prev => ({
-          ...prev,
-          transcend: Math.min(14, prev.transcend + 1),
-          expedition: Math.min(21, prev.expedition + 1)
-        }))
-
-        setLastChargeTime(now)
-      }
-    }
-
-    // 1분마다 체크
-    const interval = setInterval(checkTranscendExpeditionCharge, 60000)
-    checkTranscendExpeditionCharge() // 즉시 한번 실행
-
-    return () => clearInterval(interval)
-  }, [lastChargeTime])
-
-  // 악몽 자동 충전 (매일 05:00에 2회 충전)
-  useEffect(() => {
-    const checkNightmareCharge = () => {
-      const now = new Date()
-      const currentHour = now.getHours()
-      const currentMinute = now.getMinutes()
-
-      // 충전 시간 확인 (매일 05:00)
-      const isChargeTime = currentHour === 5 && currentMinute === 0
-
-      // 이미 충전했는지 확인 (같은 날 중복 방지)
-      const isSameDay = now.toDateString() === lastChargeTime.toDateString()
-
-      if (isChargeTime && !isSameDay) {
-        console.log('[자동 충전] 악몽 충전 (+2):', now.toLocaleString())
-
-        setBaseTickets(prev => ({
-          ...prev,
-          nightmare: Math.min(14, prev.nightmare + 2)
-        }))
-        setLastChargeTime(now)
-      }
-    }
-
-    // 1분마다 체크
-    const interval = setInterval(checkNightmareCharge, 60000)
-    checkNightmareCharge() // 즉시 한번 실행
-
-    return () => clearInterval(interval)
-  }, [lastChargeTime])
-
-  // 차원침공 자동 충전 (24시간마다 1회 충전)
-  const [lastDimensionChargeTime, setLastDimensionChargeTime] = useState<Date>(new Date())
-  useEffect(() => {
-    const checkDimensionCharge = () => {
-      const now = new Date()
-      const hoursSinceLastCharge = (now.getTime() - lastDimensionChargeTime.getTime()) / (1000 * 60 * 60)
-
-      if (hoursSinceLastCharge >= 24) {
-        console.log('[자동 충전] 차원침공 충전 (+1):', now.toLocaleString())
-
-        setBaseTickets(prev => ({
-          ...prev,
-          dimension: Math.min(14, prev.dimension + 1)
-        }))
-        setLastDimensionChargeTime(now)
-      }
-    }
-
-    // 1분마다 체크
-    const interval = setInterval(checkDimensionCharge, 60000)
-    checkDimensionCharge() // 즉시 한번 실행
-
-    return () => clearInterval(interval)
-  }, [lastDimensionChargeTime])
-
-  // 일일던전, 각성전, 토벌전 주간 리셋 (수요일 05:00)
-  useEffect(() => {
-    const checkWeeklyContentReset = () => {
-      const now = new Date()
-      const currentDay = now.getDay() // 0 (일요일) ~ 6 (토요일), 3 = 수요일
-      const currentHour = now.getHours()
-      const currentMinute = now.getMinutes()
-
-      // 수요일 05:00인지 확인
-      const isResetTime = currentDay === 3 && currentHour === 5 && currentMinute === 0
-
-      // 이미 리셋했는지 확인
-      const isSameDay = now.toDateString() === lastChargeTime.toDateString()
-
-      if (isResetTime && !isSameDay) {
-        console.log('[자동 충전] 일일던전/각성전/토벌전 주간 리셋:', now.toLocaleString())
-
-        setBaseTickets(prev => ({
-          ...prev,
-          daily_dungeon: 7,
-          awakening: 3,
-          subjugation: 3
-        }))
-        setLastChargeTime(now)
-      }
-    }
-
-    // 1분마다 체크
-    const interval = setInterval(checkWeeklyContentReset, 60000)
-    checkWeeklyContentReset() // 즉시 한번 실행
-
-    return () => clearInterval(interval)
-  }, [lastChargeTime])
-
-  // 매주 수요일 5시 성역 티켓 충전
-  useEffect(() => {
-    const checkSanctuaryCharge = () => {
-      const now = new Date()
-      const currentDay = now.getDay() // 0 (일요일) ~ 6 (토요일)
-      const currentHour = now.getHours()
-      const currentMinute = now.getMinutes()
-
-      // 수요일 5시인지 확인
-      const isSanctuaryChargeTime = currentDay === 3 && currentHour === 5 && currentMinute === 0
-
-      // 이미 충전했는지 확인 (같은 날에 중복 충전 방지)
-      const lastChargeDay = lastSanctuaryChargeTime.getDay()
-      const lastChargeDate = lastSanctuaryChargeTime.getDate()
-      const nowDate = now.getDate()
-      const isSameWeek = currentDay === 3 && lastChargeDay === 3 && lastChargeDate === nowDate
-
-      if (isSanctuaryChargeTime && !isSameWeek) {
-        console.log('[자동 충전] 성역 주간 충전 시작:', now.toLocaleString())
-
-        setBaseTickets(prev => ({
-          ...prev,
-          sanctuary: 4  // 성역은 4회로 완전 충전
-        }))
-
-        setLastSanctuaryChargeTime(now)
-      }
-    }
-
-    // 1분마다 체크
-    const interval = setInterval(checkSanctuaryCharge, 60000)
-    checkSanctuaryCharge() // 즉시 한번 실행
-
-    return () => clearInterval(interval)
-  }, [lastSanctuaryChargeTime])
-
-  // 오드 에너지 자동 충전 (02:00 기준 3시간마다 +15)
-  useEffect(() => {
-    const checkOdEnergyCharge = () => {
-      const now = new Date()
-      const currentHour = now.getHours()
-      const currentMinute = now.getMinutes()
-
-      // 충전 시간 확인 (02:00 기준 3시간마다: 02, 05, 08, 11, 14, 17, 20, 23)
-      const chargeHours = [2, 5, 8, 11, 14, 17, 20, 23]
-      const isChargeTime = chargeHours.includes(currentHour) && currentMinute === 0
-
-      // 이미 충전했는지 확인
-      const lastChargeHour = odEnergy.lastChargeTime.getHours()
-      const isSameHour = currentHour === lastChargeHour &&
-                         now.getDate() === odEnergy.lastChargeTime.getDate()
-
-      if (isChargeTime && !isSameHour) {
-        console.log('[오드 에너지] 자동 충전:', now.toLocaleString())
-        setOdEnergy(prev => ({
-          ...prev,
-          timeEnergy: Math.min(840, prev.timeEnergy + 15),
-          lastChargeTime: now
-        }))
-      }
-    }
-
-    // 1분마다 체크
-    const interval = setInterval(checkOdEnergyCharge, 60000)
-    checkOdEnergyCharge() // 즉시 한번 실행
-
-    return () => clearInterval(interval)
-  }, [odEnergy.lastChargeTime])
-
-  // 오드 에너지 타이머 업데이트 (1초마다)
+  // 오드 에너지 타이머 업데이트 (1초마다) - UI 표시용
   useEffect(() => {
     const updateOdEnergyTimer = () => {
       const now = new Date()
@@ -404,16 +212,9 @@ export default function LedgerPage() {
   // 데이터 로딩 중 플래그
   const [isLoadingCharacterData, setIsLoadingCharacterData] = useState(false)
 
-  // 디버그 로그 (콘솔 출력만)
-  const addDebugLog = useCallback((type: 'load' | 'save' | 'error' | 'info', message: string, data?: any) => {
-    console.log(`[DEBUG ${type.toUpperCase()}]`, message, data || '')
-  }, [])
-
   // 캐릭터별 데이터 로드
   useEffect(() => {
     if (!selectedCharacterId || !isReady) return
-
-    addDebugLog('load', `캐릭터 데이터 로드 시작: ${selectedCharacterId}`)
 
     const loadCharacterData = async () => {
       setIsLoadingCharacterData(true)
@@ -429,11 +230,6 @@ export default function LedgerPage() {
         }
 
         const data = await res.json()
-        addDebugLog('load', `데이터 로드 성공: ${selectedCharacterId}`, {
-          baseTickets: data.baseTickets,
-          bonusTickets: data.bonusTickets,
-          odEnergy: data.odEnergy
-        })
 
         // 티켓 데이터 복원
         if (data.baseTickets) setBaseTickets(data.baseTickets)
@@ -453,7 +249,7 @@ export default function LedgerPage() {
         if (data.lastChargeTime) setLastChargeTime(new Date(data.lastChargeTime))
         if (data.lastSanctuaryChargeTime) setLastSanctuaryChargeTime(new Date(data.lastSanctuaryChargeTime))
       } catch (error: any) {
-        addDebugLog('error', `데이터 로드 실패: ${selectedCharacterId}`, { error: error.message })
+        console.error('데이터 로드 실패:', error)
         // 에러 발생 시 기본값으로 초기화
         setBaseTickets({
           transcend: 14,
@@ -489,7 +285,7 @@ export default function LedgerPage() {
     }
 
     loadCharacterData()
-  }, [selectedCharacterId, isReady, getAuthHeader, addDebugLog])
+  }, [selectedCharacterId, isReady, getAuthHeader])
 
   // 캐릭터별 데이터 저장 (디바운스)
   useEffect(() => {
@@ -497,15 +293,6 @@ export default function LedgerPage() {
 
     const saveCharacterData = async () => {
       try {
-        addDebugLog('save', `데이터 저장 시작: ${selectedCharacterId}`, {
-          baseTickets,
-          bonusTickets: ticketBonuses,
-          odEnergy: {
-            timeEnergy: odEnergy.timeEnergy,
-            ticketEnergy: odEnergy.ticketEnergy
-          }
-        })
-
         const authHeaders = getAuthHeader()
         const res = await fetch('/api/ledger/character-state', {
           method: 'POST',
@@ -527,20 +314,18 @@ export default function LedgerPage() {
           })
         })
 
-        if (res.ok) {
-          addDebugLog('save', `데이터 저장 성공: ${selectedCharacterId}`)
-        } else {
-          addDebugLog('error', `데이터 저장 실패: ${selectedCharacterId}`, { status: res.status })
+        if (!res.ok) {
+          console.error('데이터 저장 실패:', res.status)
         }
       } catch (error: any) {
-        addDebugLog('error', `데이터 저장 에러: ${selectedCharacterId}`, { error: error.message })
+        console.error('데이터 저장 에러:', error)
       }
     }
 
     // 1초 디바운스 (500ms에서 증가)
     const timeoutId = setTimeout(saveCharacterData, 1000)
     return () => clearTimeout(timeoutId)
-  }, [selectedCharacterId, isReady, isLoadingCharacterData, baseTickets, ticketBonuses, odEnergy, lastChargeTime, lastSanctuaryChargeTime, getAuthHeader, addDebugLog])
+  }, [selectedCharacterId, isReady, isLoadingCharacterData, baseTickets, ticketBonuses, odEnergy, lastChargeTime, lastSanctuaryChargeTime, getAuthHeader])
 
   // 컨텐츠 기록
   const {
@@ -933,12 +718,6 @@ export default function LedgerPage() {
 
     // 먼저 API로 저장
     try {
-      addDebugLog('save', `초기설정 저장 시작: ${selectedCharacterId}`, {
-        baseTickets: newBaseTickets,
-        bonusTickets: newBonusTickets,
-        odEnergy: newOdEnergy
-      })
-
       const authHeaders = getAuthHeader()
       const res = await fetch('/api/ledger/character-state', {
         method: 'POST',
@@ -964,8 +743,6 @@ export default function LedgerPage() {
         throw new Error(`API error: ${res.status}`)
       }
 
-      addDebugLog('save', `초기설정 저장 성공: ${selectedCharacterId}`)
-
       // API 저장 성공 후 state 업데이트
       setOdEnergy(prev => ({
         ...prev,
@@ -989,7 +766,6 @@ export default function LedgerPage() {
       })
 
     } catch (error: any) {
-      addDebugLog('error', `초기설정 저장 실패: ${selectedCharacterId}`, { error: error.message })
       console.error('[초기설정] 저장 실패:', error)
       alert('초기설정 저장에 실패했습니다. 다시 시도해주세요.')
     }
@@ -1067,7 +843,6 @@ export default function LedgerPage() {
               <WeeklyContentSection
                 characterId={selectedCharacterId}
                 selectedDate={selectedDate}
-                onDebugLog={addDebugLog}
                 shugoInitialSync={shugoInitialSync}
                 onShugoSyncComplete={() => setShugoInitialSync(undefined)}
                 shugoBonusCharge={shugoBonusCharge}
@@ -1250,17 +1025,6 @@ export default function LedgerPage() {
           onChargeClick={() => setShowChargePopup(true)}
         />
       )}
-
-      {/* 디버그 패널 */}
-      <DebugPanel
-        baseTickets={baseTickets}
-        bonusTickets={ticketBonuses}
-        odEnergy={odEnergy}
-        characterId={selectedCharacterId}
-      />
-
-      {/* 콘솔 디버그 패널 */}
-      <ConsoleDebugPanel />
     </div>
   )
 }

@@ -77,23 +77,18 @@ interface SearchAutocompleteProps {
     isLoading: boolean
     onSelect: (character: CharacterSearchResult) => void
     onDetailsFetched?: (updatedChar: CharacterSearchResult) => void
+    warning?: string  // API 경고 메시지
+    onRefreshSearch?: () => void  // 외부 재검색 콜백
 }
 
 // 동시 조회 제한 (Rate Limit 방지)
 const MAX_CONCURRENT_FETCHES = 3
 
-export default function SearchAutocomplete({ results, isVisible, isLoading, onSelect, onDetailsFetched }: SearchAutocompleteProps) {
+export default function SearchAutocomplete({ results, isVisible, isLoading, onSelect, onDetailsFetched, warning, onRefreshSearch }: SearchAutocompleteProps) {
     // 이미 조회 요청한 characterId 추적
     const fetchedIdsRef = useRef<Set<string>>(new Set())
     // 현재 조회 중인 characterId 추적
     const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
-    // 디버그용 로그
-    const [debugLogs, setDebugLogs] = useState<string[]>([])
-    const addDebugLog = (msg: string) => {
-        const timestamp = new Date().toLocaleTimeString()
-        setDebugLogs(prev => [`[${timestamp}] ${msg}`, ...prev].slice(0, 10))
-        console.log(`[Background Detail] ${msg}`)
-    }
 
     // 백그라운드 상세 조회 로직 (순차 조회 + 딜레이로 Rate Limit 방지)
     useEffect(() => {
@@ -107,21 +102,16 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
             !fetchedIdsRef.current.has(char.characterId)
         )
 
-        addDebugLog(`Need to fetch: ${needsFetch.length} characters`)
         if (needsFetch.length === 0) return
 
         // 취소 플래그 - 검색어 바뀌면 이전 조회 중단
         let cancelled = false
 
-        // 순차 조회 (조회 시작 전 3초 대기, 조회 간격 10초)
+        // 순차 조회 (조회 시작 전 2초 대기, 조회 간격 8초)
         const fetchSequentially = async () => {
-            // 검색 결과 안정화 대기 (3초)
-            addDebugLog('Waiting 2 seconds before fetch...')
+            // 검색 결과 안정화 대기 (2초)
             await new Promise(resolve => setTimeout(resolve, 2000))
-            if (cancelled) {
-                addDebugLog('Cancelled during wait')
-                return
-            }
+            if (cancelled) return
 
             for (const char of needsFetch.slice(0, 1)) { // 최대 1개만
                 if (cancelled) break
@@ -130,13 +120,10 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
                 fetchedIdsRef.current.add(char.characterId)
                 setLoadingIds(prev => new Set(prev).add(char.characterId))
 
-                addDebugLog(`Fetching: ${char.name}`)
-
                 try {
                     const detail = await supabaseApi.fetchCharacterDetailForSearch(char.characterId, char.server_id!)
                     if (cancelled) break
                     if (detail) {
-                        addDebugLog(`Success: ${char.name} -> IL.${detail.item_level}`)
                         onDetailsFetched({
                             ...char,
                             item_level: detail.item_level,
@@ -145,7 +132,7 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
                         })
                     }
                 } catch (e) {
-                    addDebugLog(`Failed: ${char.name} - ${e}`)
+                    console.error(`[Background Detail] Failed: ${char.name}`, e)
                 } finally {
                     setLoadingIds(prev => {
                         const next = new Set(prev)
@@ -224,6 +211,43 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
                     </div>
                 )}
             </div>
+
+            {/* Warning Message */}
+            {warning && (
+                <div style={{
+                    padding: '6px 16px',
+                    fontSize: '11px',
+                    color: '#fbbf24',
+                    background: 'rgba(251, 191, 36, 0.1)',
+                    borderBottom: '1px solid #1f2937',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                }}>
+                    <span>⚠️</span>
+                    <span>{warning}</span>
+                    {onRefreshSearch && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                onRefreshSearch()
+                            }}
+                            style={{
+                                marginLeft: 'auto',
+                                padding: '2px 8px',
+                                fontSize: '10px',
+                                color: '#fbbf24',
+                                background: 'rgba(251, 191, 36, 0.2)',
+                                border: '1px solid rgba(251, 191, 36, 0.3)',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            재검색
+                        </button>
+                    )}
+                </div>
+            )}
 
             {/* Results Grid - 2열 */}
             <div style={{
@@ -337,29 +361,31 @@ export default function SearchAutocomplete({ results, isVisible, isLoading, onSe
                         color: '#6b7280',
                         fontSize: '13px'
                     }}>
-                        검색 결과가 없습니다.
+                        <div>검색 결과가 없습니다.</div>
+                        {onRefreshSearch && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    onRefreshSearch()
+                                }}
+                                style={{
+                                    marginTop: '12px',
+                                    padding: '8px 16px',
+                                    fontSize: '12px',
+                                    color: '#fbbf24',
+                                    background: 'rgba(251, 191, 36, 0.15)',
+                                    border: '1px solid rgba(251, 191, 36, 0.3)',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                외부에서 재검색
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
 
-            {/* 디버그 패널 */}
-            {debugLogs.length > 0 && (
-                <div style={{
-                    background: '#0a0b0d',
-                    borderTop: '1px solid #1f2937',
-                    padding: '8px 12px',
-                    fontSize: '10px',
-                    fontFamily: 'monospace',
-                    color: '#6b7280',
-                    maxHeight: '80px',
-                    overflowY: 'auto'
-                }}>
-                    <div style={{ color: '#fbbf24', marginBottom: '4px' }}>🔧 Debug Log</div>
-                    {debugLogs.map((log, i) => (
-                        <div key={i} style={{ opacity: 1 - i * 0.1 }}>{log}</div>
-                    ))}
-                </div>
-            )}
         </div>
     )
 }

@@ -96,7 +96,8 @@ export default function MainCharacterModal({ isOpen, onClose, onSelect }: MainCh
                 const localResults = await supabaseApi.searchLocalCharacter(name.trim(), serverId, raceFilter)
 
                 // 라이브 API 검색 (서버 및 종족 필터 적용)
-                const liveResults = await supabaseApi.searchCharacter(name.trim(), serverId, raceFilter, 1)
+                const liveResponse = await supabaseApi.searchCharacter(name.trim(), serverId, raceFilter, 1)
+                const liveResults = liveResponse.list
 
                 // 병합 및 중복 제거
                 const allResults = [...localResults]
@@ -108,9 +109,9 @@ export default function MainCharacterModal({ isOpen, onClose, onSelect }: MainCh
                     }
                 }
 
-                // 서버 필터링 (선택된 경우)
+                // 서버 필터링 (선택된 경우) - server_id와 serverId 둘 다 체크
                 const filteredResults = serverId
-                    ? allResults.filter(r => r.server_id === serverId || r.server === server)
+                    ? allResults.filter(r => r.server_id === serverId || r.serverId === serverId || r.server === server)
                     : allResults
 
                 // noa_score 기준 정렬

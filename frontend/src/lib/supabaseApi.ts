@@ -19,7 +19,8 @@ export interface CharacterSearchResult {
     characterId: string
     name: string
     server: string
-    server_id?: number // Added for detail fetch
+    server_id?: number // Added for detail fetch (DB snake_case)
+    serverId?: number  // External API (camelCase)
     job: string
     className?: string // Alias for job
     level: number
@@ -119,7 +120,7 @@ export const supabaseApi = {
     /**
      * Search for a character by name (Live AION API).
      */
-    async searchCharacter(name: string, serverId?: number, race?: string, page: number = 1): Promise<CharacterSearchResult[]> {
+    async searchCharacter(name: string, serverId?: number, race?: string, page: number = 1, forceFresh: boolean = false): Promise<{ list: CharacterSearchResult[], warning?: string }> {
         // Convert race string to ID if necessary
         let raceId: number | undefined
         if (race) {
@@ -134,7 +135,7 @@ export const supabaseApi = {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ name, serverId, race: raceId, page })
+            body: JSON.stringify({ name, serverId, race: raceId, page, forceFresh })
         })
 
         if (!res.ok) {
@@ -251,7 +252,7 @@ export const supabaseApi = {
             }
         }
 
-        return allResults
+        return { list: allResults, warning: data.warning }
     },
 
     /**

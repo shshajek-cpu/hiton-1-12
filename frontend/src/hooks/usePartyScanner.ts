@@ -1109,7 +1109,8 @@ export const usePartyScanner = () => {
 
             // 2. 로컬 DB에 없으면 라이브 API 검색
             addSearchLog(`   └ 라이브API 검색 중...`);
-            const liveResults = await supabaseApi.searchCharacter(name, serverId);
+            const liveResponse = await supabaseApi.searchCharacter(name, serverId);
+            const liveResults = liveResponse.list;
             addSearchLog(`   └ 라이브API: ${liveResults.length}개 결과`);
             if (liveResults.length > 0) {
                 addSearchLog(`   └ 결과: ${liveResults.map((r: any) => r.name).join(', ')}`);
@@ -1236,7 +1237,8 @@ export const usePartyScanner = () => {
                 }
 
                 // 라이브 API 검색 - 글자수 일치 확인
-                const altLiveResults = await supabaseApi.searchCharacter(altName, serverId);
+                const altLiveResponse = await supabaseApi.searchCharacter(altName, serverId);
+                const altLiveResults = altLiveResponse.list;
                 const altLiveMatch = findExactMatch(altLiveResults, altName, originalLength);
 
                 if (altLiveMatch) {
@@ -1354,7 +1356,8 @@ export const usePartyScanner = () => {
                 }
 
                 // 라이브 API 검색
-                const liveResults = await supabaseApi.searchCharacter(name, serverId);
+                const liveResponse = await supabaseApi.searchCharacter(name, serverId);
+                const liveResults = liveResponse.list;
                 const liveMatch = findExactMatch(liveResults, name);
 
                 if (liveMatch) {
@@ -1412,7 +1415,8 @@ export const usePartyScanner = () => {
                 }
 
                 // 라이브 API 검색
-                const liveResults = await supabaseApi.searchCharacter(altName, serverId);
+                const liveResponse = await supabaseApi.searchCharacter(altName, serverId);
+                const liveResults = liveResponse.list;
                 const liveMatch = findExactMatch(liveResults, altName);
 
                 if (liveMatch) {

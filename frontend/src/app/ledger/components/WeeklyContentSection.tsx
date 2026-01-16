@@ -11,7 +11,6 @@ import styles from './WeeklyContentSection.module.css'
 interface WeeklyContentSectionProps {
   characterId: string | null
   selectedDate: string
-  onDebugLog?: (type: 'load' | 'save' | 'error' | 'info', message: string, data?: any) => void
   shugoInitialSync?: number // 초기설정에서 전달된 슈고페스타 횟수
   onShugoSyncComplete?: () => void // 동기화 완료 콜백
   shugoBonusCharge?: number // 이용권 충전에서 전달된 보너스 충전 횟수
@@ -24,12 +23,11 @@ const DEFAULT_ABYSS_REGIONS = [
   { id: 'sulfur_tree', name: '유황나무섬', enabled: false }
 ]
 
-export default function WeeklyContentSection({ characterId, selectedDate, onDebugLog, shugoInitialSync, onShugoSyncComplete, shugoBonusCharge, onShugoBonusChargeComplete }: WeeklyContentSectionProps) {
+export default function WeeklyContentSection({ characterId, selectedDate, shugoInitialSync, onShugoSyncComplete, shugoBonusCharge, onShugoBonusChargeComplete }: WeeklyContentSectionProps) {
   const { getAuthHeader } = useDeviceId()
 
-  const log = (type: 'load' | 'save' | 'error' | 'info', message: string, data?: any) => {
+  const log = (message: string, data?: any) => {
     console.log(`[WeeklyContent] ${message}`, data || '')
-    onDebugLog?.(type, `[주간] ${message}`, data)
   }
 
   // 로딩 상태 (로딩 중에는 저장 안 함)
@@ -60,34 +58,7 @@ export default function WeeklyContentSection({ characterId, selectedDate, onDebu
   // 어비스 회랑 상태 (주간)
   const [abyssRegions, setAbyssRegions] = useState(DEFAULT_ABYSS_REGIONS)
 
-  // 슈고 페스타 충전 시간 계산 (02:00 기준 3시간마다: 2, 5, 8, 11, 14, 17, 20, 23시)
-  const getShugoChargeHours = () => [2, 5, 8, 11, 14, 17, 20, 23]
-
-  // 마지막 충전 시간 이후 충전 횟수 계산
-  const calculateShugoCharges = (lastChargeTime: string | null): number => {
-    const chargeHours = getShugoChargeHours()
-    const now = new Date()
-
-    if (!lastChargeTime) {
-      return 0
-    }
-
-    const lastCharge = new Date(lastChargeTime)
-    let charges = 0
-
-    const current = new Date(lastCharge)
-    current.setMinutes(0, 0, 0)
-
-    while (current <= now) {
-      const hour = current.getHours()
-      if (chargeHours.includes(hour) && current > lastCharge) {
-        charges++
-      }
-      current.setHours(current.getHours() + 1)
-    }
-
-    return charges
-  }
+  // 슈고 페스타 자동 충전은 Supabase pg_cron에서 처리됨
 
   // DB에서 주간 데이터 로드
   const loadFromDatabase = useCallback(async () => {
@@ -133,9 +104,9 @@ export default function WeeklyContentSection({ characterId, selectedDate, onDebu
           missionCount
         })
       })
-      log('save', 'DB 저장 완료')
+      log('DB 저장 완료')
     } catch (err) {
-      log('error', 'DB 저장 실패', err)
+      log('DB 저장 실패', err)
     }
   }, [characterId, weekKey, gameDate, weeklyOrderCount, abyssOrderCount, shugoTickets, abyssRegions, missionCount, getAuthHeader])
 
@@ -151,7 +122,7 @@ export default function WeeklyContentSection({ characterId, selectedDate, onDebu
 
   // 데이터 로드 (캐릭터/주간 변경 시)
   useEffect(() => {
-    log('load', `캐릭터/주간 변경: ${characterId}, ${weekKey}`)
+    log(`캐릭터/주간 변경: ${characterId}, ${weekKey}`)
     isLoadingRef.current = true
 
     if (!characterId) {
@@ -168,23 +139,17 @@ export default function WeeklyContentSection({ characterId, selectedDate, onDebu
       const data = await loadFromDatabase()
 
       if (data?.weekly) {
-        log('load', '주간 데이터 로드 성공', data.weekly)
+        log('주간 데이터 로드 성공', data.weekly)
         setWeeklyOrderCount(data.weekly.weeklyOrderCount ?? 0)
         setAbyssOrderCount(data.weekly.abyssOrderCount ?? 0)
 
-        // 슈고페스타 자동 충전 계산
+        // 슈고페스타 데이터 로드 (자동 충전은 Supabase pg_cron에서 처리)
         const savedShugo = data.weekly.shugoTickets ?? { base: 14, bonus: 0, lastChargeTime: '' }
-        const charges = calculateShugoCharges(savedShugo.lastChargeTime)
-        const newBase = Math.min(14, savedShugo.base + charges)
-        setShugoTickets({
-          ...savedShugo,
-          base: newBase,
-          lastChargeTime: charges > 0 ? new Date().toISOString() : savedShugo.lastChargeTime
-        })
+        setShugoTickets(savedShugo)
 
         setAbyssRegions(data.weekly.abyssRegions ?? DEFAULT_ABYSS_REGIONS)
       } else {
-        log('info', '저장된 주간 데이터 없음, 초기화')
+        log('저장된 주간 데이터 없음, 초기화')
         setWeeklyOrderCount(0)
         setAbyssOrderCount(0)
         setShugoTickets({ base: 14, bonus: 0, lastChargeTime: new Date().toISOString() })
@@ -199,7 +164,7 @@ export default function WeeklyContentSection({ characterId, selectedDate, onDebu
 
       setTimeout(() => {
         isLoadingRef.current = false
-        log('info', '로딩 완료')
+        log('로딩 완료')
       }, 100)
     }
 
@@ -209,7 +174,7 @@ export default function WeeklyContentSection({ characterId, selectedDate, onDebu
   // 슈고 페스타 초기설정 동기화
   useEffect(() => {
     if (shugoInitialSync !== undefined && characterId) {
-      log('info', `슈고페스타 초기설정 동기화: ${shugoInitialSync}회`)
+      log(`슈고페스타 초기설정 동기화: ${shugoInitialSync}회`)
       setShugoTickets({
         base: shugoInitialSync,
         bonus: 0,
@@ -222,7 +187,7 @@ export default function WeeklyContentSection({ characterId, selectedDate, onDebu
   // 슈고 페스타 보너스 충전 (이용권 충전에서)
   useEffect(() => {
     if (shugoBonusCharge !== undefined && shugoBonusCharge > 0 && characterId) {
-      log('info', `슈고페스타 보너스 충전: +${shugoBonusCharge}회`)
+      log(`슈고페스타 보너스 충전: +${shugoBonusCharge}회`)
       setShugoTickets(prev => ({
         ...prev,
         bonus: prev.bonus + shugoBonusCharge
@@ -231,32 +196,7 @@ export default function WeeklyContentSection({ characterId, selectedDate, onDebu
     }
   }, [shugoBonusCharge, characterId])
 
-  // 슈고 페스타 자동 충전 체크 (1분마다)
-  useEffect(() => {
-    if (!characterId) return
-
-    const checkAutoCharge = () => {
-      setShugoTickets(prev => {
-        if (prev.base >= 14) return prev
-
-        const charges = calculateShugoCharges(prev.lastChargeTime)
-        if (charges > 0) {
-          const newBase = Math.min(14, prev.base + charges)
-          log('info', `슈고 페스타 자동 충전: +${charges} (${prev.base} -> ${newBase})`)
-          return {
-            ...prev,
-            base: newBase,
-            lastChargeTime: new Date().toISOString()
-          }
-        }
-        return prev
-      })
-    }
-
-    const interval = setInterval(checkAutoCharge, 60000)
-
-    return () => clearInterval(interval)
-  }, [characterId])
+  // 슈고 페스타 자동 충전은 Supabase pg_cron으로 처리됨
 
   // 데이터 변경 시 DB 저장 (디바운스)
   useEffect(() => {

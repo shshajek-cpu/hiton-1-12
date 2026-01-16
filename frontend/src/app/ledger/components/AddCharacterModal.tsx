@@ -5,6 +5,7 @@ import { X, Search, UserPlus } from 'lucide-react'
 import styles from '../ledger.module.css'
 import { SERVERS, SERVER_MAP } from '@/app/constants/servers'
 import { RACES, CLASSES } from '@/app/constants/game-data'
+import { supabaseApi } from '@/lib/supabaseApi'
 
 // pcId를 직업명으로 변환
 const PC_ID_MAP: { [key: number]: string } = {
@@ -104,53 +105,68 @@ export default function AddCharacterModal({
     setError('')
 
     try {
-      // POST 방식으로 검색 API 호출
-      const res = await fetch('/api/search/live', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: searchName,
-          serverId: server || undefined,
-          race: race === 'ELYOS' ? 1 : race === 'ASMODIANS' ? 2 : undefined,
-          page: 1
-        })
-      })
+      // 서버 ID와 종족 필터 설정
+      const serverId = server ? parseInt(server) : undefined
+      const raceFilter = race === 'ELYOS' ? 'elyos' : race === 'ASMODIANS' ? 'asmodian' : undefined
 
-      if (res.ok) {
-        const data = await res.json()
-        const list = data.list || data.characters || []
-        if (list.length > 0) {
-          setSearchResults(list.slice(0, 10).map((c: any) => {
-            // HTML 태그 제거 (API가 <strong>태그</strong> 형식으로 반환)
-            const cleanName = (c.name || '').replace(/<[^>]*>/g, '')
-            // 프로필 이미지 URL 처리 (상대 경로면 전체 URL로 변환)
-            const rawImg = c.profileImageUrl || c.profile_image || c.profileImage || ''
-            let profileImg = rawImg
-            if (rawImg.startsWith('/')) {
-              // 프로필 이미지는 profileimg.plaync.com 도메인 사용
-              profileImg = `https://profileimg.plaync.com${rawImg}`
-            }
-            // 종족 (1=천족, 2=마족)
-            const raceValue = c.race === 1 ? '천족' : c.race === 2 ? '마족' : c.race_name || c.raceName || ''
-            return {
-              character_id: c.characterId || c.character_id || c.id,
-              name: cleanName,
-              level: c.level || 0,
-              class_name: c.class_name || c.className || getClassName(c.pcId),
-              server_name: c.serverName || c.server_name || SERVER_MAP[c.serverId] || '알 수 없음',
-              server_id: c.serverId || c.server_id,
-              race: raceValue,
-              profile_image: profileImg,
-              item_level: c.itemLevel || c.item_level || 0
-            }
-          }))
-          setError('')
-        } else {
-          setSearchResults([])
-          setError('검색 결과가 없습니다')
+      // 하이브리드 검색: 로컬 DB + 외부 API 동시 호출
+      const [localRes, liveRes] = await Promise.allSettled([
+        supabaseApi.searchLocalCharacter(searchName, serverId, raceFilter),
+        supabaseApi.searchCharacter(searchName, serverId, raceFilter, 1)
+      ])
+
+      // 결과 병합 및 중복 제거
+      const combined: SearchResult[] = []
+      const seen = new Set<string>()
+
+      const addResult = (c: any) => {
+        const charId = c.characterId || c.character_id || c.id
+        if (!charId || seen.has(charId)) return
+        seen.add(charId)
+
+        // HTML 태그 제거
+        const cleanName = (c.name || '').replace(/<[^>]*>/g, '')
+        // 프로필 이미지 URL 처리
+        const rawImg = c.profileImageUrl || c.profile_image || c.profileImage || c.imageUrl || ''
+        let profileImg = rawImg
+        if (rawImg.startsWith('/')) {
+          profileImg = `https://profileimg.plaync.com${rawImg}`
         }
+        // 종족 처리
+        const raceValue = c.race === 1 ? '천족' : c.race === 2 ? '마족' :
+          c.race === 'Elyos' || c.race === '천족' ? '천족' :
+          c.race === 'Asmodian' || c.race === '마족' ? '마족' :
+          c.race_name || c.raceName || ''
+
+        combined.push({
+          character_id: charId,
+          name: cleanName,
+          level: c.level || 0,
+          class_name: c.class_name || c.className || c.job || getClassName(c.pcId),
+          server_name: c.serverName || c.server_name || c.server || SERVER_MAP[c.serverId || c.server_id] || '알 수 없음',
+          server_id: String(c.serverId || c.server_id || ''),
+          race: raceValue,
+          profile_image: profileImg,
+          item_level: c.itemLevel || c.item_level || 0
+        })
+      }
+
+      // 로컬 DB 결과 먼저 추가 (더 빠름)
+      if (localRes.status === 'fulfilled') {
+        localRes.value.forEach(addResult)
+      }
+
+      // 외부 API 결과 추가
+      if (liveRes.status === 'fulfilled') {
+        liveRes.value.list.forEach(addResult)
+      }
+
+      if (combined.length > 0) {
+        setSearchResults(combined.slice(0, 10))
+        setError('')
       } else {
-        setError('검색 중 오류가 발생했습니다')
+        setSearchResults([])
+        setError('검색 결과가 없습니다')
       }
     } catch (e) {
       console.error('Search error:', e)
@@ -201,7 +217,7 @@ export default function AddCharacterModal({
   }
 
   return (
-    <div className={styles.modal} onClick={handleClose}>
+    <div className={styles.modal} onClick={handleClose} style={{ alignItems: 'flex-start', paddingTop: '10vh' }}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h3 className={styles.modalTitle}>
@@ -258,21 +274,43 @@ export default function AddCharacterModal({
           {/* 서버 선택 (종족 선택 후 표시) */}
           {race && (
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>서버</label>
-              <select
-                className={styles.formSelect}
-                value={server}
-                onChange={(e) => setServer(e.target.value)}
-              >
-                <option value="">서버 선택</option>
+              <label className={styles.formLabel}>서버 {server && `- ${SERVER_MAP[server]}`}</label>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 6,
+                maxHeight: '160px',
+                overflowY: 'auto',
+                padding: '4px',
+                background: '#1a1d24',
+                borderRadius: 8,
+                border: '1px solid #27282e'
+              }}>
                 {SERVERS
                   .filter(s => race === 'ELYOS' ? s.id.startsWith('1') : s.id.startsWith('2'))
                   .map((s) => (
-                    <option key={s.id} value={s.id}>
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setServer(s.id)}
+                      style={{
+                        padding: '8px 4px',
+                        border: 'none',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        fontSize: '0.75rem',
+                        fontWeight: server === s.id ? 600 : 400,
+                        transition: 'all 0.15s',
+                        background: server === s.id
+                          ? (race === 'ELYOS' ? '#3b82f6' : '#ef4444')
+                          : '#27282e',
+                        color: server === s.id ? '#fff' : '#a5a8b4'
+                      }}
+                    >
                       {s.name}
-                    </option>
+                    </button>
                   ))}
-              </select>
+              </div>
             </div>
           )}
 

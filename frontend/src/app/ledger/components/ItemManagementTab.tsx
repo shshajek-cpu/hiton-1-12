@@ -404,22 +404,41 @@ export default function ItemManagementTab({
 
   const unsoldCount = filteredItems.filter(i => !i.is_sold).length
 
+  // 한국 시간 기준 게임 날짜 계산 (새벽 5시 기준)
+  const getKoreanGameDate = () => {
+    const now = new Date()
+    const koreaOffset = 9 * 60
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000)
+    const koreaTime = new Date(utcTime + (koreaOffset * 60000))
+
+    if (koreaTime.getHours() < 5) {
+      koreaTime.setDate(koreaTime.getDate() - 1)
+    }
+
+    const year = koreaTime.getFullYear()
+    const month = String(koreaTime.getMonth() + 1).padStart(2, '0')
+    const day = String(koreaTime.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   // 날짜 포맷 함수
   const formatDateLabel = (dateStr: string) => {
     const date = new Date(dateStr)
-    const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
-
     const dateOnly = dateStr.split('T')[0]
-    const todayStr = today.toISOString().split('T')[0]
-    const yesterdayStr = yesterday.toISOString().split('T')[0]
 
-    if (dateOnly === todayStr) return '오늘'
-    if (dateOnly === yesterdayStr) return '어제'
+    // 한국 시간 기준 오늘/어제 계산
+    const todayStr = getKoreanGameDate()
+    const yesterdayDate = new Date(todayStr)
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1)
+    const yesterdayStr = yesterdayDate.toISOString().split('T')[0]
 
     const month = date.getMonth() + 1
     const day = date.getDate()
+    const dateText = `${month}/${day}`
+
+    if (dateOnly === todayStr) return `${dateText} (오늘)`
+    if (dateOnly === yesterdayStr) return `${dateText} (어제)`
+
     return `${month}월 ${day}일`
   }
 

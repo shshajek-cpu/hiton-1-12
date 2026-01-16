@@ -10,7 +10,7 @@ AION 2 character search and ranking service. A web application providing charact
 - Frontend: Next.js 14 (App Router), TypeScript, CSS Variables (Dark + Yellow theme)
 - Backend: Supabase Edge Functions (Deno)
 - Database: Supabase PostgreSQL
-- Deployment: Netlify (Frontend), Supabase (Backend)
+- Deployment: Vercel (Frontend), Supabase (Backend)
 
 ## Commands
 
@@ -293,27 +293,21 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 
 ### Claude Code 작업 규칙
 
-1. **Bash 도구 사용 금지**
-   - Claude Code의 Bash 도구로 명령어 실행하지 말 것
-   - 경로 문제 및 환경 충돌 발생 원인
-   - exit code 137 등 메모리/프로세스 오류 유발
+1. **Bash 도구 사용 허용 (npm 명령어)**
+   - `npm run build`, `npm run dev` 등 npm 명령어는 Bash 도구로 실행 가능
+   - `/npp` 스킬로 빌드 + 개발 서버 자동 실행
+   - 단, 위험한 시스템 명령어(rm -rf, 환경 변수 수정 등)는 금지
 
-2. **빌드/실행은 사용자가 직접 수행**
-   - `npm run dev`, `npm run build` 등은 사용자가 터미널에서 직접 실행
-   - Claude는 코드 수정만 담당
-   - 에러 발생 시 사용자가 에러 메시지를 공유하면 코드로 해결
-
-3. **Claude가 해야 할 작업**
+2. **Claude가 해야 할 작업**
    - ✅ 코드 읽기 (Read 도구)
    - ✅ 코드 수정 (Edit 도구)
    - ✅ 파일 생성 (Write 도구)
    - ✅ 파일 검색 (Glob, Grep 도구)
-   - ❌ 명령어 실행 (Bash 도구) - 사용 금지
+   - ✅ npm 명령어 실행 (Bash 도구) - build, dev, lint 등
 
-4. **사용자가 해야 할 작업**
-   - 터미널에서 `npm run dev` 실행
-   - 터미널에서 `npm run build` 실행
-   - 에러 메시지 복사해서 Claude에게 공유
+3. **에러 발생 시**
+   - 빌드 오류 발생 시 Claude가 자동으로 분석 및 수정
+   - 수정 후 다시 빌드 실행
 
 5. **문제 해결 후 보고**
    - 문제 해결 시 어떤 문제가 해결되었는지 간결하게 알려줄 것
@@ -322,6 +316,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 6. **작업 전 컨펌 필수**
    - 간단한 수정(오타, 한 줄 변경 등)이 아닌 이상 작업 전 사용자에게 컨펌 받을 것
    - 무엇을 수정할지, 어떤 파일을 변경할지 간결하게 설명 후 진행
+
+7. **비개발자 친화적 설명**
+   - 사용자는 비개발자이므로 전문 용어 사용 시 쉽게 풀어서 설명
+   - 코드 변경 내용은 "무엇이 바뀌는지" 결과 중심으로 설명
+   - 기술적 세부사항보다 "어떤 문제가 해결되는지"에 초점
+
+8. **새 기능 개발 시 디버그 패널 활용**
+   - 처음 작업하는 기능은 디버그 패널을 먼저 만들어 개발 진행
+   - 디버그 패널로 데이터 흐름, API 응답, 상태 변화를 시각적으로 확인
+   - 기능 완성 후 디버그 패널은 제거하거나 admin 페이지로 이동
 
 ## 배포 및 데이터 저장 규칙
 

@@ -11,6 +11,27 @@ function getSupabase() {
   return createClient(supabaseUrl, supabaseKey)
 }
 
+// 한국 시간 기준 게임 날짜 계산 (새벽 5시 기준)
+function getKoreanGameDate(): string {
+  const now = new Date()
+  // 한국 시간으로 변환 (UTC+9)
+  const koreaOffset = 9 * 60 // 분 단위
+  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000)
+  const koreaTime = new Date(utcTime + (koreaOffset * 60000))
+
+  // 새벽 5시 이전이면 전날 날짜 사용
+  if (koreaTime.getHours() < 5) {
+    koreaTime.setDate(koreaTime.getDate() - 1)
+  }
+
+  // YYYY-MM-DD 형식으로 반환
+  const year = koreaTime.getFullYear()
+  const month = String(koreaTime.getMonth() + 1).padStart(2, '0')
+  const day = String(koreaTime.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
 // 유저 조회 또는 자동 생성 (device_id용)
 async function getOrCreateUserByDeviceId(device_id: string) {
   const supabase = getSupabase()
@@ -209,7 +230,7 @@ export async function POST(request: NextRequest) {
       quantity: finalQuantity,
       unit_price: finalUnitPrice,
       total_price: finalTotalPrice,
-      obtained_date: new Date().toISOString().split('T')[0],
+      obtained_date: getKoreanGameDate(),
       source_content,
       icon_url
     }

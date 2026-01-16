@@ -531,7 +531,8 @@ export default function CharacterDetailPage() {
 
       // Step 1: Search with Server ID if available, otherwise Global
       addDebugLog(`검색 API 호출 중...`)
-      const searchResults = await supabaseApi.searchCharacter(charName, targetSearchServerId, raceParam)
+      const searchResponse = await supabaseApi.searchCharacter(charName, targetSearchServerId, raceParam)
+      const searchResults = searchResponse.list
       addDebugLog(`검색 결과: ${searchResults.length}개 찾음`)
 
       // Filter by server name or ID locally.
@@ -1261,7 +1262,17 @@ export default function CharacterDetailPage() {
 
           {/* DETAILED VIEW SECTION */}
           <div className="detail-section">
-            <DetailedViewSection daevanion={mappedDaevanion} characterId={apiCharacterId} serverId={apiServerId} race={data?.race} characterClass={data?.class} boardList={mappedDaevanion?.boardList} />
+            <DetailedViewSection
+              daevanion={mappedDaevanion}
+              characterId={apiCharacterId}
+              serverId={apiServerId}
+              race={data?.race}
+              characterClass={data?.class}
+              boardList={mappedDaevanion?.boardList}
+              equipment={mappedEquipment.equipment}
+              accessories={mappedEquipment.accessories}
+              arcana={mappedEquipment.arcana}
+            />
           </div>
         </div>
       </div>

@@ -71,6 +71,8 @@ export default function SearchBar() {
     const [showResults, setShowResults] = useState(false)
     const [results, setResults] = useState<CharacterSearchResult[]>([])
     const [isSearching, setIsSearching] = useState(false)
+    const [searchWarning, setSearchWarning] = useState<string | undefined>(undefined)
+    const lastSearchTermRef = useRef<string>('')  // 재검색을 위한 마지막 검색어
 
     const wrapperRef = useRef<HTMLDivElement>(null)
     const dropdownRef = useRef<HTMLDivElement>(null)
@@ -224,11 +226,13 @@ export default function SearchBar() {
     // Auto-select first server logic (Optional: Can keep empty to force selection)
     // Removed auto-select to let user choose explicitly or default to empty
 
-    const performHybridSearch = async (searchTerm: string) => {
+    const performHybridSearch = async (searchTerm: string, forceFresh: boolean = false) => {
         setIsSearching(true)
         setShowResults(true)
         setIsDropdownOpen(false) // 검색 결과창 열면 서버 드롭다운 닫기
-        setResults([])
+        setSearchWarning(undefined)  // 경고 초기화
+        lastSearchTermRef.current = searchTerm  // 재검색을 위해 저장
+        if (!forceFresh) setResults([])
 
         const serverId = server ? SERVER_NAME_TO_ID[server] : undefined
         const raceFilter = effectiveRace
@@ -246,7 +250,9 @@ export default function SearchBar() {
                 const seen = new Set(prev.map(p => buildKey(p)))
 
                 const filtered = newResults.filter(r => {
-                    if (serverId && r.server_id !== serverId) return false
+                    // server_id (DB) 또는 serverId (API) 둘 다 지원
+                    const charServerId = r.server_id ?? r.serverId
+                    if (serverId && charServerId !== serverId) return false
                     if (raceFilter) {
                         const rRace = r.race.toLowerCase()
                         const selectedRace = raceFilter.toLowerCase()
@@ -272,16 +278,31 @@ export default function SearchBar() {
             })
         }
 
-        supabaseApi.searchLocalCharacter(searchTerm, serverId, raceFilter)
-            .then(res => updateResults(res))
-            .catch(e => console.error("Local search err", e))
+        // Local DB 검색 (forceFresh가 아닐 때만)
+        if (!forceFresh) {
+            supabaseApi.searchLocalCharacter(searchTerm, serverId, raceFilter)
+                .then(res => updateResults(res))
+                .catch(e => console.error("Local search err", e))
+        }
 
-        supabaseApi.searchCharacter(searchTerm, serverId, raceFilter, 1)
+        // 외부 API 검색 (forceFresh 옵션 전달)
+        supabaseApi.searchCharacter(searchTerm, serverId, raceFilter, 1, forceFresh)
             .then(res => {
-                updateResults(res)
+                updateResults(res.list)
+                // warning이 있으면 표시
+                if (res.warning) {
+                    setSearchWarning(res.warning)
+                }
             })
             .catch(e => console.error("Live search err", e))
             .finally(() => setIsSearching(false))
+    }
+
+    // 외부에서 재검색 (forceFresh=true)
+    const handleRefreshSearch = () => {
+        if (lastSearchTermRef.current) {
+            performHybridSearch(lastSearchTermRef.current, true)
+        }
     }
 
     const handleSearch = async (e: React.FormEvent) => {
@@ -322,7 +343,8 @@ export default function SearchBar() {
 
         try {
             // Search globally (server=undefined)
-            const searchResults = await supabaseApi.searchCharacter(name, undefined, effectiveRace, 1)
+            const searchResponse = await supabaseApi.searchCharacter(name, undefined, effectiveRace, 1)
+            const searchResults = searchResponse.list
 
             if (searchResults && searchResults.length > 0) {
                 if (searchResults.length === 1) {
@@ -647,6 +669,8 @@ export default function SearchBar() {
                         r.characterId === updatedChar.characterId ? updatedChar : r
                     ))
                 }}
+                warning={searchWarning}
+                onRefreshSearch={handleRefreshSearch}
             />
 
             {/* 최근 검색 캐릭터 - 검색창이 비어있고 드롭다운이 닫혀있을 때만 표시 */}
