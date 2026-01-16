@@ -1,0 +1,38 @@
+.container {
+  margin-bottom: 16px;
+}
+
+.filterGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterButton {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color, #374151);
+  background: var(--bg-card, #1a1d24);
+  color: var(--text-secondary, #9CA3AF);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filterButton:hover {
+  border-color: var(--primary, #FACC15);
+  color: var(--primary, #FACC15);
+}
+
+.filterButton.active {
+  background: var(--primary, #FACC15);
+  border-color: var(--primary, #FACC15);
+  color: #000;
+  font-weight: 600;
+}
+
+.filterButton.pvp.active {
+  background: #EF4444;
+  border-color: #EF4444;
+  color: #fff;
+}

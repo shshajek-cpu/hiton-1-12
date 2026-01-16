@@ -1,0 +1,117 @@
+.slot {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-color, #374151);
+}
+
+.slot.filled {
+  border-color: var(--primary, #FACC15);
+}
+
+.slot.empty {
+  border-style: dashed;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.slotNumber {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.classLabel {
+  font-size: 0.85rem;
+  color: var(--primary, #FACC15);
+  font-weight: 500;
+}
+
+.memberInfo {
+  position: relative;
+}
+
+.memberMain {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.leaderBadge {
+  font-size: 0.85rem;
+}
+
+.memberClass {
+  color: var(--primary, #FACC15);
+  font-weight: 500;
+}
+
+.memberLevel {
+  color: var(--text-secondary, #9CA3AF);
+  font-size: 0.8rem;
+}
+
+.memberName {
+  color: var(--text-main, #E5E7EB);
+}
+
+.memberStats {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.kickButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  background: #EF4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.slot:hover .kickButton {
+  opacity: 1;
+}
+
+.emptySlot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.emptyText {
+  color: var(--text-secondary, #9CA3AF);
+  font-size: 0.85rem;
+}
+
+.applyButton {
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  background: var(--primary, #FACC15);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.2s;
+}
+
+.applyButton:hover {
+  transform: scale(1.05);
+}

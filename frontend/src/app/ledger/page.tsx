@@ -24,15 +24,47 @@ import AddCharacterModal from './components/AddCharacterModal'
 import AddItemModal from './components/AddItemModal'
 import CalendarModal from './components/CalendarModal'
 import MainCharacterModal from '@/components/MainCharacterModal'
+import LedgerLoginRequired from './components/LedgerLoginRequired'
 import { useAuth } from '@/context/AuthContext'
 import { getGameDate, getWeekKey } from './utils/dateUtils'
 import styles from './ledger.module.css'
 
 export default function LedgerPage() {
   // 인증 (Google 또는 device_id)
-  const { nickname, setNickname, mainCharacter, setMainCharacter, isAuthenticated: isGoogleAuth, user } = useAuth()
+  const { nickname, setNickname, mainCharacter, setMainCharacter, isAuthenticated: isGoogleAuth, user, signInWithGoogle, isLoading: isGoogleLoading } = useAuth()
   const { getAuthHeader, isLoading: isAuthLoading, isAuthenticated, deviceId } = useDeviceId()
   const isReady = !isAuthLoading && (isAuthenticated || !!deviceId)
+
+  // Google 계정과 device_id 연동 (로그인 시 자동 실행)
+  useEffect(() => {
+    if (!isGoogleAuth || !user || !deviceId) return
+
+    // Google 계정과 device_id 연동 API 호출
+    const linkDevice = async () => {
+      try {
+        const response = await fetch('/api/ledger/link-device', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Device-ID': deviceId
+          },
+          body: JSON.stringify({
+            google_user_id: user.id,
+            google_email: user.email
+          })
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          console.log('[Ledger] Device linked to Google account:', data.message)
+        }
+      } catch (err) {
+        console.error('[Ledger] Failed to link device:', err)
+      }
+    }
+
+    linkDevice()
+  }, [isGoogleAuth, user, deviceId])
 
   // 상태
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -788,6 +820,11 @@ export default function LedgerPage() {
     const weekdays = ['일', '월', '화', '수', '목', '금', '토']
     const weekday = weekdays[date.getDay()]
     return `${month}/${day} (${weekday})`
+  }
+
+  // Google 로그인 필수 - 비로그인 시 안내 화면 표시
+  if (isGoogleLoading || !isGoogleAuth) {
+    return <LedgerLoginRequired onLogin={signInWithGoogle} isLoading={isGoogleLoading} />
   }
 
   return (

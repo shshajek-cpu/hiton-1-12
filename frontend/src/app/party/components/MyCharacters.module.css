@@ -1,0 +1,640 @@
+.container {
+  background: var(--bg-card, #1a1d24);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.title {
+  font-size: 0.95rem;
+  color: var(--text-main, #E5E7EB);
+  font-weight: 600;
+}
+
+.description {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+  margin: 0 0 12px 0;
+}
+
+/* 검색 래퍼 (상단 검색 스타일) */
+.searchWrapper {
+  position: relative;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 필터 영역 */
+.filterRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* 종족 토글 버튼 */
+.raceToggle {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* 서버 선택 드롭다운 */
+.serverSelect {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 20px;
+  color: var(--text-main, #E5E7EB);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s;
+  min-width: 100px;
+}
+
+.serverSelect:hover {
+  border-color: var(--text-main, #E5E7EB);
+}
+
+.serverSelect:focus {
+  border-color: var(--primary, #FACC15);
+}
+
+.serverSelect option {
+  background: #1a1d24;
+  color: var(--text-main, #E5E7EB);
+}
+
+.raceButton {
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 20px;
+  color: var(--text-secondary, #9CA3AF);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 500;
+}
+
+.raceButton:hover {
+  border-color: var(--text-main, #E5E7EB);
+  color: var(--text-main, #E5E7EB);
+}
+
+.raceButton.elyosActive {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
+
+.raceButton.asmodianActive {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #f87171;
+}
+
+.searchInputWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 24px;
+  padding: 0 16px;
+  transition: border-color 0.2s;
+}
+
+.searchInputWrapper:focus-within {
+  border-color: var(--primary, #FACC15);
+}
+
+.searchIcon {
+  font-size: 0.9rem;
+  margin-right: 8px;
+  opacity: 0.6;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 10px 0;
+  font-size: 0.9rem;
+  background: transparent;
+  border: none;
+  color: var(--text-main, #E5E7EB);
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.clearButton {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-secondary, #9CA3AF);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.15s;
+}
+
+.clearButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--text-main, #E5E7EB);
+}
+
+/* 검색 결과 드롭다운 */
+.searchDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  background: #111318;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  overflow: hidden;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.searchDropdownHeader {
+  padding: 8px 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  background: #0f1115;
+  border-bottom: 1px solid #1f2937;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.searchingText {
+  color: #fbbf24;
+}
+
+.searchDropdownList {
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.searchResultItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  gap: 12px;
+}
+
+.searchResultItem:hover {
+  background: #242830;
+  border-color: #3a3f4a;
+}
+
+/* 프로필 이미지 (상단 검색과 동일) */
+.profileImageWrapper {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #111318;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #3b82f6;
+}
+
+.profileImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.searchResultInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.searchResultMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.searchResultMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.registerButton {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  background: var(--primary, #FACC15);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.registerButton:hover:not(:disabled) {
+  background: #eab308;
+}
+
+.registerButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.noResults {
+  padding: 24px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+/* 등록된 캐릭터 섹션 */
+.characterSection {
+  margin-top: 8px;
+}
+
+.characterSectionTitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary, #9CA3AF);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, #374151);
+}
+
+.characterList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loading, .empty {
+  font-size: 0.85rem;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+/* 캐릭터 카드 */
+.characterCard {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(250, 204, 21, 0.05);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  border-radius: 6px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 카드 프로필 이미지 */
+.cardProfileWrapper {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #111318;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(250, 204, 21, 0.5);
+}
+
+.cardProfileImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardProfilePlaceholder {
+  font-size: 14px;
+  color: #9CA3AF;
+  font-weight: 600;
+}
+
+.characterCardMain {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.characterCardStats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+  margin-left: auto;
+}
+
+.characterCardActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+/* 공통 스타일 */
+.className {
+  font-size: 0.85rem;
+  color: var(--text-main, #E5E7EB);
+  font-weight: 500;
+}
+
+.level {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.charName {
+  font-size: 0.8125rem;
+  color: #fff;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.serverName {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.separator {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #9CA3AF);
+  opacity: 0.5;
+}
+
+.stat {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+/* 돌파 배지 - 파란색 마름모 */
+.breakthrough {
+  display: inline-flex;
+  align-items: center;
+}
+
+.breakthroughBadge {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 40%, #2563EB 60%, #1D4ED8 100%);
+  border: 1px solid #93C5FD;
+  border-radius: 2px;
+  box-shadow: 0 0 4px rgba(59, 130, 246, 0.8),
+              0 0 8px rgba(96, 165, 250, 0.4),
+              inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+              inset 1px 1px 2px rgba(147, 197, 253, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: gemSparkle 2s ease-in-out infinite;
+}
+
+.breakthroughText {
+  transform: rotate(-45deg);
+  font-weight: 900;
+  font-size: 0.6rem;
+  color: #FFFFFF;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+@keyframes gemSparkle {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
+}
+
+/* 액션 버튼 */
+.refreshButton {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 4px;
+  color: #60A5FA;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.refreshButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deleteButton {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 4px;
+  color: var(--text-secondary, #9CA3AF);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.deleteButton:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #EF4444;
+  color: #EF4444;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #9CA3AF);
+  margin: 10px 0 0 0;
+  opacity: 0.8;
+}
+
+/* 디버그 버튼 */
+.debugButton {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 4px;
+  color: #a855f7;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.debugButton:hover {
+  background: rgba(168, 85, 247, 0.2);
+}
+
+/* 디버그 오버레이 */
+.debugOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.debugPanel {
+  background: #1a1d24;
+  border: 1px solid #374151;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.debugHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #374151;
+  font-weight: 600;
+  color: #a855f7;
+}
+
+.debugHeader button {
+  background: none;
+  border: none;
+  color: #9CA3AF;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.debugHeader button:hover {
+  color: #fff;
+}
+
+.debugContent {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.debugContent pre {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #E5E7EB;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.debugFooter {
+  padding: 12px 16px;
+  border-top: 1px solid #374151;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.debugFooter button {
+  padding: 8px 16px;
+  background: #a855f7;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.debugFooter button:hover {
+  background: #9333ea;
+}
+
+/* 모바일 대응 */
+@media (max-width: 600px) {
+  .searchForm {
+    flex-direction: column;
+  }
+
+  .select, .searchInput {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .searchButton {
+    width: 100%;
+  }
+
+  .characterCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .characterCardStats {
+    margin-left: 0;
+    margin-top: 6px;
+  }
+
+  .characterCardActions {
+    margin-left: auto;
+    margin-top: 8px;
+  }
+}

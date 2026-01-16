@@ -8,7 +8,7 @@ import HeroSection from './components/home/HeroSection'
 import SearchBar from './components/SearchBar'
 import MainCharacterBadge from './components/MainCharacterBadge'
 import LoginButton from '@/components/LoginButton'
-import DebugPanel from '@/components/DebugPanel'
+// import DebugPanel from '@/components/DebugPanel'  // 비활성화
 import Footer from '@/components/Footer'
 import { SyncProvider } from '../context/SyncContext'
 import { AuthProvider } from '../context/AuthContext'
@@ -83,7 +83,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                     { name: '아이템', path: '/item' },
                                     { name: '캐릭터비교', path: '/compare' },
                                     { name: '파티분석', path: '/analysis' },
-                                    { name: '미니게임', path: '/minigame' },
+                                    { name: '파티찾기', path: '/party' },
+                                    // { name: '미니게임', path: '/minigame' },
                                     { name: '가계부', path: '/ledger' }
                                 ].map(item => {
                                     const isActive = item.path === '/'
@@ -123,9 +124,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
                     {/* Footer */}
                     <Footer />
-
-                    {/* Debug Panel */}
-                    <DebugPanel />
                 </SyncProvider>
                 </AuthProvider>
             </body>

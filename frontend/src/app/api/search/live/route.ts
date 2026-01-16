@@ -174,7 +174,8 @@ export async function POST(request: NextRequest) {
             if (!mergedMap.has(key) || skipDbResults) {
                 mergedMap.set(key, {
                     ...item,
-                    className: item.className || pcIdToClassName[item.pcId] || null
+                    // className 결정: className > jobName > pcId 매핑 순서
+                    className: item.className || item.jobName || pcIdToClassName[item.pcId] || null
                 })
             }
         })

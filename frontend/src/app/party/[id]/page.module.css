@@ -1,0 +1,276 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.backLink {
+  color: var(--text-secondary, #9CA3AF);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.backLink:hover {
+  color: var(--text-main, #E5E7EB);
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.headerButton {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: var(--bg-card, #1a1d24);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 4px;
+  color: var(--text-main, #E5E7EB);
+  cursor: pointer;
+}
+
+.headerButton.complete {
+  background: var(--primary, #FACC15);
+  border-color: var(--primary, #FACC15);
+  color: #000;
+}
+
+.headerButton.danger {
+  background: transparent;
+  border-color: #EF4444;
+  color: #EF4444;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 48px;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.partyInfo {
+  background: var(--bg-card, #1a1d24);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 2px solid transparent;
+}
+
+.partyInfo.pve {
+  border-color: var(--primary, #FACC15);
+}
+
+.partyInfo.pvp {
+  border-color: #EF4444;
+  background: linear-gradient(135deg, #1a1d24 0%, #2a1a1a 100%);
+}
+
+.partyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dungeonName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-main, #E5E7EB);
+}
+
+.status {
+  color: var(--primary, #FACC15);
+  font-size: 0.9rem;
+}
+
+.partyTitle {
+  font-size: 1rem;
+  color: var(--text-main, #E5E7EB);
+  margin: 0 0 12px 0;
+  font-weight: 500;
+}
+
+.timeInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.timeIcon {
+  font-size: 1.2rem;
+}
+
+.timeLabel {
+  font-weight: 600;
+  color: var(--primary, #FACC15);
+}
+
+.timeRemaining {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.specs {
+  font-size: 0.85rem;
+  color: var(--text-secondary, #9CA3AF);
+  margin-bottom: 8px;
+}
+
+.description {
+  font-size: 0.9rem;
+  color: var(--text-main, #E5E7EB);
+  font-style: italic;
+}
+
+.section {
+  background: var(--bg-card, #1a1d24);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 0.95rem;
+  color: var(--text-main, #E5E7EB);
+  margin: 0 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaderOnly {
+  font-size: 0.75rem;
+  color: var(--primary, #FACC15);
+  margin-left: 8px;
+}
+
+.slotsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.pendingList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pendingCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-color, #374151);
+}
+
+.pendingInfo {
+  flex: 1;
+}
+
+.pendingMain {
+  font-size: 0.9rem;
+  color: var(--text-main, #E5E7EB);
+  margin-bottom: 4px;
+}
+
+.pendingStats {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+  margin-bottom: 4px;
+}
+
+.pendingMessage {
+  font-size: 0.8rem;
+  color: var(--text-main, #E5E7EB);
+  font-style: italic;
+  margin-bottom: 4px;
+}
+
+.pendingSlot {
+  font-size: 0.75rem;
+  color: var(--primary, #FACC15);
+}
+
+.pendingActions {
+  display: flex;
+  gap: 8px;
+}
+
+.rejectButton, .approveButton {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+}
+
+.rejectButton {
+  background: transparent;
+  border: 1px solid #EF4444;
+  color: #EF4444;
+}
+
+.approveButton {
+  background: var(--primary, #FACC15);
+  color: #000;
+}
+
+.rejectButton:disabled, .approveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.myApplicationStatus {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid #60A5FA;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  color: #60A5FA;
+  font-size: 0.9rem;
+}
+
+.cancelButton {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: transparent;
+  border: 1px solid #EF4444;
+  border-radius: 4px;
+  color: #EF4444;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .slotsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pendingCard {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pendingActions {
+    width: 100%;
+  }
+
+  .rejectButton, .approveButton {
+    flex: 1;
+  }
+}

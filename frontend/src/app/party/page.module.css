@@ -1,0 +1,146 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 1.5rem;
+  color: var(--text-main, #E5E7EB);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.myPartyLink {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-decoration: none;
+  color: var(--text-main, #E5E7EB);
+  font-size: 0.9rem;
+}
+
+.myPartyCount {
+  font-size: 0.75rem;
+  color: var(--primary, #FACC15);
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab {
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #9CA3AF);
+  font-size: 0.95rem;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.tab:hover {
+  color: var(--text-main, #E5E7EB);
+}
+
+.tab.active {
+  color: var(--primary, #FACC15);
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primary, #FACC15);
+}
+
+.filterRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.createButton {
+  flex-shrink: 0;
+  padding: 10px 20px;
+  background: var(--primary, #FACC15);
+  color: #000;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.createButton:hover {
+  transform: scale(1.02);
+}
+
+.myParties {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mySection {
+  background: var(--bg-card, #1a1d24);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.mySectionTitle {
+  font-size: 0.95rem;
+  color: var(--text-main, #E5E7EB);
+  margin: 0 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.myGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.loading, .empty {
+  color: var(--text-secondary, #9CA3AF);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .filterRow {
+    flex-direction: column;
+  }
+
+  .createButton {
+    width: 100%;
+    text-align: center;
+  }
+
+  .myGrid {
+    grid-template-columns: 1fr;
+  }
+}

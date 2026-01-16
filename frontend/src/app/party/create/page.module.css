@@ -1,0 +1,28 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.backLink {
+  color: var(--text-secondary, #9CA3AF);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.backLink:hover {
+  color: var(--text-main, #E5E7EB);
+}
+
+.title {
+  font-size: 1.25rem;
+  color: var(--text-main, #E5E7EB);
+  margin: 0;
+}

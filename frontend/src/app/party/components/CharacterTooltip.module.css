@@ -1,0 +1,83 @@
+.tooltip {
+  position: absolute;
+  z-index: 100;
+  top: 100%;
+  left: 0;
+  min-width: 280px;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--primary, #FACC15);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  font-size: 0.8rem;
+}
+
+.header {
+  font-weight: 600;
+  color: var(--text-main, #E5E7EB);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 8px;
+}
+
+.section {
+  margin-bottom: 12px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-weight: 500;
+  color: var(--primary, #FACC15);
+  margin-bottom: 6px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.label {
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.value {
+  color: var(--text-main, #E5E7EB);
+}
+
+.equipItem {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.equipSlot {
+  color: var(--text-secondary, #9CA3AF);
+  min-width: 40px;
+}
+
+.equipName {
+  color: var(--text-main, #E5E7EB);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.statItem {
+  display: flex;
+  gap: 4px;
+}
+
+.statName {
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.statValue {
+  color: var(--text-main, #E5E7EB);
+}

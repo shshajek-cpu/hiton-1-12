@@ -1,0 +1,491 @@
+/* 모달 오버레이 */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* 모달 컨테이너 */
+.modal {
+  background: var(--bg-card, #1a1d24);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* 헤더 */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color, #374151);
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-main, #E5E7EB);
+  font-weight: 600;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #9CA3AF);
+  cursor: pointer;
+  font-size: 1.5rem;
+  border-radius: 4px;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main, #E5E7EB);
+}
+
+/* 모달 컨텐츠 */
+.modalContent {
+  padding: 16px 20px;
+}
+
+/* 섹션 */
+.section {
+  margin-bottom: 16px;
+}
+
+/* 던전 타입 버튼 */
+.dungeonTypes {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.typeButton {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 6px;
+  color: var(--text-secondary, #9CA3AF);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.typeButton:hover {
+  border-color: var(--primary, #FACC15);
+  color: var(--text-main, #E5E7EB);
+}
+
+.typeButton.active {
+  background: rgba(250, 204, 21, 0.15);
+  border-color: var(--primary, #FACC15);
+  color: var(--primary, #FACC15);
+}
+
+.typeButton.pvp {
+  color: #EF4444;
+}
+
+.typeButton.pvp.active {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #EF4444;
+  color: #EF4444;
+}
+
+/* 던전 선택 행 */
+.dungeonRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.dungeonSelect {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dungeonSelect label,
+.tierSelect label,
+.runCountSelect label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.dungeonSelect select {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 4px;
+  color: var(--text-main, #E5E7EB);
+  min-width: 120px;
+}
+
+.dungeonSelect select:focus {
+  outline: none;
+  border-color: var(--primary, #FACC15);
+}
+
+/* 단계 선택 */
+.tierSelect {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tiers {
+  display: flex;
+  gap: 4px;
+}
+
+.tierButton {
+  width: 28px;
+  height: 28px;
+  font-size: 0.75rem;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 4px;
+  color: var(--text-secondary, #9CA3AF);
+  cursor: pointer;
+}
+
+.tierButton:hover {
+  border-color: var(--primary, #FACC15);
+}
+
+.tierButton.active {
+  background: var(--primary, #FACC15);
+  border-color: var(--primary, #FACC15);
+  color: #000;
+}
+
+/* 진행 횟수 */
+.runCountSelect {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.runCount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.runCount button {
+  width: 28px;
+  height: 28px;
+  font-size: 1rem;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 4px;
+  color: var(--text-main, #E5E7EB);
+  cursor: pointer;
+}
+
+.runCount button:hover {
+  border-color: var(--primary, #FACC15);
+}
+
+.runCount span {
+  min-width: 40px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-main, #E5E7EB);
+}
+
+/* 진행 방식 */
+.scheduleRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-main, #E5E7EB);
+  cursor: pointer;
+}
+
+.radioLabel input[type="radio"] {
+  accent-color: var(--primary, #FACC15);
+}
+
+.scheduleInputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scheduleInputs input {
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 4px;
+  color: var(--text-main, #E5E7EB);
+}
+
+.scheduleInputs input[type="date"] {
+  width: 130px;
+}
+
+.scheduleInputs input[type="time"] {
+  width: 90px;
+}
+
+.scheduleInputs span {
+  color: var(--text-secondary, #9CA3AF);
+}
+
+/* 2단 레이아웃 */
+.twoColumn {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.columnLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.columnRight {
+  flex: 1;
+  min-width: 0;
+  padding-left: 16px;
+  border-left: 1px solid var(--border-color, #374151);
+}
+
+/* 참가 방식 */
+.joinTypeRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+/* 슬롯 */
+.slotsCompact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slotRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slotLabel {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+  min-width: 70px;
+}
+
+.leaderSlot {
+  font-size: 0.8rem;
+  color: var(--primary, #FACC15);
+}
+
+.slotSelect {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 4px;
+  color: var(--text-main, #E5E7EB);
+}
+
+/* 캐릭터 선택 */
+.charSelectRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.charSelectRow select {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 4px;
+  color: var(--text-main, #E5E7EB);
+}
+
+/* 스펙 조건 */
+.specRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.specRow label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+  min-width: 100px;
+}
+
+.specRow input[type="checkbox"] {
+  accent-color: var(--primary, #FACC15);
+}
+
+.specInput {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 4px;
+  color: var(--text-main, #E5E7EB);
+  max-width: 100px;
+}
+
+.specInput:disabled {
+  opacity: 0.5;
+}
+
+/* 제목/설명 */
+.titleInput,
+.descInput {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  background: var(--bg-main, #0B0D12);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 6px;
+  color: var(--text-main, #E5E7EB);
+  margin-bottom: 8px;
+}
+
+.titleInput:focus,
+.descInput:focus {
+  outline: none;
+  border-color: var(--primary, #FACC15);
+}
+
+.descInput {
+  font-size: 0.85rem;
+}
+
+/* 에러 */
+.error {
+  color: #EF4444;
+  font-size: 0.8rem;
+  margin: 8px 0;
+}
+
+/* 푸터 */
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #374151);
+}
+
+.cancelButton {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  background: transparent;
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 6px;
+  color: var(--text-secondary, #9CA3AF);
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  border-color: var(--text-main, #E5E7EB);
+  color: var(--text-main, #E5E7EB);
+}
+
+.submitButton {
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  background: var(--primary, #FACC15);
+  border: none;
+  border-radius: 6px;
+  color: #000;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #eab308;
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 모바일 대응 */
+@media (max-width: 600px) {
+  .modal {
+    max-height: 95vh;
+  }
+
+  .twoColumn {
+    flex-direction: column;
+  }
+
+  .columnRight {
+    padding-left: 0;
+    padding-top: 12px;
+    border-left: none;
+    border-top: 1px solid var(--border-color, #374151);
+  }
+
+  .dungeonRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .scheduleRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .scheduleInputs {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}

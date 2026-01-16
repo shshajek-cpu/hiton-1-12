@@ -1,0 +1,142 @@
+.card {
+  display: block;
+  background: var(--bg-card, #1a1d24);
+  border-radius: 8px;
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid transparent;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.card.pve {
+  border-color: var(--primary, #FACC15);
+}
+
+.card.pvp {
+  border-color: #EF4444;
+  background: linear-gradient(135deg, #1a1d24 0%, #2a1a1a 100%);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dungeonType {
+  font-weight: 600;
+  color: var(--text-main, #E5E7EB);
+}
+
+.status {
+  font-size: 0.875rem;
+  color: var(--primary, #FACC15);
+}
+
+.title {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #9CA3AF);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.timeIcon {
+  font-size: 1.1rem;
+}
+
+.timeLabel {
+  font-weight: 600;
+  color: var(--primary, #FACC15);
+}
+
+.timeSeparator {
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.timeDate {
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.timeRemaining {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.specs {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+  margin-bottom: 8px;
+}
+
+.slots {
+  font-size: 0.85rem;
+  color: var(--text-main, #E5E7EB);
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.slot {
+  font-size: 0.8rem;
+}
+
+.slot.filled {
+  color: var(--primary, #FACC15);
+}
+
+.slot.empty {
+  color: var(--text-secondary, #9CA3AF);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #9CA3AF);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+.leader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pendingBadge {
+  color: #EF4444;
+  font-weight: 500;
+}
+
+.myRole {
+  color: var(--primary, #FACC15);
+}
+
+.myApplication {
+  color: #60A5FA;
+}
